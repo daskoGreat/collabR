@@ -2,6 +2,7 @@ import { requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ChannelList from "./channel-list";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -9,7 +10,7 @@ interface Props {
 
 export default async function SpaceDetailPage({ params }: Props) {
     const { id } = await params;
-    await requireSpaceMember(id);
+    const currentUser = await requireSpaceMember(id);
 
     const space = await prisma.space.findUnique({
         where: { id },
@@ -34,6 +35,12 @@ export default async function SpaceDetailPage({ params }: Props) {
         take: 5,
         include: { user: { select: { name: true } }, _count: { select: { answers: true } } },
     });
+
+    // Can user manage channels?
+    const canManage = currentUser.role === "ADMIN" || currentUser.role === "MODERATOR" ||
+        !!(await prisma.spaceMember.findFirst({
+            where: { spaceId: id, userId: currentUser.id, role: { in: ["ADMIN", "MODERATOR"] } },
+        }));
 
     return (
         <>
@@ -70,40 +77,16 @@ export default async function SpaceDetailPage({ params }: Props) {
                 </div>
 
                 <div className="grid-2">
-                    {/* Channels */}
+                    {/* Left column: Channels */}
                     <div>
-                        <div className="row-between mb-4">
-                            <h3 className="page-title" style={{ fontSize: "var(--font-size-md)" }}>
-                                channels
-                            </h3>
-                        </div>
-                        <div className="stack">
-                            {space.channels.map((channel: typeof space.channels[number]) => (
-                                <Link
-                                    key={channel.id}
-                                    href={`/spaces/${id}/chat/${channel.id}`}
-                                    style={{ textDecoration: "none" }}
-                                >
-                                    <div className="card card-hover card-compact">
-                                        <div className="font-semibold">
-                                            <span className="text-neon">#</span>{" "}
-                                            {channel.name.toLowerCase()}
-                                        </div>
-                                        {channel.description && (
-                                            <div className="text-xs text-muted mt-2">
-                                                {channel.description}
-                                            </div>
-                                        )}
-                                    </div>
-                                </Link>
-                            ))}
-                            {space.channels.length === 0 && (
-                                <div className="text-muted text-sm">no channels yet.</div>
-                            )}
-                        </div>
+                        <ChannelList
+                            spaceId={id}
+                            channels={space.channels}
+                            canManage={canManage}
+                        />
                     </div>
 
-                    {/* Quick links */}
+                    {/* Right column: Quick nav */}
                     <div>
                         <div className="row-between mb-4">
                             <h3 className="page-title" style={{ fontSize: "var(--font-size-md)" }}>
@@ -111,10 +94,18 @@ export default async function SpaceDetailPage({ params }: Props) {
                             </h3>
                         </div>
                         <div className="stack">
+                            <Link href={`/spaces/${id}/members`} style={{ textDecoration: "none" }}>
+                                <div className="card card-hover card-compact">
+                                    <div className="row-between">
+                                        <span className="font-semibold">&#x22A1; members</span>
+                                        <span className="badge badge-muted">{space._count.members}</span>
+                                    </div>
+                                </div>
+                            </Link>
                             <Link href={`/spaces/${id}/tasks`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">⊡ tasks</span>
+                                        <span className="font-semibold">&#x22A1; tasks</span>
                                         <span className="badge badge-cyan">{space._count.tasks}</span>
                                     </div>
                                 </div>
@@ -130,7 +121,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             <Link href={`/spaces/${id}/files`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">⊞ files</span>
+                                        <span className="font-semibold">&#x229E; files</span>
                                         <span className="badge badge-muted">{space._count.files}</span>
                                     </div>
                                 </div>
@@ -139,7 +130,6 @@ export default async function SpaceDetailPage({ params }: Props) {
                     </div>
                 </div>
 
-                {/* Recent activity */}
                 {recentTasks.length > 0 && (
                     <div className="mt-6">
                         <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
@@ -147,23 +137,16 @@ export default async function SpaceDetailPage({ params }: Props) {
                         </h3>
                         <div className="stack">
                             {recentTasks.map((task: typeof recentTasks[number]) => (
-                                <Link
-                                    key={task.id}
-                                    href={`/spaces/${id}/tasks/${task.id}`}
-                                    style={{ textDecoration: "none" }}
-                                >
+                                <Link key={task.id} href={`/spaces/${id}/tasks/${task.id}`} style={{ textDecoration: "none" }}>
                                     <div className={`card card-hover card-compact task-card status-${task.status.toLowerCase().replace("_", "-")}`}>
                                         <div className="row-between">
                                             <span className="task-title">{task.title}</span>
-                                            <span className={`badge ${task.status === "DONE" ? "badge-green" :
-                                                task.status === "IN_PROGRESS" ? "badge-yellow" :
-                                                    "badge-cyan"
-                                                }`}>
+                                            <span className={`badge ${task.status === "DONE" ? "badge-green" : task.status === "IN_PROGRESS" ? "badge-yellow" : "badge-cyan"}`}>
                                                 {task.status.toLowerCase().replace("_", " ")}
                                             </span>
                                         </div>
                                         <div className="task-meta mt-2">
-                                            {task.assignee && <span>→ {task.assignee.name}</span>}
+                                            {task.assignee && <span>&#x2192; {task.assignee.name}</span>}
                                         </div>
                                     </div>
                                 </Link>
@@ -179,11 +162,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                         </h3>
                         <div className="stack">
                             {recentPosts.map((post: typeof recentPosts[number]) => (
-                                <Link
-                                    key={post.id}
-                                    href={`/spaces/${id}/help/${post.id}`}
-                                    style={{ textDecoration: "none" }}
-                                >
+                                <Link key={post.id} href={`/spaces/${id}/help/${post.id}`} style={{ textDecoration: "none" }}>
                                     <div className="card card-hover card-compact">
                                         <div className="row-between">
                                             <span className="font-semibold">{post.title}</span>
@@ -193,9 +172,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                                                 <span className="badge badge-yellow">{post._count.answers} answers</span>
                                             )}
                                         </div>
-                                        <div className="text-xs text-muted mt-2">
-                                            by {post.user.name}
-                                        </div>
+                                        <div className="text-xs text-muted mt-2">by {post.user.name}</div>
                                     </div>
                                 </Link>
                             ))}

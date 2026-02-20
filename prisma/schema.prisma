@@ -52,6 +52,9 @@ model User {
   invitesCreated Invite[]      @relation("InviteCreator")
   spaceMemberships SpaceMember[]
   messages       Message[]
+  sentDMs        DirectMessage[] @relation("DMSender")
+  dmThreadsAsUser1 DirectThread[] @relation("DirectThreadUser1")
+  dmThreadsAsUser2 DirectThread[] @relation("DirectThreadUser2")
   files          File[]
   tasksCreated   Task[]        @relation("TaskCreator")
   tasksAssigned  Task[]        @relation("TaskAssignee")
@@ -131,12 +134,31 @@ model Channel {
 }
 
 model DirectThread {
-  id      String @id @default(cuid())
-  user1Id String
-  user2Id String
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
   createdAt DateTime @default(now())
 
+  user1    User            @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User            @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages DirectMessage[]
+
   @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model DirectMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
 }
 
 model Message {

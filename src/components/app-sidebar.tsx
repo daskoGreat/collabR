@@ -9,12 +9,18 @@ interface Space {
     name: string;
 }
 
+interface DmThread {
+    id: string;
+    otherUser: { id: string; name: string };
+}
+
 interface Props {
     user: { id: string; name: string; email: string; role: string };
     spaces: Space[];
+    dmThreads: DmThread[];
 }
 
-export default function AppSidebar({ user, spaces }: Props) {
+export default function AppSidebar({ user, spaces, dmThreads }: Props) {
     const pathname = usePathname();
 
     const isActive = (path: string) =>
@@ -56,6 +62,27 @@ export default function AppSidebar({ user, spaces }: Props) {
                         <div className="sidebar-link text-muted" style={{ cursor: "default" }}>
                             <span className="sidebar-link-icon">∅</span>
                             no spaces yet
+                        </div>
+                    )}
+                </div>
+
+                {/* Direct Messages */}
+                <div className="sidebar-section">
+                    <div className="sidebar-section-title">direct messages</div>
+                    {dmThreads.map((thread) => (
+                        <Link
+                            key={thread.id}
+                            href={`/dm/${thread.id}`}
+                            className={`sidebar-link ${isActive(`/dm/${thread.id}`) ? "active" : ""}`}
+                        >
+                            <span className="sidebar-link-icon">@</span>
+                            {thread.otherUser.name.toLowerCase()}
+                        </Link>
+                    ))}
+                    {dmThreads.length === 0 && (
+                        <div className="sidebar-link text-muted" style={{ cursor: "default", fontSize: "var(--font-size-xs)" }}>
+                            <span className="sidebar-link-icon">∅</span>
+                            no conversations yet
                         </div>
                     )}
                 </div>
