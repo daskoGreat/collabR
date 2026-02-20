@@ -78,7 +78,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             </h3>
                         </div>
                         <div className="stack">
-                            {space.channels.map((channel) => (
+                            {space.channels.map((channel: typeof space.channels[number]) => (
                                 <Link
                                     key={channel.id}
                                     href={`/spaces/${id}/chat/${channel.id}`}
@@ -146,7 +146,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             recent tasks
                         </h3>
                         <div className="stack">
-                            {recentTasks.map((task) => (
+                            {recentTasks.map((task: typeof recentTasks[number]) => (
                                 <Link
                                     key={task.id}
                                     href={`/spaces/${id}/tasks/${task.id}`}
@@ -156,8 +156,8 @@ export default async function SpaceDetailPage({ params }: Props) {
                                         <div className="row-between">
                                             <span className="task-title">{task.title}</span>
                                             <span className={`badge ${task.status === "DONE" ? "badge-green" :
-                                                    task.status === "IN_PROGRESS" ? "badge-yellow" :
-                                                        "badge-cyan"
+                                                task.status === "IN_PROGRESS" ? "badge-yellow" :
+                                                    "badge-cyan"
                                                 }`}>
                                                 {task.status.toLowerCase().replace("_", " ")}
                                             </span>
@@ -178,7 +178,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             recent questions
                         </h3>
                         <div className="stack">
-                            {recentPosts.map((post) => (
+                            {recentPosts.map((post: typeof recentPosts[number]) => (
                                 <Link
                                     key={post.id}
                                     href={`/spaces/${id}/help/${post.id}`}
