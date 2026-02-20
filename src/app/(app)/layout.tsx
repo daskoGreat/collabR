@@ -23,7 +23,7 @@ export default async function AppLayout({
     const allSpaces =
         user.role === "ADMIN"
             ? await prisma.space.findMany({ orderBy: { name: "asc" } })
-            : spaces.map((sm) => sm.space);
+            : spaces.map((sm: typeof spaces[number]) => sm.space);
 
     return (
         <div className="app-shell">
