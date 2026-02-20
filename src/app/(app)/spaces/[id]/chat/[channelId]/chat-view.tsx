@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { getPusherClient } from "@/lib/pusher-client";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface Message {
     id: string;
@@ -28,28 +27,79 @@ export default function ChatView({
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const lastMessageIdRef = useRef<string | null>(
+        initialMessages.length > 0 ? initialMessages[initialMessages.length - 1].id : null
+    );
+    const pusherConnectedRef = useRef(false);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // Add new messages without duplicates
+    const addMessages = useCallback((newMsgs: Message[]) => {
+        setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const fresh = newMsgs.filter((m) => !existingIds.has(m.id));
+            if (fresh.length === 0) return prev;
+            const updated = [...prev, ...fresh].sort(
+                (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+            lastMessageIdRef.current = updated[updated.length - 1].id;
+            return updated;
+        });
+    }, []);
+
     // Subscribe to Pusher for realtime messages
     useEffect(() => {
+        let cleanup: (() => void) | undefined;
         try {
-            const pusher = getPusherClient();
-            const channelSub = pusher.subscribe(`channel-${channel.id}`);
-            channelSub.bind("new-message", (data: Message) => {
-                setMessages((prev) => [...prev, data]);
+            const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+            const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+            if (!key || !cluster) throw new Error("Pusher not configured");
+
+            import("pusher-js").then(({ default: PusherClient }) => {
+                const pusher = new PusherClient(key, { cluster });
+                const ch = pusher.subscribe(`channel-${channel.id}`);
+                ch.bind("new-message", (data: Message) => {
+                    addMessages([data]);
+                });
+                ch.bind("pusher:subscription_succeeded", () => {
+                    pusherConnectedRef.current = true;
+                });
+                cleanup = () => {
+                    ch.unbind_all();
+                    pusher.unsubscribe(`channel-${channel.id}`);
+                    pusher.disconnect();
+                };
+            }).catch(() => {
+                pusherConnectedRef.current = false;
             });
-            return () => {
-                channelSub.unbind_all();
-                pusher.unsubscribe(`channel-${channel.id}`);
-            };
         } catch {
-            // Pusher not configured, graceful fallback
-            return;
+            pusherConnectedRef.current = false;
         }
-    }, [channel.id]);
+        return () => cleanup?.();
+    }, [channel.id, addMessages]);
+
+    // Polling fallback — fetch new messages every 3s
+    useEffect(() => {
+        const poll = async () => {
+            try {
+                const params = new URLSearchParams({ channelId: channel.id });
+                if (lastMessageIdRef.current) params.set("after", lastMessageIdRef.current);
+                const res = await fetch(`/api/chat/messages?${params}`);
+                if (res.ok) {
+                    const data: Message[] = await res.json();
+                    if (data.length > 0) addMessages(data);
+                }
+            } catch {
+                // ignore
+            }
+        };
+
+        const interval = setInterval(poll, 3000);
+        return () => clearInterval(interval);
+    }, [channel.id, addMessages]);
 
     async function handleSend(e: React.FormEvent) {
         e.preventDefault();
@@ -66,7 +116,16 @@ export default function ChatView({
                 body: JSON.stringify({ channelId: channel.id, spaceId, content }),
             });
 
-            if (!res.ok) {
+            if (res.ok) {
+                const data = await res.json();
+                // Optimistically add own message
+                addMessages([{
+                    id: data.id,
+                    content,
+                    createdAt: new Date().toISOString(),
+                    user: currentUser,
+                }]);
+            } else {
                 const err = await res.json();
                 console.error("send failed:", err);
             }
