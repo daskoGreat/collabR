@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import AppSidebar from "@/components/app-sidebar";
+import AppShell from "@/components/app-shell";
 
 export default async function AppLayout({
     children,
@@ -41,13 +41,12 @@ export default async function AppLayout({
     }));
 
     return (
-        <div className="app-shell">
-            <AppSidebar
-                user={user}
-                spaces={allSpaces}
-                dmThreads={dmList}
-            />
-            <div className="main-content">{children}</div>
-        </div>
+        <AppShell
+            user={user}
+            spaces={allSpaces}
+            dmThreads={dmList}
+        >
+            {children}
+        </AppShell>
     );
 }

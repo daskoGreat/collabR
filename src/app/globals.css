@@ -354,6 +354,14 @@ textarea.input {
   overflow: hidden;
 }
 
+.mobile-header {
+  display: none;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
@@ -1471,4 +1479,180 @@ tr:hover td {
   opacity: 0;
   animation: lineReveal 0.6s ease forwards;
   animation-delay: 2.6s;
+}
+
+/* ── Mobile Responsiveness ────────────────── */
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 100%;
+    --topbar-height: 56px;
+  }
+
+  .app-shell {
+    flex-direction: column;
+  }
+
+  /* Sidebar as Drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    /* Hide offscreen */
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.open {
+    transform: translateX(280px);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Mobile Topbar */
+  .mobile-header {
+    height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    gap: var(--space-4);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .mobile-menu-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--neon-green);
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+
+  /* Layout container tweaks */
+  .main-content {
+    height: calc(100vh - var(--topbar-height));
+  }
+
+  .content-area {
+    padding: var(--space-4);
+  }
+
+  .topbar {
+    padding: 0 var(--space-4);
+  }
+
+  /* Components: Grids */
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Components: Chat */
+  .chat-messages {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .chat-message {
+    max-width: 95%;
+  }
+
+  .chat-input-area {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  /* Components: UI */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .modal {
+    max-width: 95vw;
+    margin: 8px;
+    padding: var(--space-5);
+  }
+
+  .row-between {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1px;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Touch UX */
+  .btn,
+  .sidebar-link,
+  .input,
+  .select {
+    min-height: 44px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Landing page mobile tweaks */
+  .landing-content {
+    padding: var(--space-4);
+  }
+
+  .landing-title {
+    font-size: clamp(2.5rem, 15vw, 4rem);
+  }
+
+  .manifesto-line {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
 }
