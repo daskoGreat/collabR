@@ -28,7 +28,7 @@ export default async function ChatPage({ params }: Props) {
     return (
         <ChatView
             channel={{ id: channel.id, name: channel.name, spaceName: channel.space.name }}
-            initialMessages={messages.map((m) => ({
+            initialMessages={messages.map((m: typeof messages[number]) => ({
                 id: m.id,
                 content: m.content,
                 createdAt: m.createdAt.toISOString(),
