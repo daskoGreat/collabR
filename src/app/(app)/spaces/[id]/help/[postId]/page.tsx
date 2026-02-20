@@ -43,7 +43,7 @@ export default async function PostDetailPage({ params }: Props) {
                     userId: post.userId,
                     userName: post.user.name,
                     createdAt: post.createdAt.toISOString(),
-                    answers: post.answers.map((a) => ({
+                    answers: post.answers.map((a: typeof post.answers[number]) => ({
                         id: a.id,
                         content: a.content,
                         accepted: a.accepted,

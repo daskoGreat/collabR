@@ -44,7 +44,7 @@ export default async function TaskDetailPage({ params }: Props) {
                     assignee: task.assignee,
                     creator: task.creator,
                     createdAt: task.createdAt.toISOString(),
-                    comments: task.comments.map((c) => ({
+                    comments: task.comments.map((c: typeof task.comments[number]) => ({
                         id: c.id,
                         content: c.content,
                         createdAt: c.createdAt.toISOString(),

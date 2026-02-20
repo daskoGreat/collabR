@@ -34,7 +34,7 @@ export default async function HelpPage({ params }: Props) {
             </div>
             <HelpList
                 spaceId={id}
-                posts={posts.map((p) => ({
+                posts={posts.map((p: typeof posts[number]) => ({
                     id: p.id,
                     title: p.title,
                     content: p.content,

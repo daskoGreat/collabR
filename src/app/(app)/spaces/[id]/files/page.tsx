@@ -31,7 +31,7 @@ export default async function FilesPage({ params }: Props) {
             </div>
             <FilesView
                 spaceId={id}
-                files={files.map((f) => ({
+                files={files.map((f: typeof files[number]) => ({
                     id: f.id,
                     name: f.name,
                     size: f.size,

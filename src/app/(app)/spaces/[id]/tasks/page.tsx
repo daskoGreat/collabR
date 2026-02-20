@@ -40,7 +40,7 @@ export default async function TasksPage({ params }: Props) {
             </div>
             <TasksList
                 spaceId={id}
-                tasks={tasks.map((t) => ({
+                tasks={tasks.map((t: typeof tasks[number]) => ({
                     id: t.id,
                     title: t.title,
                     description: t.description,
@@ -51,7 +51,7 @@ export default async function TasksPage({ params }: Props) {
                     commentCount: t._count.comments,
                     createdAt: t.createdAt.toISOString(),
                 }))}
-                members={members.map((m) => m.user)}
+                members={members.map((m: typeof members[number]) => m.user)}
                 currentUserId={user.id}
             />
         </>
