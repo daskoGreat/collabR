@@ -63,7 +63,7 @@ export default async function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {recentActions.map((action) => (
+                                {recentActions.map((action: typeof recentActions[number]) => (
                                     <tr key={action.id}>
                                         <td>
                                             <span className="badge badge-muted">{action.action}</span>

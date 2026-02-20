@@ -18,7 +18,7 @@ export default async function AdminInvitesPage() {
                 </div>
             </div>
             <InvitesAdmin
-                invites={invites.map((i) => ({
+                invites={invites.map((i: typeof invites[number]) => ({
                     id: i.id,
                     token: i.token,
                     createdBy: i.creator.name,

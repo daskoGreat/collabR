@@ -20,7 +20,7 @@ export default async function AdminUsersPage() {
                 </div>
             </div>
             <UsersAdmin
-                users={users.map((u) => ({
+                users={users.map((u: typeof users[number]) => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,

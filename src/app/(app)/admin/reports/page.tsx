@@ -21,7 +21,7 @@ export default async function AdminReportsPage() {
                 </div>
             </div>
             <ReportsAdmin
-                reports={reports.map((r) => ({
+                reports={reports.map((r: typeof reports[number]) => ({
                     id: r.id,
                     reporterName: r.reporter.name,
                     targetType: r.targetType,
