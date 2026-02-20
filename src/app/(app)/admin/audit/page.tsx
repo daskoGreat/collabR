@@ -40,7 +40,7 @@ export default async function AdminAuditPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {logs.map((log) => (
+                                {logs.map((log: typeof logs[number]) => (
                                     <tr key={log.id}>
                                         <td className="text-muted text-xs">
                                             {new Date(log.createdAt).toLocaleString("sv-SE")}
