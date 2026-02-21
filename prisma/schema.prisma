@@ -49,23 +49,23 @@ model User {
   updatedAt    DateTime   @updatedAt
 
   // Relations
-  invitesCreated Invite[]      @relation("InviteCreator")
+  invitesCreated   Invite[]        @relation("InviteCreator")
   spaceMemberships SpaceMember[]
-  messages       Message[]
-  sentDMs        DirectMessage[] @relation("DMSender")
-  dmThreadsAsUser1 DirectThread[] @relation("DirectThreadUser1")
-  dmThreadsAsUser2 DirectThread[] @relation("DirectThreadUser2")
-  files          File[]
-  tasksCreated   Task[]        @relation("TaskCreator")
-  tasksAssigned  Task[]        @relation("TaskAssignee")
-  taskComments   TaskComment[]
-  posts          Post[]
-  postAnswers    PostAnswer[]
-  reportsFiled   Report[]      @relation("Reporter")
-  reportsResolved Report[]     @relation("ReportResolver")
-  bansReceived   Ban[]         @relation("BannedUser")
-  bansIssued     Ban[]         @relation("BanIssuer")
-  auditLogs      AuditLog[]
+  messages         Message[]
+  sentDMs          DirectMessage[] @relation("DMSender")
+  dmThreadsAsUser1 DirectThread[]  @relation("DirectThreadUser1")
+  dmThreadsAsUser2 DirectThread[]  @relation("DirectThreadUser2")
+  files            File[]
+  tasksCreated     Task[]          @relation("TaskCreator")
+  tasksAssigned    Task[]          @relation("TaskAssignee")
+  taskComments     TaskComment[]
+  posts            Post[]
+  postAnswers      PostAnswer[]
+  reportsFiled     Report[]        @relation("Reporter")
+  reportsResolved  Report[]        @relation("ReportResolver")
+  bansReceived     Ban[]           @relation("BannedUser")
+  bansIssued       Ban[]           @relation("BanIssuer")
+  auditLogs        AuditLog[]
 
   @@index([email])
 }
@@ -73,16 +73,16 @@ model User {
 // ─── INVITES ─────────────────────────────────────────────
 
 model Invite {
-  id        String   @id @default(cuid())
-  token     String   @unique @default(cuid())
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid())
   createdBy String
-  creator   User     @relation("InviteCreator", fields: [createdBy], references: [id])
-  maxUses   Int      @default(1)
-  uses      Int      @default(0)
-  singleUse Boolean  @default(true)
+  creator   User      @relation("InviteCreator", fields: [createdBy], references: [id])
+  maxUses   Int       @default(1)
+  uses      Int       @default(0)
+  singleUse Boolean   @default(true)
   expiresAt DateTime?
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  revoked   Boolean   @default(false)
+  createdAt DateTime  @default(now())
 
   @@index([token])
 }
@@ -105,11 +105,11 @@ model Space {
 }
 
 model SpaceMember {
-  id      String    @id @default(cuid())
-  userId  String
-  spaceId String
-  role    SpaceRole @default(MEMBER)
-  joinedAt DateTime @default(now())
+  id       String    @id @default(cuid())
+  userId   String
+  spaceId  String
+  role     SpaceRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
@@ -127,8 +127,9 @@ model Channel {
   description String?
   createdAt   DateTime @default(now())
 
-  space    Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  messages Message[]
+  space        Space                @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  messages     Message[]
+  readReceipts ChannelReadReceipt[]
 
   @@index([spaceId])
 }
@@ -142,6 +143,9 @@ model DirectThread {
   user1    User            @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
   user2    User            @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
   messages DirectMessage[]
+
+  lastReadUser1At DateTime @default(now())
+  lastReadUser2At DateTime @default(now())
 
   @@unique([user1Id, user2Id])
   @@index([user1Id])
@@ -159,6 +163,18 @@ model DirectMessage {
   user   User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([threadId, createdAt])
+}
+
+model ChannelReadReceipt {
+  id         String   @id @default(cuid())
+  channelId  String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channelId])
+  @@index([channelId])
 }
 
 model Message {
@@ -264,7 +280,7 @@ model PostAnswer {
 model Report {
   id         String       @id @default(cuid())
   reporterId String
-  targetType String       // "message", "post", "postAnswer", "task"
+  targetType String // "message", "post", "postAnswer", "task"
   targetId   String
   reason     String
   status     ReportStatus @default(PENDING)
@@ -297,7 +313,7 @@ model Ban {
 model AuditLog {
   id         String   @id @default(cuid())
   userId     String
-  action     String   // e.g. "invite.create", "user.ban", "message.delete"
+  action     String // e.g. "invite.create", "user.ban", "message.delete"
   targetType String?
   targetId   String?
   metadata   Json?

@@ -3,15 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
+
+interface Channel {
+    id: string;
+    name: string;
+    unreadCount?: number;
+}
 
 interface Space {
     id: string;
     name: string;
+    channels?: Channel[];
 }
 
 interface DmThread {
     id: string;
     otherUser: { id: string; name: string };
+    unreadCount?: number;
 }
 
 interface Props {
@@ -22,8 +31,62 @@ interface Props {
     onClose?: () => void;
 }
 
-export default function AppSidebar({ user, spaces, dmThreads, isOpen, onClose }: Props) {
+export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: initialDmThreads, isOpen, onClose }: Props) {
     const pathname = usePathname();
+    const [spaces, setSpaces] = useState(initialSpaces);
+    const [dmThreads, setDmThreads] = useState(initialDmThreads);
+
+    useEffect(() => {
+        const fetchSidebarData = async () => {
+            try {
+                const res = await fetch("/api/sidebar");
+                if (res.ok) {
+                    const data = await res.json();
+                    setSpaces(data.spaces);
+                    setDmThreads(data.dmThreads);
+                }
+            } catch (err) {
+                console.error("Failed to fetch sidebar data:", err);
+            }
+        };
+
+        // Poll as fallback
+        const interval = setInterval(fetchSidebarData, 30000);
+
+        // Pusher for immediate updates
+        let cleanup: (() => void) | undefined;
+        try {
+            const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+            const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+            if (key && cluster) {
+                import("pusher-js").then(({ default: PusherClient }) => {
+                    const pusher = new PusherClient(key, { cluster });
+                    const channel = pusher.subscribe(`user-${user.id}`);
+                    channel.bind("sidebar-update", () => {
+                        fetchSidebarData();
+                    });
+                    cleanup = () => {
+                        channel.unbind_all();
+                        pusher.unsubscribe(`user-${user.id}`);
+                        pusher.disconnect();
+                    };
+                });
+            }
+        } catch (err) {
+            console.error("Pusher setup failed in sidebar:", err);
+        }
+
+        return () => {
+            clearInterval(interval);
+            cleanup?.();
+        };
+    }, [user.id]);
+
+    // Also update if initial props change
+    useEffect(() => {
+        setSpaces(initialSpaces);
+        setDmThreads(initialDmThreads);
+    }, [initialSpaces, initialDmThreads]);
 
     const isActive = (path: string) =>
         pathname === path || pathname.startsWith(path + "/");
@@ -57,15 +120,32 @@ export default function AppSidebar({ user, spaces, dmThreads, isOpen, onClose }:
                     <div className="sidebar-section">
                         <div className="sidebar-section-title">your spaces</div>
                         {spaces.map((space) => (
-                            <Link
-                                key={space.id}
-                                href={`/spaces/${space.id}`}
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive(`/spaces/${space.id}`) ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon">#</span>
-                                {space.name.toLowerCase()}
-                            </Link>
+                            <div key={space.id} className="sidebar-group">
+                                <Link
+                                    href={`/spaces/${space.id}`}
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive(`/spaces/${space.id}`) && !pathname.includes("/chat/") ? "active" : ""}`}
+                                >
+                                    <span className="sidebar-link-icon">#</span>
+                                    {space.name.toLowerCase()}
+                                </Link>
+                                <div className="sidebar-sub-nav">
+                                    {space.channels?.map((ch) => (
+                                        <Link
+                                            key={ch.id}
+                                            href={`/spaces/${space.id}/chat/${ch.id}`}
+                                            className={`sidebar-link sidebar-link-sub ${isActive(`/spaces/${space.id}/chat/${ch.id}`) ? "active" : ""}`}
+                                            onClick={onClose}
+                                        >
+                                            <span className="sidebar-link-icon">#</span>
+                                            <span className="sidebar-link-text">{ch.name.toLowerCase()}</span>
+                                            {ch.unreadCount && ch.unreadCount > 0 ? (
+                                                <span className="badge badge-notification">{ch.unreadCount}</span>
+                                            ) : null}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
                         ))}
                         {spaces.length === 0 && (
                             <div className="sidebar-link text-muted" style={{ cursor: "default" }}>
@@ -87,6 +167,9 @@ export default function AppSidebar({ user, spaces, dmThreads, isOpen, onClose }:
                             >
                                 <span className="sidebar-link-icon">@</span>
                                 {thread.otherUser.name.toLowerCase()}
+                                {thread.unreadCount && thread.unreadCount > 0 ? (
+                                    <span className="badge badge-notification">{thread.unreadCount}</span>
+                                ) : null}
                             </Link>
                         ))}
                         {dmThreads.length === 0 && (

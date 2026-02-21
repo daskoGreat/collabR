@@ -88,6 +88,17 @@ export async function POST(req: NextRequest) {
             createdAt: message.createdAt.toISOString(),
             user: message.user,
         });
+
+        // Notify space members to refresh sidebar for notifications
+        const members = await prisma.spaceMember.findMany({
+            where: { spaceId },
+            select: { userId: true },
+        });
+
+        for (const member of members) {
+            if (member.userId === userId) continue;
+            await pusher.trigger(`user-${member.userId}`, "sidebar-update", {});
+        }
     } catch {
         // Pusher not configured or failed — message is still saved
     }

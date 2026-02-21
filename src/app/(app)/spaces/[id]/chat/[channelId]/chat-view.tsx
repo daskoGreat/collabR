@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import BackButton from "@/components/back-button";
 
 interface Message {
     id: string;
@@ -25,6 +26,9 @@ export default function ChatView({
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editContent, setEditContent] = useState("");
+    const [updating, setUpdating] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const lastMessageIdRef = useRef<string | null>(
@@ -101,6 +105,27 @@ export default function ChatView({
         return () => clearInterval(interval);
     }, [channel.id, addMessages]);
 
+    // Mark as read
+    useEffect(() => {
+        const markAsRead = async () => {
+            try {
+                await fetch("/api/chat/read", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ channelId: channel.id }),
+                });
+            } catch (err) {
+                // ignore
+            }
+        };
+
+        markAsRead();
+        // Also mark as read when new messages are added and the tab is focused
+        if (messages.length > 0) {
+            markAsRead();
+        }
+    }, [channel.id, messages.length]);
+
     async function handleSend(e: React.FormEvent) {
         e.preventDefault();
         if (!input.trim() || sending) return;
@@ -137,6 +162,38 @@ export default function ChatView({
         }
     }
 
+    async function handleUpdate(messageId: string) {
+        if (!editContent.trim() || updating) return;
+        setUpdating(true);
+        try {
+            const res = await fetch("/api/chat/message", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messageId, content: editContent.trim() }),
+            });
+            if (res.ok) {
+                setMessages(prev => prev.map(m => m.id === messageId ? { ...m, content: editContent.trim() } : m));
+                setEditingId(null);
+            }
+        } catch (err) {
+            console.error("Update failed:", err);
+        } finally {
+            setUpdating(false);
+        }
+    }
+
+    async function handleDelete(messageId: string) {
+        if (!confirm("Are you sure you want to delete this message?")) return;
+        try {
+            const res = await fetch(`/api/chat/message?id=${messageId}`, { method: "DELETE" });
+            if (res.ok) {
+                setMessages(prev => prev.filter(m => m.id !== messageId));
+            }
+        } catch (err) {
+            console.error("Delete failed:", err);
+        }
+    }
+
     function formatTime(dateStr: string) {
         const d = new Date(dateStr);
         return d.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
@@ -149,10 +206,13 @@ export default function ChatView({
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="text-muted">{channel.spaceName.toLowerCase()} /</span>{" "}
-                    <span className="topbar-title-highlight">#</span>
-                    {channel.name.toLowerCase()}
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="text-muted">{channel.spaceName.toLowerCase()} /</span>{" "}
+                        <span className="topbar-title-highlight">#</span>
+                        {channel.name.toLowerCase()}
+                    </div>
                 </div>
             </div>
             <div className="chat-container">
@@ -167,7 +227,7 @@ export default function ChatView({
                         </div>
                     )}
                     {messages.map((msg) => (
-                        <div key={msg.id} className="chat-message">
+                        <div key={msg.id} className={`chat-message ${msg.user.id === currentUser.id ? "chat-message-own" : ""}`}>
                             <div className="chat-message-avatar">
                                 {getInitial(msg.user.name)}
                             </div>
@@ -177,8 +237,55 @@ export default function ChatView({
                                     <span className="chat-message-time">
                                         {formatTime(msg.createdAt)}
                                     </span>
+                                    {msg.user.id === currentUser.id && !editingId && (
+                                        <div className="chat-message-actions">
+                                            <button
+                                                className="btn-link text-xs"
+                                                onClick={() => {
+                                                    setEditingId(msg.id);
+                                                    setEditContent(msg.content);
+                                                }}
+                                            >
+                                                redigera
+                                            </button>
+                                            <button
+                                                className="btn-link text-xs text-danger"
+                                                onClick={() => handleDelete(msg.id)}
+                                            >
+                                                ta bort
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="chat-message-content">{msg.content}</div>
+                                {editingId === msg.id ? (
+                                    <div className="chat-edit-area mt-1">
+                                        <textarea
+                                            className="input text-sm"
+                                            value={editContent}
+                                            onChange={(e) => setEditContent(e.target.value)}
+                                            autoFocus
+                                            rows={2}
+                                        />
+                                        <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => handleUpdate(msg.id)}
+                                                disabled={updating || !editContent.trim()}
+                                            >
+                                                spara
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => setEditingId(null)}
+                                                disabled={updating}
+                                            >
+                                                avbryt
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="chat-message-content">{msg.content}</div>
+                                )}
                             </div>
                         </div>
                     ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import BackButton from "@/components/back-button";
 
 interface Message {
     id: string;
@@ -20,6 +21,9 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editContent, setEditContent] = useState("");
+    const [updating, setUpdating] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const lastMessageIdRef = useRef<string | null>(
@@ -81,6 +85,26 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
         return () => clearInterval(interval);
     }, [threadId, addMessages]);
 
+    // Mark as read
+    useEffect(() => {
+        const markAsRead = async () => {
+            try {
+                await fetch("/api/dm/read", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ threadId }),
+                });
+            } catch (err) {
+                // ignore
+            }
+        };
+
+        markAsRead();
+        if (messages.length > 0) {
+            markAsRead();
+        }
+    }, [threadId, messages.length]);
+
     async function handleSend(e: React.FormEvent) {
         e.preventDefault();
         if (!input.trim() || sending) return;
@@ -104,6 +128,38 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
         }
     }
 
+    async function handleUpdate(messageId: string) {
+        if (!editContent.trim() || updating) return;
+        setUpdating(true);
+        try {
+            const res = await fetch("/api/dm/message", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messageId, content: editContent.trim() }),
+            });
+            if (res.ok) {
+                setMessages(prev => prev.map(m => m.id === messageId ? { ...m, content: editContent.trim() } : m));
+                setEditingId(null);
+            }
+        } catch (err) {
+            console.error("Update failed:", err);
+        } finally {
+            setUpdating(false);
+        }
+    }
+
+    async function handleDelete(messageId: string) {
+        if (!confirm("Are you sure you want to delete this message?")) return;
+        try {
+            const res = await fetch(`/api/dm/message?id=${messageId}`, { method: "DELETE" });
+            if (res.ok) {
+                setMessages(prev => prev.filter(m => m.id !== messageId));
+            }
+        } catch (err) {
+            console.error("Delete failed:", err);
+        }
+    }
+
     function formatTime(dateStr: string) {
         return new Date(dateStr).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
     }
@@ -111,10 +167,13 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="text-muted">dm /</span>{" "}
-                    <span className="topbar-title-highlight">@</span>
-                    {otherUser.name.toLowerCase()}
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="text-muted">dm /</span>{" "}
+                        <span className="topbar-title-highlight">@</span>
+                        {otherUser.name.toLowerCase()}
+                    </div>
                 </div>
             </div>
             <div className="chat-container">
@@ -137,8 +196,55 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
                                 <div className="chat-message-header">
                                     <span className="chat-message-name">{msg.user.name}</span>
                                     <span className="chat-message-time">{formatTime(msg.createdAt)}</span>
+                                    {msg.user.id === currentUser.id && !editingId && (
+                                        <div className="chat-message-actions">
+                                            <button
+                                                className="btn-link text-xs"
+                                                onClick={() => {
+                                                    setEditingId(msg.id);
+                                                    setEditContent(msg.content);
+                                                }}
+                                            >
+                                                redigera
+                                            </button>
+                                            <button
+                                                className="btn-link text-xs text-danger"
+                                                onClick={() => handleDelete(msg.id)}
+                                            >
+                                                ta bort
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="chat-message-content">{msg.content}</div>
+                                {editingId === msg.id ? (
+                                    <div className="chat-edit-area mt-1">
+                                        <textarea
+                                            className="input text-sm"
+                                            value={editContent}
+                                            onChange={(e) => setEditContent(e.target.value)}
+                                            autoFocus
+                                            rows={2}
+                                        />
+                                        <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => handleUpdate(msg.id)}
+                                                disabled={updating || !editContent.trim()}
+                                            >
+                                                spara
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => setEditingId(null)}
+                                                disabled={updating}
+                                            >
+                                                avbryt
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="chat-message-content">{msg.content}</div>
+                                )}
                             </div>
                         </div>
                     ))}

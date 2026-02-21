@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ChannelList from "./channel-list";
+import BackButton from "@/components/back-button";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -45,8 +46,11 @@ export default async function SpaceDetailPage({ params }: Props) {
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="topbar-title-highlight">#</span> {space.name.toLowerCase()}
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="topbar-title-highlight">#</span> {space.name.toLowerCase()}
+                    </div>
                 </div>
                 <div className="topbar-actions">
                     <span className="text-xs text-muted">{space._count.members} members</span>

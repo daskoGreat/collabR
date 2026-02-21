@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateTaskStatus, addTaskComment } from "@/lib/actions/tasks";
+import BackButton from "@/components/back-button";
 
 interface Comment {
     id: string;
@@ -43,6 +44,9 @@ export default function TaskDetail({ spaceId, task, currentUserId }: Props) {
 
     return (
         <div className="content-area">
+            <div className="mb-4">
+                <BackButton />
+            </div>
             <div className="card mb-4">
                 <div className="row-between mb-4">
                     <h2 style={{ fontSize: "var(--font-size-lg)", fontWeight: 700 }}>

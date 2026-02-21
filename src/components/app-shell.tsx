@@ -5,8 +5,8 @@ import AppSidebar from "./app-sidebar";
 
 interface Props {
     user: { id: string; name: string; email: string; role: string };
-    spaces: { id: string; name: string }[];
-    dmThreads: { id: string; otherUser: { id: string; name: string } }[];
+    spaces: { id: string; name: string; channels?: { id: string; name: string; unreadCount?: number }[] }[];
+    dmThreads: { id: string; otherUser: { id: string; name: string }; unreadCount?: number }[];
     children: React.ReactNode;
 }
 

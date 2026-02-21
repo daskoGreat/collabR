@@ -15,15 +15,15 @@ export default async function AppLayout({
 
     const spaces = await prisma.spaceMember.findMany({
         where: { userId: user.id },
-        include: { space: true },
+        include: { space: { include: { channels: true } } },
         orderBy: { space: { name: "asc" } },
     });
 
     // Admin can see all spaces
     const allSpaces =
         user.role === "ADMIN"
-            ? await prisma.space.findMany({ orderBy: { name: "asc" } })
-            : spaces.map((sm: typeof spaces[number]) => sm.space);
+            ? await prisma.space.findMany({ include: { channels: true }, orderBy: { name: "asc" } })
+            : spaces.map((sm) => sm.space);
 
     // Fetch DM threads for sidebar
     const dmThreads = await prisma.directThread.findMany({
