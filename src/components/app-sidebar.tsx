@@ -228,19 +228,12 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                 </div>
 
                 <div className="sidebar-footer">
-                    <div className="sidebar-user">
+                    <div className="sidebar-user" style={{ opacity: 0.7 }}>
                         <div className="sidebar-user-avatar">{initial}</div>
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">{user.name}</div>
                             <div className="sidebar-user-role">{user.role.toLowerCase()}</div>
                         </div>
-                        <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => signOut({ callbackUrl: "/login" })}
-                            title="logout"
-                        >
-                            ⏻
-                        </button>
                     </div>
                 </div>
             </nav>

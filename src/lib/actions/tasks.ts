@@ -64,10 +64,34 @@ export async function addTaskComment(
 ) {
     const user = await requireSpaceMember(spaceId);
     const content = formData.get("content") as string;
-    if (!content?.trim()) return { error: "comment can't be empty" };
+    const attachmentsJson = formData.get("attachments") as string;
+
+    if (!content?.trim() && !attachmentsJson) return { error: "comment can't be empty" };
+
+    let attachments: { name: string, url: string, mimeType: string, size: number }[] = [];
+    if (attachmentsJson) {
+        try {
+            attachments = JSON.parse(attachmentsJson);
+        } catch (e) {
+            console.error("Failed to parse attachments JSON", e);
+        }
+    }
 
     await prisma.taskComment.create({
-        data: { taskId, userId: user.id, content: content.trim() },
+        data: {
+            taskId,
+            userId: user.id,
+            content: content.trim(),
+            attachments: attachments.length > 0 ? {
+                create: attachments.map(a => ({
+                    name: a.name,
+                    url: a.url,
+                    mimeType: a.mimeType,
+                    size: a.size,
+                    storageKey: a.url.split("/").pop() || "unknown",
+                }))
+            } : undefined
+        },
     });
 
     revalidatePath(`/spaces/${spaceId}/tasks/${taskId}`);

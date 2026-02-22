@@ -6,9 +6,9 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-    const { threadId, content } = await req.json();
-    if (!threadId || !content?.trim()) {
-        return NextResponse.json({ error: "threadId and content required" }, { status: 400 });
+    const { threadId, content, attachments } = await req.json();
+    if (!threadId || (!content?.trim() && (!attachments || attachments.length === 0))) {
+        return NextResponse.json({ error: "threadId and content/attachment required" }, { status: 400 });
     }
 
     const userId = session.user.id;
@@ -20,8 +20,24 @@ export async function POST(req: NextRequest) {
     }
 
     const message = await prisma.directMessage.create({
-        data: { threadId, userId, content: content.trim() },
-        include: { user: { select: { id: true, name: true } } },
+        data: {
+            threadId,
+            userId,
+            content: content.trim(),
+            attachments: attachments ? {
+                create: attachments.map((a: any) => ({
+                    name: a.name,
+                    url: a.url,
+                    mimeType: a.mimeType,
+                    size: a.size,
+                    storageKey: a.url.split("/").pop() || "unknown",
+                }))
+            } : undefined
+        },
+        include: {
+            user: { select: { id: true, name: true } },
+            attachments: true
+        },
     });
 
     // Trigger Pusher for realtime (best-effort)
@@ -33,6 +49,7 @@ export async function POST(req: NextRequest) {
             content: message.content,
             createdAt: message.createdAt.toISOString(),
             user: message.user,
+            attachments: message.attachments,
         });
 
         // Notify recipient to refresh sidebar

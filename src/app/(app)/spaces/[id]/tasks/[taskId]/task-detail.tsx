@@ -3,12 +3,24 @@
 import { useState } from "react";
 import { updateTaskStatus, addTaskComment } from "@/lib/actions/tasks";
 import BackButton from "@/components/back-button";
+import AttachmentPicker from "@/components/attachment-picker";
+import AttachmentList from "@/components/attachment-list";
+import MessageContent from "@/components/message-content";
+
+interface Attachment {
+    id: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+}
 
 interface Comment {
     id: string;
     content: string;
     createdAt: string;
     user: { id: string; name: string };
+    attachments?: Attachment[];
 }
 
 interface Task {
@@ -31,6 +43,7 @@ interface Props {
 
 export default function TaskDetail({ spaceId, task, currentUserId }: Props) {
     const [commenting, setCommenting] = useState(false);
+    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
 
     async function handleStatusChange(status: string) {
         await updateTaskStatus(task.id, spaceId, status as "OPEN" | "IN_PROGRESS" | "DONE");
@@ -38,7 +51,11 @@ export default function TaskDetail({ spaceId, task, currentUserId }: Props) {
 
     async function handleComment(formData: FormData) {
         setCommenting(true);
+        if (pendingAttachments.length > 0) {
+            formData.append("attachments", JSON.stringify(pendingAttachments));
+        }
         await addTaskComment(task.id, spaceId, formData);
+        setPendingAttachments([]);
         setCommenting(false);
     }
 
@@ -113,9 +130,12 @@ export default function TaskDetail({ spaceId, task, currentUserId }: Props) {
                                 {new Date(comment.createdAt).toLocaleString("sv-SE")}
                             </span>
                         </div>
-                        <p className="text-sm text-secondary" style={{ lineHeight: 1.5 }}>
-                            {comment.content}
-                        </p>
+                        <div className="text-sm text-secondary" style={{ lineHeight: 1.5 }}>
+                            <MessageContent content={comment.content} />
+                            {comment.attachments && comment.attachments.length > 0 && (
+                                <AttachmentList attachments={comment.attachments} readOnly />
+                            )}
+                        </div>
                     </div>
                 ))}
                 {task.comments.length === 0 && (
@@ -126,18 +146,40 @@ export default function TaskDetail({ spaceId, task, currentUserId }: Props) {
             {/* Add comment form */}
             <div className="card">
                 <form className="auth-form" action={handleComment}>
+                    {pendingAttachments.length > 0 && (
+                        <div className="mb-4">
+                            <AttachmentList
+                                attachments={pendingAttachments}
+                                onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
+                            />
+                        </div>
+                    )}
                     <div className="form-group">
-                        <label className="form-label">add comment</label>
+                        <div className="row-between mb-2">
+                            <label className="form-label mb-0">add comment</label>
+                            <AttachmentPicker
+                                spaceId={spaceId}
+                                onUploadSuccess={(url, file) => {
+                                    setPendingAttachments(prev => [...prev, {
+                                        url,
+                                        name: file.name,
+                                        mimeType: file.type,
+                                        size: file.size
+                                    }]);
+                                }}
+                                onUploadError={(err) => alert(err)}
+                            />
+                        </div>
                         <textarea
                             name="content"
                             className="input"
                             placeholder="thoughts, updates, questions..."
-                            required
                             style={{ minHeight: 80 }}
                         />
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button type="submit" className="btn btn-primary" disabled={commenting}>
+                        <button type="submit" className="btn btn-primary" disabled={commenting || (!pendingAttachments.length && !commenting)}>
+                            {/* Keep the button enabled if there's text or attachments - simple check below */}
                             {commenting ? "posting..." : "post comment"}
                         </button>
                     </div>

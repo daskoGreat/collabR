@@ -31,7 +31,10 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { createdAt: "asc" },
         take: 50,
-        include: { user: { select: { id: true, name: true } } },
+        include: {
+            user: { select: { id: true, name: true } },
+            attachments: true
+        },
     });
 
     return NextResponse.json(
@@ -40,6 +43,7 @@ export async function GET(req: NextRequest) {
             content: m.content,
             createdAt: m.createdAt.toISOString(),
             user: { id: m.user.id, name: m.user.name },
+            attachments: m.attachments,
         }))
     );
 }

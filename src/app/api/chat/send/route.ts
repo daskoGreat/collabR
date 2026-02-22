@@ -23,7 +23,13 @@ function checkRateLimit(userId: string, limit = 20, windowMs = 60000): boolean {
 const sendSchema = z.object({
     channelId: z.string(),
     spaceId: z.string(),
-    content: z.string().min(1).max(2000),
+    content: z.string().max(2000),
+    attachments: z.array(z.object({
+        name: z.string(),
+        url: z.string(),
+        mimeType: z.string(),
+        size: z.number(),
+    })).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -51,7 +57,11 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const { channelId, spaceId, content } = parsed.data;
+    const { channelId, spaceId, content, attachments } = parsed.data;
+
+    if (!content.trim() && (!attachments || attachments.length === 0)) {
+        return NextResponse.json({ error: "content or attachment required" }, { status: 400 });
+    }
 
     // Verify space membership
     const userRole = (session.user as { role: string }).role;
@@ -74,8 +84,24 @@ export async function POST(req: NextRequest) {
 
     // Save message
     const message = await prisma.message.create({
-        data: { channelId, userId, content },
-        include: { user: { select: { id: true, name: true } } },
+        data: {
+            channelId,
+            userId,
+            content,
+            attachments: attachments ? {
+                create: attachments.map(a => ({
+                    name: a.name,
+                    url: a.url,
+                    mimeType: a.mimeType,
+                    size: a.size,
+                    storageKey: a.url.split("/").pop() || "unknown", // Fallback storage key
+                }))
+            } : undefined
+        },
+        include: {
+            user: { select: { id: true, name: true } },
+            attachments: true
+        },
     });
 
     // Broadcast via Pusher (best-effort, don't block on failure)
@@ -87,6 +113,7 @@ export async function POST(req: NextRequest) {
             content: message.content,
             createdAt: message.createdAt.toISOString(),
             user: message.user,
+            attachments: message.attachments,
         });
 
         // Notify space members to refresh sidebar for notifications

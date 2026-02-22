@@ -2,12 +2,24 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import BackButton from "@/components/back-button";
+import AttachmentPicker from "@/components/attachment-picker";
+import AttachmentList from "@/components/attachment-list";
+import MessageContent from "@/components/message-content";
+
+interface Attachment {
+    id: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+}
 
 interface Message {
     id: string;
     content: string;
     createdAt: string;
     user: { id: string; name: string };
+    attachments?: Attachment[];
 }
 
 interface Props {
@@ -24,6 +36,7 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState("");
     const [updating, setUpdating] = useState(false);
+    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const lastMessageIdRef = useRef<string | null>(
@@ -115,11 +128,22 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
             const res = await fetch("/api/dm/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ threadId, content }),
+                body: JSON.stringify({
+                    threadId,
+                    content,
+                    attachments: pendingAttachments
+                }),
             });
             if (res.ok) {
                 const data = await res.json();
-                addMessages([{ id: data.id, content, createdAt: new Date().toISOString(), user: currentUser }]);
+                addMessages([{
+                    id: data.id,
+                    content,
+                    createdAt: new Date().toISOString(),
+                    user: currentUser,
+                    attachments: pendingAttachments.map((a, i) => ({ ...a, id: `temp-${i}` }))
+                }]);
+                setPendingAttachments([]);
             }
         } catch {
         } finally {
@@ -243,7 +267,12 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="chat-message-content">{msg.content}</div>
+                                    <>
+                                        <MessageContent content={msg.content} />
+                                        {msg.attachments && msg.attachments.length > 0 && (
+                                            <AttachmentList attachments={msg.attachments} readOnly />
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -251,7 +280,27 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
                     <div ref={messagesEndRef} />
                 </div>
                 <div className="chat-input-area">
+                    {pendingAttachments.length > 0 && (
+                        <div className="px-4 py-2 border-b border-subtle bg-secondary-alt">
+                            <AttachmentList
+                                attachments={pendingAttachments}
+                                onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
+                            />
+                        </div>
+                    )}
                     <form className="chat-input-form" onSubmit={handleSend}>
+                        <AttachmentPicker
+                            spaceId="dm" // DM space identifier or similar
+                            onUploadSuccess={(url, file) => {
+                                setPendingAttachments(prev => [...prev, {
+                                    url,
+                                    name: file.name,
+                                    mimeType: file.type,
+                                    size: file.size
+                                }]);
+                            }}
+                            onUploadError={(err) => alert(err)}
+                        />
                         <span className="chat-input-prompt">{">"}</span>
                         <input
                             ref={inputRef}
@@ -262,7 +311,7 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
                             onChange={(e) => setInput(e.target.value)}
                             autoFocus
                         />
-                        <button type="submit" className="btn btn-primary" disabled={sending || !input.trim()}>
+                        <button type="submit" className="btn btn-primary" disabled={sending || (!input.trim() && pendingAttachments.length === 0)}>
                             send
                         </button>
                     </form>

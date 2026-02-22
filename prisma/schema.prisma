@@ -161,6 +161,7 @@ model DirectMessage {
 
   thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   user   User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 
   @@index([threadId, createdAt])
 }
@@ -187,6 +188,7 @@ model Message {
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 
   @@index([channelId, createdAt])
 }
@@ -241,6 +243,7 @@ model TaskComment {
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 }
 
 // ─── POSTS (FRÅGA & HJÄLP) ─────────────────────────────
@@ -259,6 +262,7 @@ model Post {
   space   Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers PostAnswer[]
+  attachments Attachment[]
 
   @@index([spaceId])
 }
@@ -273,6 +277,7 @@ model PostAnswer {
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 }
 
 // ─── MODERATION ──────────────────────────────────────────
@@ -323,4 +328,31 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([action])
+}
+// ─── ATTACHMENTS ─────────────────────────────────────────
+
+model Attachment {
+  id         String   @id @default(cuid())
+  name       String
+  size       Int
+  mimeType   String
+  url        String
+  storageKey String
+  createdAt  DateTime @default(now())
+
+  // Optional relations - an attachment belongs to one of these
+  messageId       String?
+  message         Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  directMessageId String?
+  directMessage   DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  taskCommentId   String?
+  taskComment     TaskComment?   @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
+  postId          String?
+  post            Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postAnswerId    String?
+  postAnswer      PostAnswer?    @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([directMessageId])
+  @@index([taskCommentId])
 }
