@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import BackButton from "@/components/back-button";
 
 interface FileItem {
     id: string;
@@ -62,6 +63,9 @@ export default function FilesView({ spaceId, files }: Props) {
 
     return (
         <div className="content-area">
+            <div className="mb-4">
+                <BackButton />
+            </div>
             <div className="page-header">
                 <div>
                     <h1 className="page-title">files</h1>

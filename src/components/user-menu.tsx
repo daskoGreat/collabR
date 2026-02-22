@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import LogoutConfirmation from "./logout-confirmation";
 
 interface Props {
@@ -58,14 +59,24 @@ export default function UserMenu({ user }: Props) {
                     </div>
 
                     <div style={{ padding: "var(--space-1)" }}>
-                        <button className="sidebar-link" style={{ width: "100%", textAlign: "left", opacity: 0.6, cursor: "default" }}>
+                        <Link
+                            href="/profile"
+                            className="sidebar-link"
+                            style={{ display: "flex", width: "100%", textAlign: "left" }}
+                            onClick={() => setIsOpen(false)}
+                        >
                             <span className="sidebar-link-icon">👤</span>
-                            Profil (kommer snart)
-                        </button>
-                        <button className="sidebar-link" style={{ width: "100%", textAlign: "left", opacity: 0.6, cursor: "default" }}>
+                            Profil
+                        </Link>
+                        <Link
+                            href="/settings"
+                            className="sidebar-link"
+                            style={{ display: "flex", width: "100%", textAlign: "left" }}
+                            onClick={() => setIsOpen(false)}
+                        >
                             <span className="sidebar-link-icon">⚙</span>
-                            Inställningar (kommer snart)
-                        </button>
+                            Inställningar
+                        </Link>
                         <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
                         <button
                             className="sidebar-link text-danger"

@@ -1,6 +1,7 @@
 import { requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import MembersList from "./members-list";
+import BackButton from "@/components/back-button";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -30,9 +31,12 @@ export default async function MembersPage({ params }: Props) {
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="text-muted">{space?.name.toLowerCase()} /</span>{" "}
-                    <span className="topbar-title-highlight">⊡</span> members
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="text-muted">{space?.name.toLowerCase()} /</span>{" "}
+                        <span className="topbar-title-highlight">⊡</span> members
+                    </div>
                 </div>
             </div>
             <div className="content-area">

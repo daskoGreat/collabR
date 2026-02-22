@@ -33,27 +33,33 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const spaceId = formData.get("spaceId") as string;
+    const spaceId = formData.get("spaceId") as string | null;
 
-    if (!file || !spaceId) {
-        return NextResponse.json({ error: "file and spaceId required" }, { status: 400 });
+    if (!file) {
+        return NextResponse.json({ error: "file required" }, { status: 400 });
     }
 
-    // Check membership
-    const userRole = (session.user as { role: string }).role;
-    if (userRole !== "ADMIN") {
-        const membership = await prisma.spaceMember.findUnique({
-            where: { userId_spaceId: { userId: session.user.id, spaceId } },
-        });
-        if (!membership) {
-            return NextResponse.json({ error: "not a member" }, { status: 403 });
+    // Identify if this is a "Space File" (needs registration in File model)
+    // or just a chat attachment (handled by Attachment model in other routes)
+    const isSpaceFile = spaceId && spaceId !== "dm";
+
+    if (isSpaceFile) {
+        // Check membership only for actual space files
+        const userRole = (session.user as { role: string }).role;
+        if (userRole !== "ADMIN") {
+            const membership = await prisma.spaceMember.findUnique({
+                where: { userId_spaceId: { userId: session.user.id, spaceId } },
+            });
+            if (!membership) {
+                return NextResponse.json({ error: "not a member" }, { status: 403 });
+            }
         }
     }
 
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
         return NextResponse.json(
-            { error: `file type '${file.type}' not allowed. allowed: images, pdf, text, docs, archives.` },
+            { error: `file type '${file.type}' not allowed.` },
             { status: 400 }
         );
     }
@@ -68,22 +74,26 @@ export async function POST(req: NextRequest) {
 
     try {
         // Upload to Vercel Blob
-        const blob = await put(`spaces/${spaceId}/${file.name}`, file, {
+        const path = isSpaceFile ? `spaces/${spaceId}/${file.name}` : `attachments/${session.user.id}/${Date.now()}-${file.name}`;
+        const blob = await put(path, file, {
             access: "public",
         });
 
-        // Save metadata to DB
-        await prisma.file.create({
-            data: {
-                spaceId,
-                userId: session.user.id,
-                name: file.name,
-                size: file.size,
-                mimeType: file.type,
-                storageKey: blob.pathname,
-                url: blob.url,
-            },
-        });
+        // Save metadata to DB ONLY if it's a "Space File"
+        // Chat attachments are saved to the Attachment model when the message is sent
+        if (isSpaceFile) {
+            await prisma.file.create({
+                data: {
+                    spaceId,
+                    userId: session.user.id,
+                    name: file.name,
+                    size: file.size,
+                    mimeType: file.type,
+                    storageKey: blob.pathname,
+                    url: blob.url,
+                },
+            });
+        }
 
         return NextResponse.json({ url: blob.url }, { status: 201 });
     } catch (error) {

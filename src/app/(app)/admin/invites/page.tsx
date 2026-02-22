@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import InvitesAdmin from "./invites-admin";
+import BackButton from "@/components/back-button";
 
 export default async function AdminInvitesPage() {
     await requireRole("ADMIN");
@@ -13,8 +14,12 @@ export default async function AdminInvitesPage() {
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="topbar-title-highlight">⊞</span> invite management
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="text-muted">admin /</span>{" "}
+                        <span className="topbar-title-highlight">⊞</span> invite management
+                    </div>
                 </div>
             </div>
             <InvitesAdmin

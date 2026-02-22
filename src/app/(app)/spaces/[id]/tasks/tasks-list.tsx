@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BackButton from "@/components/back-button";
 import { createTask, updateTaskStatus } from "@/lib/actions/tasks";
 import Link from "next/link";
 
@@ -45,6 +46,9 @@ export default function TasksList({ spaceId, tasks, members }: Props) {
 
     return (
         <div className="content-area">
+            <div className="mb-4">
+                <BackButton />
+            </div>
             <div className="page-header">
                 <div>
                     <h1 className="page-title">tasks</h1>

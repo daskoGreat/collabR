@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
+import BackButton from "@/components/back-button";
 
 export default async function AdminDashboard() {
     await requireRole("ADMIN", "MODERATOR");
@@ -20,8 +21,11 @@ export default async function AdminDashboard() {
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="topbar-title-highlight">⚙</span> admin dashboard
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="topbar-title-highlight">⚙</span> admin dashboard
+                    </div>
                 </div>
             </div>
             <div className="content-area">

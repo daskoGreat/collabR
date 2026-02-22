@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import UsersAdmin from "./users-admin";
+import BackButton from "@/components/back-button";
 
 export default async function AdminUsersPage() {
     const currentUser = await requireRole("ADMIN");
@@ -15,8 +16,12 @@ export default async function AdminUsersPage() {
     return (
         <>
             <div className="topbar">
-                <div className="topbar-title">
-                    <span className="topbar-title-highlight">⊡</span> user management
+                <div className="row" style={{ gap: "var(--space-4)" }}>
+                    <BackButton />
+                    <div className="topbar-title">
+                        <span className="text-muted">admin /</span>{" "}
+                        <span className="topbar-title-highlight">⊡</span> user management
+                    </div>
                 </div>
             </div>
             <UsersAdmin
