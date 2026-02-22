@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ url: blob.url }, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Upload error:", error);
         return NextResponse.json(
-            { error: "upload failed. check storage configuration." },
+            { error: `upload failed: ${error.message || "check storage configuration"}` },
             { status: 500 }
         );
     }
