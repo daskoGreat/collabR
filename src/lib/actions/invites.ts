@@ -50,11 +50,12 @@ export async function registerWithInvite(formData: FormData) {
         return { error: "this invite is for a different email address." };
     }
 
-    // Check if email already exists
     const existing = await prisma.user.findUnique({
         where: { email },
     });
-    if (existing) return { error: "email already registered." };
+    if (existing && existing.passwordHash) {
+        return { error: "email already registered." };
+    }
 
     // Check if email was previously banned (hard ban)
     const previousBan = await prisma.ban.findFirst({
@@ -67,15 +68,29 @@ export async function registerWithInvite(formData: FormData) {
         return { error: "this email has been permanently banned." };
     }
 
-    // Create user
+    // Create or Update user
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-        data: {
-            name,
-            email,
-            passwordHash,
-        },
-    });
+    let user;
+
+    if (existing) {
+        // Activate pending account
+        user = await prisma.user.update({
+            where: { id: existing.id },
+            data: {
+                name,
+                passwordHash,
+            },
+        });
+    } else {
+        // Create new user
+        user = await prisma.user.create({
+            data: {
+                name,
+                email,
+                passwordHash,
+            },
+        });
+    }
 
     // Increment invite usage
     await prisma.invite.update({

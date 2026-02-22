@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { registerWithInvite } from "@/lib/actions/invites";
 
-export default function InviteForm({ token }: { token: string }) {
+export default function InviteForm({
+    token,
+    prefill
+}: {
+    token: string;
+    prefill?: { name: string; email: string } | null;
+}) {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -28,8 +34,10 @@ export default function InviteForm({ token }: { token: string }) {
                     name="name"
                     className="input"
                     placeholder="what should we call you?"
+                    defaultValue={prefill?.name || ""}
+                    readOnly={!!prefill?.name}
                     required
-                    autoFocus
+                    autoFocus={!prefill?.name}
                 />
             </div>
 
@@ -40,6 +48,8 @@ export default function InviteForm({ token }: { token: string }) {
                     name="email"
                     className="input"
                     placeholder="you@example.com"
+                    defaultValue={prefill?.email || ""}
+                    readOnly={!!prefill?.email}
                     required
                 />
             </div>

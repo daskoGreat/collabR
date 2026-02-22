@@ -10,6 +10,10 @@ export default async function AdminUsersPage() {
         orderBy: { createdAt: "desc" },
         include: {
             _count: { select: { spaceMemberships: true } },
+            invites: {
+                orderBy: { createdAt: "desc" },
+                take: 1,
+            }
         },
     });
 
@@ -25,15 +29,22 @@ export default async function AdminUsersPage() {
                 </div>
             </div>
             <UsersAdmin
-                users={users.map((u: typeof users[number]) => ({
+                users={users.map((u: any) => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,
+                    passwordHash: u.passwordHash,
                     role: u.role,
                     banned: u.banned,
                     bannedReason: u.bannedReason,
                     spaceCount: u._count.spaceMemberships,
                     createdAt: u.createdAt.toISOString(),
+                    invites: u.invites.map((i: any) => ({
+                        token: i.token,
+                        expiresAt: i.expiresAt?.toISOString() || null,
+                        revoked: i.revoked,
+                        uses: i.uses,
+                    })),
                 }))}
                 currentUserId={currentUser.id}
             />

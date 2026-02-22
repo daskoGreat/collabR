@@ -20,8 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     where: { email: credentials.email as string },
                 });
 
-                if (!user) return null;
-                if (user.banned) return null;
+                if (!user || user.banned || !user.passwordHash) return null;
 
                 const passwordMatch = await bcrypt.compare(
                     credentials.password as string,

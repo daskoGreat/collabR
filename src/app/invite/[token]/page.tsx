@@ -11,7 +11,10 @@ export default async function InvitePage({ params }: Props) {
 
     const invite = await prisma.invite.findUnique({
         where: { token },
-        include: { creator: { select: { name: true } } },
+        include: {
+            creator: { select: { name: true } },
+            user: { select: { name: true, email: true } }
+        },
     });
 
     if (!invite) return notFound();
@@ -22,8 +25,9 @@ export default async function InvitePage({ params }: Props) {
             ? invite.uses >= 1
             : invite.maxUses > 0 && invite.uses >= invite.maxUses;
     const isRevoked = invite.revoked;
-
     const isInvalid = isExpired || isUsedUp || isRevoked;
+
+    const prefill = invite.user ? { name: invite.user.name, email: invite.user.email } : null;
 
     return (
         <div className="auth-page">
@@ -58,7 +62,7 @@ export default async function InvitePage({ params }: Props) {
                             we&apos;re all here to learn and build.
                         </div>
 
-                        <InviteForm token={token} />
+                        <InviteForm token={token} prefill={prefill} />
                     </>
                 )}
             </div>

@@ -33,6 +33,7 @@ export async function createInvite(formData: FormData) {
             maxUses: singleUse ? 1 : maxUses,
             singleUse,
             expiresAt,
+            userId: formData.get("userId") as string || null,
         },
     });
 
@@ -280,4 +281,100 @@ export async function createReport(formData: FormData) {
     });
 
     revalidatePath("/admin/reports");
+}
+
+export async function inviteNewUser(formData: FormData) {
+    const admin = await requireRole("ADMIN");
+
+    const name = formData.get("name") as string;
+    const email = (formData.get("email") as string)?.trim().toLowerCase();
+    const role = (formData.get("role") as string) || "MEMBER";
+
+    if (!name || !email) return { error: "name and email are required" };
+
+    // Check if user already exists
+    let userRecord = await prisma.user.findUnique({ where: { email } });
+
+    if (userRecord && userRecord.passwordHash) {
+        return { error: "user already active" };
+    }
+
+    if (!userRecord) {
+        // Create pending user
+        userRecord = await prisma.user.create({
+            data: {
+                name,
+                email,
+                role: role as any,
+                passwordHash: null, // Pending status
+            }
+        });
+
+        // Add to default spaces
+        const defaultSpaces = await prisma.space.findMany({ where: { isDefault: true } });
+        for (const space of defaultSpaces) {
+            await prisma.spaceMember.create({
+                data: { userId: userRecord.id, spaceId: space.id }
+            });
+        }
+    }
+
+    // Revoke old invites
+    await prisma.invite.updateMany({
+        where: { userId: userRecord.id, revoked: false },
+        data: { revoked: true }
+    });
+
+    // Create new invite
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const invite = await prisma.invite.create({
+        data: {
+            token: nanoid(24),
+            userId: userRecord.id,
+            email,
+            createdBy: admin.id,
+            expiresAt,
+        }
+    });
+
+    await prisma.auditLog.create({
+        data: {
+            userId: admin.id,
+            action: "user.invite",
+            targetType: "user",
+            targetId: userRecord.id,
+            metadata: { token: invite.token }
+        }
+    });
+
+    revalidatePath("/admin/users");
+    return { token: invite.token };
+}
+
+export async function regenerateUserInvite(userId: string) {
+    const admin = await requireRole("ADMIN");
+
+    const userRecord = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userRecord || userRecord.passwordHash) return { error: "invalid user" };
+
+    // Revoke old
+    await prisma.invite.updateMany({
+        where: { userId, revoked: false },
+        data: { revoked: true }
+    });
+
+    // New invite
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const invite = await prisma.invite.create({
+        data: {
+            token: nanoid(24),
+            userId,
+            email: userRecord.email,
+            createdBy: admin.id,
+            expiresAt,
+        }
+    });
+
+    revalidatePath("/admin/users");
+    return { token: invite.token };
 }

@@ -53,7 +53,7 @@ model User {
   id           String     @id @default(cuid())
   name         String
   email        String     @unique
-  passwordHash String
+  passwordHash String?
   role         GlobalRole @default(MEMBER)
   banned       Boolean    @default(false)
   bannedReason String?
@@ -83,6 +83,7 @@ model User {
   opportunities    Opportunity[]
   opportunityComments OpportunityComment[]
   threadMemberships ThreadMember[]
+  invites           Invite[]
 
   @@index([email])
 }
@@ -99,11 +100,15 @@ model Invite {
   uses      Int       @default(0)
   singleUse Boolean   @default(true)
   expiresAt DateTime?
+  userId    String?
   revoked   Boolean   @default(false)
   createdAt DateTime  @default(now())
 
+  user      User?     @relation(fields: [userId], references: [id])
+
   @@index([token])
   @@index([email])
+  @@index([userId])
 }
 
 // ─── SPACES ──────────────────────────────────────────────
