@@ -1911,3 +1911,76 @@ tr:hover td {
 .status-pulse {
   animation: pulse-success 2s infinite;
 }
+
+/* ── Dropdown Menus ──────────────────────── */
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: var(--space-2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-sm);
+  min-width: 160px;
+  padding: var(--space-1);
+  box-shadow: var(--shadow-lg), var(--shadow-neon);
+  z-index: 100;
+  animation: slideUp 0.1s ease;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-transform: lowercase;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-glass-hover);
+  color: var(--neon-green);
+}
+
+.dropdown-item.text-danger:hover {
+  color: var(--accent-danger);
+  background: var(--accent-danger-bg);
+}
+
+.dropdown-item.text-success:hover {
+  color: var(--neon-green);
+  background: var(--neon-green-glow);
+}
+
+/* ── Custom Actions UI ───────────────────── */
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: all 0.1s;
+}
+
+.action-btn:hover {
+  color: var(--neon-green);
+  background: var(--bg-glass);
+}

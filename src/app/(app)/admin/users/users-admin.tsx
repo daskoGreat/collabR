@@ -60,10 +60,11 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
         setLoading(false);
     }
 
-    async function handleRegenerate(userId: string) {
+    async function handleReinvite(userId: string) {
         const result = await regenerateUserInvite(userId);
         if (result?.token) {
             setNewToken(result.token);
+            setShowInviteModal(true); // Open modal to show the link
         }
     }
 
@@ -73,53 +74,57 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
     };
 
     function getUserStatus(user: User) {
-        if (user.banned) return { label: "banned", class: "badge-red" };
+        if (user.banned) return { label: "disabled", class: "badge-red" };
         if (user.passwordHash) return { label: "active", class: "badge-green" };
 
         const latestInvite = user.invites[0];
-        if (!latestInvite) return { label: "no invite", class: "badge-muted" };
+        if (!latestInvite) return { label: "not invited", class: "badge-muted" };
 
         const isExpired = latestInvite.expiresAt && new Date(latestInvite.expiresAt) < new Date();
         const isRevoked = latestInvite.revoked;
 
         if (isRevoked || isExpired) return { label: "invite expired", class: "badge-yellow" };
-        return { label: "invite pending", class: "badge-cyan" };
+        return { label: "pending", class: "badge-cyan" };
     }
 
     return (
         <div className="content-area">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">users</h1>
-                    <p className="page-subtitle">{users.length} registered members</p>
+                    <h1 className="page-title">user management</h1>
+                    <p className="page-subtitle">{users.length} members tracked in system</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
-                    + invite user
+                    + invite member
                 </button>
             </div>
 
             <div className="table-wrapper">
-                <table>
+                <table className="w-full">
                     <thead>
                         <tr>
-                            <th>name</th>
-                            <th>email</th>
+                            <th>member</th>
                             <th>role</th>
                             <th>spaces</th>
                             <th>status</th>
                             <th>joined</th>
-                            <th style={{ textAlign: "right" }}>actions</th>
+                            <th style={{ textAlign: "right" }}>management</th>
                         </tr>
                     </thead>
                     <tbody>
                         {users.map((user) => {
                             const status = getUserStatus(user);
                             const latestToken = user.invites[0]?.token;
+                            const isPending = !user.passwordHash;
 
                             return (
                                 <tr key={user.id}>
-                                    <td className="font-semibold">{user.name}</td>
-                                    <td className="text-muted">{user.email}</td>
+                                    <td>
+                                        <div style={{ display: "flex", flexDirection: "column" }}>
+                                            <span className="font-semibold" style={{ color: "var(--text-bright)" }}>{user.name}</span>
+                                            <span className="text-xs text-muted" style={{ fontStyle: "italic" }}>{user.email}</span>
+                                        </div>
+                                    </td>
                                     <td>
                                         {user.id === currentUserId ? (
                                             <span className="badge badge-green">{user.role.toLowerCase()}</span>
@@ -128,6 +133,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                 className="select"
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                                style={{ padding: "1px 8px" }}
                                             >
                                                 <option value="MEMBER">member</option>
                                                 <option value="MODERATOR">moderator</option>
@@ -135,66 +141,71 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                             </select>
                                         )}
                                     </td>
-                                    <td>{user.spaceCount}</td>
+                                    <td>
+                                        <span className="text-secondary">{user.spaceCount}</span>
+                                    </td>
                                     <td>
                                         <span className={`badge ${status.class}`}>{status.label}</span>
                                     </td>
-                                    <td className="text-muted">
+                                    <td className="text-muted text-xs">
                                         {new Date(user.createdAt).toLocaleDateString("sv-SE")}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
-                                        <div style={{ position: "relative", display: "inline-block" }}>
-                                            <button
-                                                className="btn btn-ghost btn-sm"
-                                                onClick={() => setMenuOpen(menuOpen === user.id ? null : user.id)}
-                                                style={{ fontSize: "1.2rem", lineHeight: 1 }}
-                                            >
-                                                ⋮
-                                            </button>
-
-                                            {menuOpen === user.id && (
-                                                <div className="dropdown-menu shadow-lg" style={{ right: 0, top: "100%", zIndex: 100 }}>
-                                                    {status.label.includes("invite") && latestToken && (
-                                                        <button
-                                                            className="dropdown-item"
-                                                            onClick={() => { copyToClipboard(latestToken); setMenuOpen(null); }}
-                                                        >
-                                                            <span style={{ marginRight: "0.5rem" }}>❐</span>
-                                                            copy link
-                                                        </button>
-                                                    )}
-
-                                                    {!user.passwordHash && (
-                                                        <button
-                                                            className="dropdown-item"
-                                                            onClick={() => { handleRegenerate(user.id); setMenuOpen(null); }}
-                                                        >
-                                                            <span style={{ marginRight: "0.5rem" }}>↻</span>
-                                                            regenerate
-                                                        </button>
-                                                    )}
-
-                                                    {user.id !== currentUserId && (
-                                                        <>
-                                                            {user.banned ? (
-                                                                <button
-                                                                    className="dropdown-item text-success"
-                                                                    onClick={() => { handleUnban(user.id); setMenuOpen(null); }}
-                                                                >
-                                                                    unban user
-                                                                </button>
-                                                            ) : (
-                                                                <button
-                                                                    className="dropdown-item text-danger"
-                                                                    onClick={() => { setBanModal(user.id); setMenuOpen(null); }}
-                                                                >
-                                                                    ban user
-                                                                </button>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
+                                        <div className="action-row" style={{ justifyContent: "flex-end" }}>
+                                            {isPending && latestToken && (
+                                                <button
+                                                    className="btn btn-ghost btn-sm"
+                                                    onClick={() => copyToClipboard(latestToken)}
+                                                    title="copy invite link"
+                                                    style={{ color: "var(--neon-cyan)" }}
+                                                >
+                                                    ❐ copy link
+                                                </button>
                                             )}
+
+                                            <div style={{ position: "relative" }}>
+                                                <button
+                                                    className="btn btn-ghost btn-sm"
+                                                    onClick={() => setMenuOpen(menuOpen === user.id ? null : user.id)}
+                                                    style={{ fontSize: "1.2rem", padding: "0 8px" }}
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                {menuOpen === user.id && (
+                                                    <div className="dropdown-menu shadow-lg">
+                                                        {isPending && (
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => { handleReinvite(user.id); setMenuOpen(null); }}
+                                                            >
+                                                                <span style={{ color: "var(--neon-green)" }}>↻</span>
+                                                                re-invite user
+                                                            </button>
+                                                        )}
+
+                                                        {user.id !== currentUserId && (
+                                                            <>
+                                                                {user.banned ? (
+                                                                    <button
+                                                                        className="dropdown-item text-success"
+                                                                        onClick={() => { handleUnban(user.id); setMenuOpen(null); }}
+                                                                    >
+                                                                        enable user
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        className="dropdown-item text-danger"
+                                                                        onClick={() => { setBanModal(user.id); setMenuOpen(null); }}
+                                                                    >
+                                                                        disable user
+                                                                    </button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -204,45 +215,47 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                 </table>
             </div>
 
-            {/* Invite Modal */}
+            {/* Invite / Re-invite Modal */}
             {showInviteModal && (
                 <div className="modal-overlay" onClick={() => { setShowInviteModal(false); setNewToken(null); }}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-title">invite new user</div>
+                        <div className="modal-title">
+                            {newToken ? "activation link ready" : "invite new member"}
+                        </div>
 
                         {newToken ? (
                             <div style={{ textAlign: "center" }}>
-                                <div className="success-text mb-4">
-                                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✓</div>
-                                    user invited successfully
+                                <div className="success-text mb-6">
+                                    <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>✓</div>
+                                    the secure link has been generated
                                 </div>
-                                <div className="helper-banner mb-4">
-                                    <div className="text-xs text-muted mb-1">// activation link</div>
+                                <div className="helper-banner mb-6 text-left">
+                                    <div className="text-xs text-muted mb-2">// deploy link to user</div>
                                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                                        <code className="bg-black/50 p-2 rounded block w-full text-left truncate">
+                                        <code className="bg-black/50 p-3 rounded block w-full text-left truncate text-neon border border-white/5">
                                             {window.location.origin}/invite/{newToken}
                                         </code>
-                                        <button className="btn btn-primary btn-sm" onClick={() => copyToClipboard(newToken)}>
+                                        <button className="btn btn-primary" onClick={() => copyToClipboard(newToken)}>
                                             copy
                                         </button>
                                     </div>
                                 </div>
-                                <button className="btn btn-primary w-full" onClick={() => { setShowInviteModal(false); setNewToken(null); }}>
-                                    done
+                                <button className="btn btn-secondary w-full" onClick={() => { setShowInviteModal(false); setNewToken(null); }}>
+                                    close
                                 </button>
                             </div>
                         ) : (
                             <form action={handleInvite}>
-                                <div className="form-group mb-4">
+                                <div className="form-group mb-5">
                                     <label className="form-label">full name</label>
-                                    <input name="name" className="input" placeholder="jane doe" required />
+                                    <input name="name" className="input" placeholder="full name" required />
                                 </div>
-                                <div className="form-group mb-4">
+                                <div className="form-group mb-5">
                                     <label className="form-label">email address</label>
-                                    <input type="email" name="email" className="input" placeholder="jane@example.com" required />
+                                    <input type="email" name="email" className="input" placeholder="user@example.com" required />
                                 </div>
-                                <div className="form-group mb-4">
-                                    <label className="form-label">role</label>
+                                <div className="form-group mb-6">
+                                    <label className="form-label">global role</label>
                                     <select name="role" className="select w-full">
                                         <option value="MEMBER">member</option>
                                         <option value="MODERATOR">moderator</option>
@@ -258,7 +271,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                         cancel
                                     </button>
                                     <button type="submit" className="btn btn-primary" disabled={loading}>
-                                        {loading ? "generating..." : "generate invite"}
+                                        {loading ? "generating..." : "generate protocol"}
                                     </button>
                                 </div>
                             </form>
@@ -271,23 +284,23 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
             {banModal && (
                 <div className="modal-overlay" onClick={() => setBanModal(null)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-title">ban user</div>
+                        <div className="modal-title">disable member access</div>
                         <form action={handleBan}>
                             <input type="hidden" name="userId" value={banModal} />
-                            <div className="form-group mb-4">
-                                <label className="form-label">reason</label>
+                            <div className="form-group mb-5">
+                                <label className="form-label">reason for deactivation</label>
                                 <textarea
                                     name="reason"
                                     className="input"
-                                    placeholder="why are you banning this user?"
+                                    placeholder="provide incident report or justification..."
                                     required
                                 />
                             </div>
-                            <div className="form-group mb-4">
-                                <label className="form-label">ban type</label>
+                            <div className="form-group mb-6">
+                                <label className="form-label">restriction tier</label>
                                 <select name="type" className="select w-full">
-                                    <option value="SOFT">soft ban (can be unbanned)</option>
-                                    <option value="HARD">hard ban (permanent, blocks email)</option>
+                                    <option value="SOFT">soft restriction (reversible)</option>
+                                    <option value="HARD">hard ban (permanent, email blocked)</option>
                                 </select>
                             </div>
                             <div className="modal-actions">
@@ -299,7 +312,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                     cancel
                                 </button>
                                 <button type="submit" className="btn btn-danger" disabled={banning}>
-                                    {banning ? "banning..." : "confirm ban"}
+                                    {banning ? "processing..." : "confirm deactivation"}
                                 </button>
                             </div>
                         </form>
