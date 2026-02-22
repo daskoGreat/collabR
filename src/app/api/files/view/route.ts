@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Security: Only allow Vercel Blob URLs
-    if (!url.includes("public.blob.vercel-storage.com")) {
+    if (!url.includes("blob.vercel-storage.com")) {
         return new NextResponse("Invalid URL", { status: 400 });
     }
 

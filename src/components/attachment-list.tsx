@@ -20,7 +20,7 @@ export default function AttachmentList({ attachments, onRemove, readOnly = false
     const isImage = (mime: string) => mime.startsWith("image/");
 
     const getProxiedUrl = (url: string) => {
-        if (url.includes("public.blob.vercel-storage.com")) {
+        if (url.includes("blob.vercel-storage.com")) {
             return `/api/files/view?url=${encodeURIComponent(url)}`;
         }
         return url;
