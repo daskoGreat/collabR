@@ -174,7 +174,12 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
                     >
                         <span className="sidebar-link-icon">⌂</span>
-                        community home
+                        <span className="flex-1">community home</span>
+                        {openHelpCount > 0 && (
+                            <span className="badge badge-notification" style={{ background: "var(--accent-magenta)", color: "white" }}>
+                                {openHelpCount}
+                            </span>
+                        )}
                     </Link>
 
                     <Link
@@ -183,11 +188,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
                     >
                         <span className="sidebar-link-icon">✧</span>
-                        möjligheter & hjälp
-                        {(hasOpportunityMention || openHelpCount > 0) && (
-                            <span className="badge badge-notification badge-mention">
-                                {openHelpCount > 0 ? openHelpCount : "!"}
-                            </span>
+                        jobb & möjligheter
+                        {hasOpportunityMention && (
+                            <span className="badge badge-notification badge-mention">!</span>
                         )}
                     </Link>
 
