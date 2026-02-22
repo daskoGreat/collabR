@@ -5,6 +5,12 @@ import BackButton from "@/components/back-button";
 import AttachmentPicker from "@/components/attachment-picker";
 import AttachmentList from "@/components/attachment-list";
 import MessageContent from "@/components/message-content";
+import MentionList from "@/components/mention-list";
+
+interface User {
+    id: string;
+    name: string;
+}
 
 interface Attachment {
     id: string;
@@ -42,6 +48,12 @@ export default function ChatView({
     const [editContent, setEditContent] = useState("");
     const [updating, setUpdating] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+
+    // Mention state
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+    const [mentionUsers, setMentionUsers] = useState<User[]>([]);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionLoading, setMentionLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const lastMessageIdRef = useRef<string | null>(
@@ -182,6 +194,82 @@ export default function ChatView({
         }
     }
 
+    // Mention helpers
+    const handleInputChange = (val: string) => {
+        setInput(val);
+        const cursorPosition = inputRef.current?.selectionStart || 0;
+        const textBeforeCursor = val.slice(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (mentionMatch) {
+            setMentionQuery(mentionMatch[1]);
+            setMentionIndex(0);
+        } else {
+            setMentionQuery(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (mentionQuery !== null && mentionUsers.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev + 1) % mentionUsers.length);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length);
+            } else if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                insertMention(mentionUsers[mentionIndex]);
+            } else if (e.key === "Escape") {
+                setMentionQuery(null);
+            }
+        }
+    };
+
+    const insertMention = (user: User) => {
+        if (!inputRef.current) return;
+        const cursorPosition = inputRef.current.selectionStart || 0;
+        const textBeforeCursor = input.slice(0, cursorPosition);
+        const textAfterCursor = input.slice(cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+        const newText = textBeforeCursor.slice(0, lastAtIndex) + `@${user.name} ` + textAfterCursor;
+        setInput(newText);
+        setMentionQuery(null);
+
+        // Refocus and set cursor
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                const newPos = lastAtIndex + user.name.length + 2;
+                inputRef.current.selectionStart = newPos;
+                inputRef.current.selectionEnd = newPos;
+            }
+        }, 0);
+    };
+
+    // Fetch mentions
+    useEffect(() => {
+        if (mentionQuery === null) return;
+
+        const timer = setTimeout(async () => {
+            setMentionLoading(true);
+            try {
+                const res = await fetch(`/api/users/search?q=${mentionQuery}&spaceId=${spaceId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMentionUsers(data);
+                }
+            } catch (err) {
+                console.error("Mention search failed:", err);
+            } finally {
+                setMentionLoading(false);
+            }
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, [mentionQuery, spaceId]);
+
     async function handleUpdate(messageId: string) {
         if (!editContent.trim() || updating) return;
         setUpdating(true);
@@ -316,7 +404,14 @@ export default function ChatView({
                     ))}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area">
+                <div className="chat-input-area" style={{ position: "relative" }}>
+                    {mentionQuery !== null && (
+                        <MentionList
+                            users={mentionUsers}
+                            selectedIndex={mentionIndex}
+                            onSelect={(u) => insertMention(u)}
+                        />
+                    )}
                     {pendingAttachments.length > 0 && (
                         <div className="px-4 py-2 border-b border-subtle bg-secondary-alt">
                             <AttachmentList
@@ -345,7 +440,8 @@ export default function ChatView({
                             className="input"
                             placeholder={`message #${channel.name.toLowerCase()}...`}
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             autoFocus
                         />
                         <button

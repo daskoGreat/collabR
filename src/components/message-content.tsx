@@ -9,7 +9,11 @@ interface Props {
 export default function MessageContent({ content }: Props) {
     // Regex for basic URL detection
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = content.split(urlRegex);
+    const mentionRegex = /(@[\w\s.ÅÄÖåäö]+?)(?=\s|$|[,.!?])/g;
+
+    // Split by both URLs and Mentions
+    const combinedRegex = /((?:https?:\/\/[^\s]+)|(?:@[\w\s.ÅÄÖåäö]+?)(?=\s|$|[,.!?]))/g;
+    const parts = content.split(combinedRegex);
     const urls = content.match(urlRegex) || [];
 
     return (
@@ -26,8 +30,14 @@ export default function MessageContent({ content }: Props) {
                                 className="text-accent hover:underline"
                                 style={{ color: "var(--accent-color)" }}
                             >
-                                {part}
                             </a>
+                        );
+                    }
+                    if (part.match(mentionRegex)) {
+                        return (
+                            <span key={i} className="mention-token">
+                                {part}
+                            </span>
                         );
                     }
                     return <span key={i}>{part}</span>;

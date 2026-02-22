@@ -14,8 +14,10 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
 
     // Verify user is part of this thread
-    const thread = await prisma.directThread.findUnique({ where: { id: threadId } });
-    if (!thread || (thread.user1Id !== userId && thread.user2Id !== userId)) {
+    const membership = await prisma.threadMember.findUnique({
+        where: { threadId_userId: { threadId, userId } }
+    });
+    if (!membership) {
         return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
@@ -40,10 +42,17 @@ export async function POST(req: NextRequest) {
         },
     });
 
-    // Trigger Pusher for realtime (best-effort)
+    // Trigger Pusher for realtime
     try {
         const { getPusherServer } = await import("@/lib/pusher-server");
         const pusher = getPusherServer();
+
+        // Find all members to notify
+        const members = await prisma.threadMember.findMany({
+            where: { threadId },
+            select: { userId: true }
+        });
+
         await pusher.trigger(`dm-${threadId}`, "new-dm", {
             id: message.id,
             content: message.content,
@@ -52,11 +61,13 @@ export async function POST(req: NextRequest) {
             attachments: message.attachments,
         });
 
-        // Notify recipient to refresh sidebar
-        const recipientId = thread.user1Id === userId ? thread.user2Id : thread.user1Id;
-        await pusher.trigger(`user-${recipientId}`, "sidebar-update", {});
-    } catch {
-        // Pusher not configured, polling fallback handles it
+        // Notify all other members to refresh sidebar
+        for (const member of members) {
+            if (member.userId === userId) continue;
+            await pusher.trigger(`user-${member.userId}`, "sidebar-update", {});
+        }
+    } catch (err) {
+        console.error("Pusher error in DM send:", err);
     }
 
     return NextResponse.json({

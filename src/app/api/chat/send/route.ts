@@ -104,6 +104,48 @@ export async function POST(req: NextRequest) {
         },
     });
 
+    // Detect mentions
+    // Match @Name (where Name could contain spaces or special chars, but for simplicity we'll look for @ followed by word chars)
+    // Actually, in our frontend we insert @Name. We need to find the user by that name in the space.
+    const mentionMatches = content.match(/@([\w\s.ÅÄÖåäö]+?)(?=\s|$|[,.!?])/g);
+    if (mentionMatches) {
+        const names = mentionMatches.map(m => m.slice(1).trim());
+        const mentionedUsers = await prisma.user.findMany({
+            where: {
+                name: { in: names },
+                spaceMemberships: { some: { spaceId } }
+            },
+            select: { id: true, name: true }
+        });
+
+        if (mentionedUsers.length > 0) {
+            await prisma.mention.createMany({
+                data: mentionedUsers.map(u => ({
+                    userId: u.id,
+                    messageId: message.id
+                }))
+            });
+
+            // Trigger Pusher for mentions
+            try {
+                const { getPusherServer } = await import("@/lib/pusher-server");
+                const pusher = getPusherServer();
+                for (const u of mentionedUsers) {
+                    if (u.id === userId) continue;
+                    await pusher.trigger(`user-${u.id}`, "new-mention", {
+                        messageId: message.id,
+                        channelId,
+                        spaceId,
+                        content: message.content,
+                        fromName: message.user.name
+                    });
+                }
+            } catch (err) {
+                console.error("Mention pusher trigger failed:", err);
+            }
+        }
+    }
+
     // Broadcast via Pusher (best-effort, don't block on failure)
     try {
         const { getPusherServer } = await import("@/lib/pusher-server");

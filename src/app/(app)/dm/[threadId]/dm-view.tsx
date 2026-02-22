@@ -5,6 +5,8 @@ import BackButton from "@/components/back-button";
 import AttachmentPicker from "@/components/attachment-picker";
 import AttachmentList from "@/components/attachment-list";
 import MessageContent from "@/components/message-content";
+import { updatePresence, renameThread, leaveThread } from "@/lib/actions/chat";
+import { useRouter } from "next/navigation";
 
 interface Attachment {
     id: string;
@@ -24,12 +26,15 @@ interface Message {
 
 interface Props {
     threadId: string;
-    otherUser: { id: string; name: string };
+    title: string;
+    isGroup: boolean;
+    otherUser: { id: string; name: string; lastSeenAt?: Date | null } | null;
     currentUser: { id: string; name: string };
     initialMessages: Message[];
 }
 
-export default function DmView({ threadId, otherUser, currentUser, initialMessages }: Props) {
+export default function DmView({ threadId, title, isGroup, otherUser, currentUser, initialMessages }: Props) {
+    const router = useRouter();
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
@@ -37,8 +42,13 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
     const [editContent, setEditContent] = useState("");
     const [updating, setUpdating] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [newName, setNewName] = useState(title);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const lastMessageIdRef = useRef<string | null>(
         initialMessages.length > 0 ? initialMessages[initialMessages.length - 1].id : null
     );
@@ -191,23 +201,87 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
     return (
         <>
             <div className="topbar">
-                <div className="row" style={{ gap: "var(--space-4)" }}>
-                    <BackButton />
-                    <div className="topbar-title">
-                        <span className="text-muted">dm /</span>{" "}
-                        <span className="topbar-title-highlight">@</span>
-                        {otherUser.name.toLowerCase()}
+                <div className="row-between w-full">
+                    <div className="row" style={{ gap: "var(--space-4)" }}>
+                        <BackButton />
+                        <div className="topbar-title flex flex-col items-start !gap-0">
+                            <div className="flex items-center gap-2">
+                                <span className="topbar-title-highlight">{isGroup ? "⚑" : "@"}</span>
+                                <span>{title.toLowerCase()}</span>
+                            </div>
+                            {!isGroup && otherUser && (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    <div className={`w-2 h-2 rounded-full ${otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
+                                            ? "bg-success shadow-[0_0_8px_var(--success)]"
+                                            : "bg-muted"
+                                        }`} />
+                                    <span className="text-[10px] text-muted uppercase font-bold tracking-wider">
+                                        {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
+                                            ? "online" : "offline"}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="relative" ref={menuRef}>
+                        <button className="btn btn-ghost" onClick={() => setIsMenuOpen(!isMenuOpen)}>⋮</button>
+                        {isMenuOpen && (
+                            <div className="card card-compact absolute top-full right-0 mt-2 min-w-[200px] z-[100] shadow-lg">
+                                <div className="p-1">
+                                    {isGroup && (
+                                        <button className="sidebar-link w-full text-left" onClick={() => { setIsMenuOpen(false); setIsRenaming(true); }}>
+                                            <span className="sidebar-link-icon">✎</span>
+                                            byt namn
+                                        </button>
+                                    )}
+                                    <button className="sidebar-link w-full text-left text-danger" onClick={async () => {
+                                        if (confirm("Lämna chatten?")) {
+                                            await leaveThread(threadId);
+                                            router.push("/dm");
+                                            router.refresh();
+                                        }
+                                    }}>
+                                        <span className="sidebar-link-icon">⏻</span>
+                                        lämna chatt
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {isRenaming && (
+                <div className="modal-overlay">
+                    <div className="card max-w-md w-full p-6">
+                        <div className="modal-title">byt namn på grupp</div>
+                        <input
+                            type="text"
+                            className="input w-full mb-6"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="gruppnamn..."
+                            autoFocus
+                        />
+                        <div className="modal-actions">
+                            <button className="btn btn-secondary" onClick={() => setIsRenaming(false)}>avbryt</button>
+                            <button className="btn btn-primary" onClick={async () => {
+                                await renameThread(threadId, newName);
+                                setIsRenaming(false);
+                            }}>spara</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="chat-container">
                 <div className="chat-messages">
                     {messages.length === 0 && (
                         <div className="empty-state">
                             <div className="empty-state-icon">✉</div>
-                            <div className="empty-state-title">start a conversation</div>
+                            <div className="empty-state-title">{isGroup ? "denna grupp" : "denna konversation"}</div>
                             <div className="empty-state-text">
-                                this is the beginning of your conversation with {otherUser.name}.
+                                {isGroup ? "detta är början på gruppchatten." : `början på din konversation med ${otherUser?.name}.`}
                             </div>
                         </div>
                     )}
@@ -306,7 +380,7 @@ export default function DmView({ threadId, otherUser, currentUser, initialMessag
                             ref={inputRef}
                             type="text"
                             className="input"
-                            placeholder={`message ${otherUser.name.toLowerCase()}...`}
+                            placeholder={`meddelande till ${title.toLowerCase()}...`}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             autoFocus

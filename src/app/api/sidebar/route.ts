@@ -39,54 +39,121 @@ export async function GET() {
                 where: { userId_channelId: { userId, channelId: ch.id } }
             });
 
+            const lastReadAt = receipt?.lastReadAt || new Date(0);
+
             const unreadCount = await prisma.message.count({
                 where: {
                     channelId: ch.id,
                     userId: { not: userId },
-                    createdAt: { gt: receipt?.lastReadAt || new Date(0) }
+                    createdAt: { gt: lastReadAt }
                 }
             });
 
-            return { id: ch.id, unreadCount };
+            const mentionCount = await prisma.mention.count({
+                where: {
+                    userId,
+                    message: { channelId: ch.id },
+                    readAt: null
+                }
+            });
+
+            return { id: ch.id, unreadCount, mentionCount };
         })
     );
 
     const spaces = spaceMembers.map(sm => ({
         ...sm.space,
-        channels: sm.space.channels.map(ch => ({
-            ...ch,
-            unreadCount: threadUnreads.find(t => t.id === ch.id)?.unreadCount || 0
-        }))
+        channels: sm.space.channels.map(ch => {
+            const counts = threadUnreads.find(t => t.id === ch.id);
+            return {
+                ...ch,
+                unreadCount: counts?.unreadCount || 0,
+                hasMention: (counts?.mentionCount || 0) > 0
+            };
+        })
     }));
 
-    const dmThreads = await prisma.directThread.findMany({
-        where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+    const threadMemberships = await prisma.threadMember.findMany({
+        where: { userId },
         include: {
-            user1: { select: { id: true, name: true } },
-            user2: { select: { id: true, name: true } },
+            thread: {
+                include: {
+                    members: {
+                        include: {
+                            user: { select: { id: true, name: true, lastSeenAt: true } }
+                        }
+                    }
+                }
+            }
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { thread: { createdAt: "desc" } },
     });
 
-    const dmList = await Promise.all(dmThreads.map(async (t) => {
-        const isUser1 = t.user1Id === userId;
-        const lastRead = isUser1 ? t.lastReadUser1At : t.lastReadUser2At;
-        const otherUser = isUser1 ? t.user2 : t.user1;
+    const now = new Date();
+    const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
+    const dmList = await Promise.all(threadMemberships.map(async (membership) => {
+        const t = membership.thread;
+        const lastRead = membership.joinedAt; // Fallback or use a better lastRead field if available
 
         const unreadCount = await prisma.directMessage.count({
             where: {
                 threadId: t.id,
                 userId: { not: userId },
-                createdAt: { gt: lastRead }
+                createdAt: { gt: lastRead } // This should be updated by a "read" API
             }
         });
 
-        return {
-            id: t.id,
-            otherUser,
-            unreadCount
-        };
+        const mentionCount = await prisma.mention.count({
+            where: {
+                userId,
+                directMessage: { threadId: t.id },
+                readAt: null
+            }
+        });
+
+        if (t.isGroup) {
+            return {
+                id: t.id,
+                name: t.name || "Namnlös grupp",
+                isGroup: true,
+                memberCount: t.members.length,
+                unreadCount,
+                hasMention: mentionCount > 0
+            };
+        } else {
+            // Find the other user in 1:1
+            const otherMember = t.members.find(m => m.userId !== userId);
+            const otherUser = otherMember?.user || { id: "unknown", name: "Borttagen användare", lastSeenAt: null };
+
+            const isOnline = otherUser.lastSeenAt &&
+                (now.getTime() - new Date(otherUser.lastSeenAt).getTime() < ONLINE_THRESHOLD_MS);
+
+            return {
+                id: t.id,
+                otherUser,
+                isGroup: false,
+                isOnline,
+                unreadCount,
+                hasMention: mentionCount > 0
+            };
+        }
     }));
 
-    return NextResponse.json({ spaces, dmThreads: dmList });
+    const unreadOpportunityMentions = await prisma.mention.count({
+        where: {
+            userId,
+            readAt: null,
+            OR: [
+                { opportunityId: { not: null } },
+                { opportunityCommentId: { not: null } }
+            ]
+        }
+    });
+
+    return NextResponse.json({
+        spaces,
+        dmThreads: dmList,
+        hasOpportunityMention: unreadOpportunityMentions > 0
+    });
 }

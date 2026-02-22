@@ -1746,3 +1746,168 @@ tr:hover td {
     line-height: 1.6;
   }
 }
+
+/* ── Mentions ────────────────────────────── */
+
+.mention-list-container {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  max-width: 300px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--neon-green-dim);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), var(--shadow-neon);
+  z-index: 1000;
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+  animation: slideUp 0.15s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  transition: all 0.1s;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.mention-item:hover,
+.mention-item.active {
+  background: var(--neon-green-glow);
+  color: var(--neon-green);
+}
+
+.mention-item-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.mention-item.active .mention-item-avatar {
+  background: var(--neon-green);
+  color: var(--bg-primary);
+}
+
+.mention-token {
+  background: var(--neon-green-glow);
+  color: var(--neon-green);
+  padding: 0 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-shadow: 0 0 6px var(--neon-green-glow);
+}
+
+.badge-mention {
+  background: var(--neon-magenta);
+  color: white;
+  box-shadow: 0 0 10px var(--neon-magenta-glow);
+}
+
+/* ── Opportunities ────────────────────────── */
+
+.opportunities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+  padding-bottom: var(--space-10);
+}
+
+.opportunity-card {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+
+.opportunity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), var(--shadow-neon);
+}
+
+.badge-type {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.tag-sm {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+/* Presence & Group Chat Styles */
+.bg-success {
+  background-color: var(--success);
+}
+
+.bg-muted {
+  background-color: var(--text-muted);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.badge-primary-soft {
+  background: rgba(var(--primary-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
+  color: var(--primary);
+}
+
+/* Animations */
+@keyframes pulse-success {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 255, 102, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 102, 0);
+  }
+}
+
+.status-pulse {
+  animation: pulse-success 2s infinite;
+}

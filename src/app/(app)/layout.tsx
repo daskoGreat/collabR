@@ -26,18 +26,69 @@ export default async function AppLayout({
             : spaces.map((sm) => sm.space);
 
     // Fetch DM threads for sidebar
-    const dmThreads = await prisma.directThread.findMany({
-        where: { OR: [{ user1Id: user.id }, { user2Id: user.id }] },
+    const threadMemberships = await prisma.threadMember.findMany({
+        where: { userId: user.id },
         include: {
-            user1: { select: { id: true, name: true } },
-            user2: { select: { id: true, name: true } },
+            thread: {
+                include: {
+                    members: {
+                        include: {
+                            user: { select: { id: true, name: true, lastSeenAt: true } }
+                        }
+                    }
+                }
+            }
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { thread: { createdAt: "desc" } },
     });
 
-    const dmList = dmThreads.map((t) => ({
-        id: t.id,
-        otherUser: t.user1Id === user.id ? t.user2 : t.user1,
+    const now = new Date();
+    const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
+
+    const dmList = await Promise.all(threadMemberships.map(async (membership) => {
+        const t = membership.thread;
+        const lastRead = membership.joinedAt;
+
+        const unreadCount = await prisma.directMessage.count({
+            where: {
+                threadId: t.id,
+                userId: { not: user.id },
+                createdAt: { gt: lastRead }
+            }
+        });
+
+        const mentionCount = await prisma.mention.count({
+            where: {
+                userId: user.id,
+                directMessage: { threadId: t.id },
+                readAt: null
+            }
+        });
+
+        if (t.isGroup) {
+            return {
+                id: t.id,
+                name: t.name || "Namnlös grupp",
+                isGroup: true,
+                memberCount: t.members.length,
+                unreadCount,
+                hasMention: mentionCount > 0
+            };
+        } else {
+            const otherMember = t.members.find(m => m.userId !== user.id);
+            const otherUser = otherMember?.user || { id: "unknown", name: "Borttagen användare", lastSeenAt: null };
+            const isOnline = otherUser.lastSeenAt &&
+                (now.getTime() - new Date(otherUser.lastSeenAt).getTime() < ONLINE_THRESHOLD_MS);
+
+            return {
+                id: t.id,
+                otherUser: { id: otherUser.id, name: otherUser.name },
+                isGroup: false,
+                isOnline: !!isOnline,
+                unreadCount,
+                hasMention: mentionCount > 0
+            };
+        }
     }));
 
     return (

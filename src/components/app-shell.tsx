@@ -7,7 +7,16 @@ import UserMenu from "./user-menu";
 interface Props {
     user: { id: string; name: string; email: string; role: string };
     spaces: { id: string; name: string; channels?: { id: string; name: string; unreadCount?: number }[] }[];
-    dmThreads: { id: string; otherUser: { id: string; name: string }; unreadCount?: number }[];
+    dmThreads: {
+        id: string;
+        isGroup: boolean;
+        name?: string;
+        memberCount?: number;
+        otherUser?: { id: string; name: string };
+        isOnline?: boolean;
+        unreadCount?: number;
+        hasMention?: boolean;
+    }[];
     children: React.ReactNode;
 }
 

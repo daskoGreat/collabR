@@ -9,6 +9,7 @@ interface Channel {
     id: string;
     name: string;
     unreadCount?: number;
+    hasMention?: boolean;
 }
 
 interface Space {
@@ -19,8 +20,13 @@ interface Space {
 
 interface DmThread {
     id: string;
-    otherUser: { id: string; name: string };
+    isGroup: boolean;
+    name?: string;
+    memberCount?: number;
+    otherUser?: { id: string; name: string };
+    isOnline?: boolean;
     unreadCount?: number;
+    hasMention?: boolean;
 }
 
 interface Props {
@@ -35,6 +41,13 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
     const pathname = usePathname();
     const [spaces, setSpaces] = useState(initialSpaces);
     const [dmThreads, setDmThreads] = useState(initialDmThreads);
+    const [hasOpportunityMention, setHasOpportunityMention] = useState(false);
+    const [showNewChat, setShowNewChat] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
+    const [groupName, setGroupName] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
         const fetchSidebarData = async () => {
@@ -44,6 +57,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     const data = await res.json();
                     setSpaces(data.spaces);
                     setDmThreads(data.dmThreads);
+                    setHasOpportunityMention(data.hasOpportunityMention);
                 }
             } catch (err) {
                 console.error("Failed to fetch sidebar data:", err);
@@ -88,6 +102,50 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
         setDmThreads(initialDmThreads);
     }, [initialSpaces, initialDmThreads]);
 
+    // Search users for new chat
+    useEffect(() => {
+        if (searchQuery.length < 1) {
+            setSearchResults([]);
+            return;
+        }
+        const timer = setTimeout(async () => {
+            const res = await fetch(`/api/users/search?q=${searchQuery}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSearchResults(data.filter((u: any) => u.id !== user.id));
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, user.id]);
+
+    async function handleCreateThread() {
+        if (selectedUsers.length === 0) return;
+        setIsCreating(true);
+        try {
+            const body = selectedUsers.length === 1
+                ? { targetUserId: selectedUsers[0].id }
+                : { participants: selectedUsers.map(u => u.id), name: groupName };
+
+            const res = await fetch("/api/dm/thread", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            if (res.ok) {
+                const { threadId } = await res.json();
+                setShowNewChat(false);
+                setSelectedUsers([]);
+                setSearchQuery("");
+                setGroupName("");
+                window.location.href = `/dm/${threadId}`;
+            }
+        } catch (err) {
+            console.error("Failed to create thread:", err);
+        } finally {
+            setIsCreating(false);
+        }
+    }
+
     const isActive = (path: string) =>
         pathname === path || pathname.startsWith(path + "/");
 
@@ -117,6 +175,18 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         spaces
                     </Link>
 
+                    <Link
+                        href="/opportunities"
+                        onClick={onClose}
+                        className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
+                    >
+                        <span className="sidebar-link-icon">✧</span>
+                        jobb & möjligheter
+                        {hasOpportunityMention && (
+                            <span className="badge badge-notification badge-mention">!</span>
+                        )}
+                    </Link>
+
                     <div className="sidebar-section">
                         <div className="sidebar-section-title">your spaces</div>
                         {spaces.map((space) => (
@@ -139,7 +209,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                         >
                                             <span className="sidebar-link-icon">#</span>
                                             <span className="sidebar-link-text">{ch.name.toLowerCase()}</span>
-                                            {ch.unreadCount && ch.unreadCount > 0 ? (
+                                            {ch.hasMention ? (
+                                                <span className="badge badge-notification badge-mention">!</span>
+                                            ) : ch.unreadCount && ch.unreadCount > 0 ? (
                                                 <span className="badge badge-notification">{ch.unreadCount}</span>
                                             ) : null}
                                         </Link>
@@ -157,7 +229,10 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
 
                     {/* Direct Messages */}
                     <div className="sidebar-section">
-                        <div className="sidebar-section-title">direct messages</div>
+                        <div className="row-between items-center pr-3 mb-1">
+                            <div className="sidebar-section-title !mb-0">direct messages</div>
+                            <button className="text-muted hover:text-primary text-lg" onClick={() => setShowNewChat(true)} title="New Chat">+</button>
+                        </div>
                         {dmThreads.map((thread) => (
                             <Link
                                 key={thread.id}
@@ -165,9 +240,23 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${isActive(`/dm/${thread.id}`) ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">@</span>
-                                {thread.otherUser.name.toLowerCase()}
-                                {thread.unreadCount && thread.unreadCount > 0 ? (
+                                <span className={`sidebar-link-icon ${!thread.isGroup && thread.isOnline ? "text-success" : ""}`}>
+                                    {thread.isGroup ? "⚑" : "@"}
+                                </span>
+                                <span className="flex-1 truncate">
+                                    {thread.isGroup
+                                        ? (thread.name || "Namnlös grupp")
+                                        : (thread.otherUser?.name.toLowerCase())}
+                                </span>
+                                {thread.isGroup && (
+                                    <span className="text-[10px] text-muted opacity-50 mr-2">{thread.memberCount}</span>
+                                )}
+                                {!thread.isGroup && thread.isOnline && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_4px_var(--success)] mr-2" />
+                                )}
+                                {thread.hasMention ? (
+                                    <span className="badge badge-notification badge-mention">!</span>
+                                ) : thread.unreadCount && thread.unreadCount > 0 ? (
                                     <span className="badge badge-notification">{thread.unreadCount}</span>
                                 ) : null}
                             </Link>
@@ -237,6 +326,87 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     </div>
                 </div>
             </nav>
+
+            {showNewChat && (
+                <div className="modal-overlay">
+                    <div className="card max-w-md w-full p-6 shadow-2xl border border-primary/20">
+                        <div className="modal-title flex justify-between items-center mb-6">
+                            <span>ny konversation</span>
+                            <button className="text-muted hover:text-white" onClick={() => setShowNewChat(false)}>✕</button>
+                        </div>
+
+                        <div className="form-group mb-4">
+                            <label className="form-label">sök medlemmar</label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="namn eller e-post..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                autoFocus
+                            />
+                            {searchResults.length > 0 && (
+                                <div className="card card-compact mt-1 max-h-[200px] overflow-y-auto border border-subtle">
+                                    {searchResults.map(u => (
+                                        <button
+                                            key={u.id}
+                                            className="sidebar-link w-full text-left"
+                                            onClick={() => {
+                                                if (!selectedUsers.find(s => s.id === u.id)) {
+                                                    setSelectedUsers([...selectedUsers, u]);
+                                                }
+                                                setSearchQuery("");
+                                                setSearchResults([]);
+                                            }}
+                                        >
+                                            <span className="sidebar-link-icon">@</span>
+                                            {u.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {selectedUsers.length > 0 && (
+                            <div className="mb-6">
+                                <label className="form-label mb-2">valda:</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedUsers.map(u => (
+                                        <div key={u.id} className="badge p-2 bg-primary/10 border border-primary/30 flex items-center gap-2">
+                                            <span>{u.name}</span>
+                                            <button className="text-muted hover:text-danger" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))}>✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedUsers.length > 1 && (
+                            <div className="form-group mb-6">
+                                <label className="form-label">gruppnamn (valfritt)</label>
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    placeholder="mitt team, helgplaner, etc..."
+                                    value={groupName}
+                                    onChange={(e) => setGroupName(e.target.value)}
+                                />
+                            </div>
+                        )}
+
+                        <div className="modal-actions">
+                            <button className="btn btn-secondary" onClick={() => setShowNewChat(false)}>avbryt</button>
+                            <button
+                                className="btn btn-primary"
+                                disabled={selectedUsers.length === 0 || isCreating}
+                                onClick={handleCreateThread}
+                            >
+                                {isCreating ? "skapar..." : selectedUsers.length > 1 ? "skapa grupp" : "starta chatt"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

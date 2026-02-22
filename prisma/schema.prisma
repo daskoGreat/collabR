@@ -35,6 +35,18 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum OpportunityType {
+  JOBB
+  LIA
+  UPPDRAG
+}
+
+enum WorkLocation {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
 // ─── USERS ───────────────────────────────────────────────
 
 model User {
@@ -47,6 +59,7 @@ model User {
   bannedReason String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  lastSeenAt   DateTime?
 
   // Relations
   invitesCreated   Invite[]        @relation("InviteCreator")
@@ -66,6 +79,10 @@ model User {
   bansReceived     Ban[]           @relation("BannedUser")
   bansIssued       Ban[]           @relation("BanIssuer")
   auditLogs        AuditLog[]
+  mentions         Mention[]       @relation("MentionedUser")
+  opportunities    Opportunity[]
+  opportunityComments OpportunityComment[]
+  threadMemberships ThreadMember[]
 
   @@index([email])
 }
@@ -136,20 +153,41 @@ model Channel {
 
 model DirectThread {
   id        String   @id @default(cuid())
-  user1Id   String
-  user2Id   String
+  user1Id   String?
+  user2Id   String?
+  name      String?
+  avatar    String?
+  isGroup   Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user1    User            @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2    User            @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  user1    User?           @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User?           @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
   messages DirectMessage[]
+  members  ThreadMember[]
 
   lastReadUser1At DateTime @default(now())
   lastReadUser2At DateTime @default(now())
 
-  @@unique([user1Id, user2Id])
   @@index([user1Id])
   @@index([user2Id])
+}
+
+model ThreadMember {
+  id        String     @id @default(cuid())
+  threadId  String
+  userId    String
+  role      ThreadRole @default(MEMBER)
+  joinedAt  DateTime   @default(now())
+
+  thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+}
+
+enum ThreadRole {
+  OWNER
+  MEMBER
 }
 
 model DirectMessage {
@@ -162,6 +200,7 @@ model DirectMessage {
   thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   user   User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
   attachments Attachment[]
+  mentions    Mention[]
 
   @@index([threadId, createdAt])
 }
@@ -189,6 +228,7 @@ model Message {
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   attachments Attachment[]
+  mentions    Mention[]
 
   @@index([channelId, createdAt])
 }
@@ -230,6 +270,7 @@ model Task {
   assignee User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
   creator  User          @relation("TaskCreator", fields: [createdBy], references: [id])
   comments TaskComment[]
+  mentions Mention[]
 
   @@index([spaceId, status])
 }
@@ -244,6 +285,7 @@ model TaskComment {
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   attachments Attachment[]
+  mentions    Mention[]
 }
 
 // ─── POSTS (FRÅGA & HJÄLP) ─────────────────────────────
@@ -263,6 +305,7 @@ model Post {
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers PostAnswer[]
   attachments Attachment[]
+  mentions    Mention[]
 
   @@index([spaceId])
 }
@@ -278,6 +321,7 @@ model PostAnswer {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   attachments Attachment[]
+  mentions    Mention[]
 }
 
 // ─── MODERATION ──────────────────────────────────────────
@@ -351,8 +395,86 @@ model Attachment {
   post            Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
   postAnswerId    String?
   postAnswer      PostAnswer?    @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
+  opportunityId   String?
+  opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityCommentId String?
+  opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
   @@index([directMessageId])
   @@index([taskCommentId])
+}
+
+// ─── MENTIONS ────────────────────────────────────────────
+
+model Mention {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("MentionedUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Potential targets
+  messageId       String?
+  message         Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  directMessageId String?
+  directMessage   DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  taskCommentId   String?
+  taskComment     TaskComment?   @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
+  postId          String?
+  post            Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postAnswerId    String?
+  postAnswer      PostAnswer?    @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
+  taskId          String?
+  task            Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  opportunityId   String?
+  opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityCommentId String?
+  opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
+
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+  @@index([messageId])
+  @@index([directMessageId])
+}
+
+// ─── OPPORTUNITIES ───────────────────────────────────────
+
+model Opportunity {
+  id          String          @id @default(cuid())
+  userId      String
+  title       String
+  content     String
+  type        OpportunityType
+  location    WorkLocation
+  tags        String[]
+  link        String?
+  contactInfo String?
+  deadline    DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments    OpportunityComment[]
+  attachments Attachment[]
+  mentions    Mention[]
+
+  @@index([type])
+  @@index([location])
+  @@index([createdAt])
+}
+
+model OpportunityComment {
+  id            String      @id @default(cuid())
+  opportunityId String
+  userId        String
+  content       String
+  createdAt     DateTime    @default(now())
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+  mentions    Mention[]
+
+  @@index([opportunityId])
 }

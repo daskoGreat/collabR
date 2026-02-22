@@ -16,15 +16,30 @@ export default async function DmPage({ params }: Props) {
     const thread = await prisma.directThread.findUnique({
         where: { id: threadId },
         include: {
-            user1: { select: { id: true, name: true } },
-            user2: { select: { id: true, name: true } },
+            members: {
+                include: {
+                    user: { select: { id: true, name: true, lastSeenAt: true } }
+                }
+            }
         },
     });
 
-    if (!thread || (thread.user1Id !== userId && thread.user2Id !== userId)) return notFound();
+    if (!thread) return notFound();
 
-    const otherUser = thread.user1Id === userId ? thread.user2 : thread.user1;
-    const currentUser = thread.user1Id === userId ? thread.user1 : thread.user2;
+    const membership = thread.members.find(m => m.userId === userId);
+    if (!membership) return notFound();
+
+    const isGroup = thread.isGroup;
+    let title = thread.name || "Gruppchatt";
+    let otherUser: { id: string; name: string; lastSeenAt: Date | null } | null = null;
+
+    if (!isGroup) {
+        const otherMember = thread.members.find(m => m.userId !== userId);
+        otherUser = otherMember?.user || { id: "unknown", name: "Borttagen användare", lastSeenAt: null };
+        title = otherUser.name;
+    }
+
+    const currentUser = membership.user;
 
     const messages = await prisma.directMessage.findMany({
         where: { threadId },
@@ -39,6 +54,8 @@ export default async function DmPage({ params }: Props) {
     return (
         <DmView
             threadId={threadId}
+            title={title}
+            isGroup={isGroup}
             otherUser={otherUser}
             currentUser={{ id: currentUser.id, name: currentUser.name }}
             initialMessages={messages.map((m: any) => ({
