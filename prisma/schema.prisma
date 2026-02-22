@@ -92,6 +92,7 @@ model User {
 model Invite {
   id        String    @id @default(cuid())
   token     String    @unique @default(cuid())
+  email     String?
   createdBy String
   creator   User      @relation("InviteCreator", fields: [createdBy], references: [id])
   maxUses   Int       @default(1)
@@ -102,6 +103,7 @@ model Invite {
   createdAt DateTime  @default(now())
 
   @@index([token])
+  @@index([email])
 }
 
 // ─── SPACES ──────────────────────────────────────────────

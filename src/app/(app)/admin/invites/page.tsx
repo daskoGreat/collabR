@@ -8,8 +8,15 @@ export default async function AdminInvitesPage() {
 
     const invites = await prisma.invite.findMany({
         orderBy: { createdAt: "desc" },
-        include: { creator: { select: { name: true } } },
+        include: {
+            creator: { select: { name: true } }
+        },
     });
+
+    // Get all registered users to check status
+    const registeredEmails = await prisma.user.findMany({
+        select: { email: true }
+    }).then(users => new Set(users.map(u => u.email.toLowerCase())));
 
     return (
         <>
@@ -23,9 +30,10 @@ export default async function AdminInvitesPage() {
                 </div>
             </div>
             <InvitesAdmin
-                invites={invites.map((i: typeof invites[number]) => ({
+                invites={invites.map((i: any) => ({
                     id: i.id,
                     token: i.token,
+                    email: i.email,
                     createdBy: i.creator.name,
                     maxUses: i.maxUses,
                     uses: i.uses,
@@ -33,6 +41,7 @@ export default async function AdminInvitesPage() {
                     expiresAt: i.expiresAt?.toISOString() || null,
                     revoked: i.revoked,
                     createdAt: i.createdAt.toISOString(),
+                    isRegistered: i.email ? registeredEmails.has(i.email.toLowerCase()) : false,
                 }))}
             />
         </>

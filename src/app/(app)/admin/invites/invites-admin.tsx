@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createInvite, revokeInvite } from "@/lib/actions/admin";
+import { createInvite, revokeInvite, reinviteUser } from "@/lib/actions/admin";
 
 interface Invite {
     id: string;
     token: string;
+    email: string | null;
     createdBy: string;
     maxUses: number;
     uses: number;
@@ -13,6 +14,7 @@ interface Invite {
     expiresAt: string | null;
     revoked: boolean;
     createdAt: string;
+    isRegistered: boolean;
 }
 
 interface Props {
@@ -32,6 +34,13 @@ export default function InvitesAdmin({ invites }: Props) {
         }
         setCreating(false);
         setShowCreate(false);
+    }
+
+    async function handleReinvite(email: string) {
+        const result = await reinviteUser(email);
+        if (result?.token) {
+            setNewToken(result.token);
+        }
     }
 
     function getInviteUrl(token: string) {
@@ -77,6 +86,10 @@ export default function InvitesAdmin({ invites }: Props) {
                                 <input type="number" name="expiresInDays" className="input" defaultValue={7} min={0} />
                             </div>
                         </div>
+                        <div className="form-group mb-4">
+                            <label className="form-label">recipient email (optional)</label>
+                            <input type="email" name="email" className="input" placeholder="user@example.com" />
+                        </div>
                         <div className="form-group">
                             <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer" }}>
                                 <input type="checkbox" name="singleUse" defaultChecked />
@@ -99,6 +112,7 @@ export default function InvitesAdmin({ invites }: Props) {
                         <tr>
                             <th>token</th>
                             <th>created by</th>
+                            <th>recipient</th>
                             <th>uses</th>
                             <th>type</th>
                             <th>expires</th>
@@ -121,6 +135,20 @@ export default function InvitesAdmin({ invites }: Props) {
                                         </code>
                                     </td>
                                     <td>{invite.createdBy}</td>
+                                    <td>
+                                        {invite.email ? (
+                                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                                <span className="text-sm">{invite.email}</span>
+                                                {invite.isRegistered ? (
+                                                    <span className="text-xs text-success">registered</span>
+                                                ) : (
+                                                    <span className="text-xs text-muted">pending registration</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted text-xs">public link</span>
+                                        )}
+                                    </td>
                                     <td>{invite.uses}/{invite.maxUses}</td>
                                     <td>
                                         <span className="badge badge-muted">
@@ -160,6 +188,15 @@ export default function InvitesAdmin({ invites }: Props) {
                                                         revoke
                                                     </button>
                                                 </>
+                                            )}
+                                            {(invite.revoked || isExpired) && invite.email && (
+                                                <button
+                                                    className="btn btn-ghost btn-sm"
+                                                    style={{ color: "var(--neon-green)" }}
+                                                    onClick={() => handleReinvite(invite.email!)}
+                                                >
+                                                    re-invite
+                                                </button>
                                             )}
                                         </div>
                                     </td>

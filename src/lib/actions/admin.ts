@@ -11,14 +11,24 @@ export async function createInvite(formData: FormData) {
     const maxUses = parseInt(formData.get("maxUses") as string) || 1;
     const singleUse = formData.get("singleUse") === "on";
     const expiresInDays = parseInt(formData.get("expiresInDays") as string) || 0;
+    const email = (formData.get("email") as string)?.trim() || null;
 
     const expiresAt = expiresInDays > 0
         ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
         : null;
 
+    if (email) {
+        // Revoke any existing invites for this email
+        await prisma.invite.updateMany({
+            where: { email, revoked: false },
+            data: { revoked: true }
+        });
+    }
+
     const invite = await prisma.invite.create({
         data: {
             token: nanoid(24),
+            email,
             createdBy: user.id,
             maxUses: singleUse ? 1 : maxUses,
             singleUse,
@@ -58,6 +68,43 @@ export async function revokeInvite(inviteId: string) {
     });
 
     revalidatePath("/admin/invites");
+}
+
+export async function reinviteUser(email: string) {
+    const user = await requireRole("ADMIN");
+
+    // Revoke any existing
+    await prisma.invite.updateMany({
+        where: { email, revoked: false },
+        data: { revoked: true }
+    });
+
+    // Create new invite (7 days expiration by default for re-invites)
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const invite = await prisma.invite.create({
+        data: {
+            token: nanoid(24),
+            email,
+            createdBy: user.id,
+            maxUses: 1,
+            singleUse: true,
+            expiresAt,
+        },
+    });
+
+    await prisma.auditLog.create({
+        data: {
+            userId: user.id,
+            action: "invite.reinvite",
+            targetType: "invite",
+            targetId: invite.id,
+            metadata: { email, token: invite.token },
+        },
+    });
+
+    revalidatePath("/admin/invites");
+    return { token: invite.token };
 }
 
 export async function banUser(formData: FormData) {

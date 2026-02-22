@@ -45,6 +45,11 @@ export async function registerWithInvite(formData: FormData) {
         return { error: "this invite has reached its use limit." };
     }
 
+    // New: Check if invite is tied to a specific email
+    if (invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
+        return { error: "this invite is for a different email address." };
+    }
+
     // Check if email already exists
     const existing = await prisma.user.findUnique({
         where: { email },
