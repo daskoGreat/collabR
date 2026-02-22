@@ -116,9 +116,9 @@ export default function TasksList({ spaceId, tasks, members }: Props) {
             {filtered.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">⊡</div>
-                    <div className="empty-state-title">no tasks here</div>
+                    <div className="empty-state-title">clear skies</div>
                     <div className="empty-state-text">
-                        nothing to do? unlikely. create one.
+                        nothing urgent on the radar? reach out to a peer and see where you can lend a hand.
                     </div>
                 </div>
             ) : (

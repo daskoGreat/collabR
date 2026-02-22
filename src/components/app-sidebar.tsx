@@ -42,6 +42,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
     const [spaces, setSpaces] = useState(initialSpaces);
     const [dmThreads, setDmThreads] = useState(initialDmThreads);
     const [hasOpportunityMention, setHasOpportunityMention] = useState(false);
+    const [openHelpCount, setOpenHelpCount] = useState(0);
     const [showNewChat, setShowNewChat] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -58,6 +59,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     setSpaces(data.spaces);
                     setDmThreads(data.dmThreads);
                     setHasOpportunityMention(data.hasOpportunityMention);
+                    setOpenHelpCount(data.openHelpCount || 0);
                 }
             } catch (err) {
                 console.error("Failed to fetch sidebar data:", err);
@@ -172,7 +174,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
                     >
                         <span className="sidebar-link-icon">⌂</span>
-                        spaces
+                        community home
                     </Link>
 
                     <Link
@@ -181,9 +183,11 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
                     >
                         <span className="sidebar-link-icon">✧</span>
-                        jobb & möjligheter
-                        {hasOpportunityMention && (
-                            <span className="badge badge-notification badge-mention">!</span>
+                        möjligheter & hjälp
+                        {(hasOpportunityMention || openHelpCount > 0) && (
+                            <span className="badge badge-notification badge-mention">
+                                {openHelpCount > 0 ? openHelpCount : "!"}
+                            </span>
                         )}
                     </Link>
 

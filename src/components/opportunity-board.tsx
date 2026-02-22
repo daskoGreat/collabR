@@ -200,8 +200,10 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
             {filtered.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">✧</div>
-                    <div className="empty-state-title">inga matchningar hittades</div>
-                    <div className="empty-state-text">prova att ändra dina filter eller sökord.</div>
+                    <div className="empty-state-title">the board is quiet</div>
+                    <div className="empty-state-text">
+                        if you know of an open door or a teammate in need, be the first to share it with the community.
+                    </div>
                 </div>
             ) : (
                 <div className="opportunities-grid">

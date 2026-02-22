@@ -132,9 +132,9 @@ export default function HelpList({ spaceId, posts }: Props) {
             {filtered.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">?</div>
-                    <div className="empty-state-title">no questions yet</div>
+                    <div className="empty-state-title">the collective knowledge is waiting</div>
                     <div className="empty-state-text">
-                        be the first to ask. someone&apos;s got the answer.
+                        every question asked helps us all grow. don&apos;t be shy — be the one who starts the conversation.
                     </div>
                 </div>
             ) : (

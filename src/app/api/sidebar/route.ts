@@ -151,9 +151,18 @@ export async function GET() {
         }
     });
 
+    const openHelpCount = await prisma.post.count({
+        where: {
+            spaceId: { in: spaceMembers.map(sm => sm.spaceId) },
+            solved: false,
+            userId: { not: userId }
+        }
+    });
+
     return NextResponse.json({
         spaces,
         dmThreads: dmList,
-        hasOpportunityMention: unreadOpportunityMentions > 0
+        hasOpportunityMention: unreadOpportunityMentions > 0,
+        openHelpCount
     });
 }

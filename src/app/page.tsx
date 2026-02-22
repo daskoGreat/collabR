@@ -42,10 +42,10 @@ export default function LandingPage() {
 
         <div className="landing-cta">
           <Link href="/login" className="btn btn-primary btn-lg">
-            enter with invite →
+            join the solidarity →
           </Link>
           <p className="text-xs text-muted" style={{ marginTop: "var(--space-4)" }}>
-            closed community. you need an invite link to join.
+            invite required. community-driven space.
           </p>
         </div>
 
