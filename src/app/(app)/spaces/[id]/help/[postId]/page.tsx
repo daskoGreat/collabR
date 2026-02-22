@@ -15,9 +15,13 @@ export default async function PostDetailPage({ params }: Props) {
         where: { id: postId, spaceId: id },
         include: {
             user: { select: { id: true, name: true } },
+            attachments: true,
             answers: {
                 orderBy: { createdAt: "asc" },
-                include: { user: { select: { id: true, name: true } } },
+                include: {
+                    user: { select: { id: true, name: true } },
+                    attachments: true
+                },
             },
         },
     });
@@ -43,12 +47,14 @@ export default async function PostDetailPage({ params }: Props) {
                     userId: post.userId,
                     userName: post.user.name,
                     createdAt: post.createdAt.toISOString(),
-                    answers: post.answers.map((a: typeof post.answers[number]) => ({
+                    attachments: post.attachments,
+                    answers: post.answers.map((a: any) => ({
                         id: a.id,
                         content: a.content,
                         accepted: a.accepted,
                         createdAt: a.createdAt.toISOString(),
                         user: a.user,
+                        attachments: a.attachments,
                     })),
                 }}
                 currentUserId={user.id}

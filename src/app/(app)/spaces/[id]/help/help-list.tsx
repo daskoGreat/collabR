@@ -3,6 +3,15 @@
 import { useState } from "react";
 import { createPost } from "@/lib/actions/posts";
 import Link from "next/link";
+import AttachmentPicker from "@/components/attachment-picker";
+import AttachmentList from "@/components/attachment-list";
+
+interface Attachment {
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+}
 
 interface Post {
     id: string;
@@ -25,6 +34,7 @@ export default function HelpList({ spaceId, posts }: Props) {
     const [showCreate, setShowCreate] = useState(false);
     const [creating, setCreating] = useState(false);
     const [filter, setFilter] = useState<"all" | "open" | "solved">("all");
+    const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
 
     const filtered = filter === "all"
         ? posts
@@ -34,7 +44,11 @@ export default function HelpList({ spaceId, posts }: Props) {
 
     async function handleCreate(formData: FormData) {
         setCreating(true);
+        if (pendingAttachments.length > 0) {
+            formData.append("attachments", JSON.stringify(pendingAttachments));
+        }
         await createPost(spaceId, formData);
+        setPendingAttachments([]);
         setCreating(false);
         setShowCreate(false);
     }
@@ -59,8 +73,30 @@ export default function HelpList({ spaceId, posts }: Props) {
                 <div className="card mb-4">
                     <div className="modal-title">new question</div>
                     <form className="auth-form" action={handleCreate}>
+                        {pendingAttachments.length > 0 && (
+                            <div className="mb-4">
+                                <AttachmentList
+                                    attachments={pendingAttachments}
+                                    onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
+                                />
+                            </div>
+                        )}
                         <div className="form-group">
-                            <label className="form-label">title</label>
+                            <div className="row-between mb-2">
+                                <label className="form-label mb-0">title</label>
+                                <AttachmentPicker
+                                    spaceId={spaceId}
+                                    onUploadSuccess={(url, file) => {
+                                        setPendingAttachments(prev => [...prev, {
+                                            url,
+                                            name: file.name,
+                                            mimeType: file.type,
+                                            size: file.size
+                                        }]);
+                                    }}
+                                    onUploadError={(err) => alert(err)}
+                                />
+                            </div>
                             <input type="text" name="title" className="input" placeholder="what do you need help with?" required />
                         </div>
                         <div className="form-group">

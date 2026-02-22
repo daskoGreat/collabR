@@ -30,7 +30,10 @@ export default async function DmPage({ params }: Props) {
         where: { threadId },
         orderBy: { createdAt: "asc" },
         take: 50,
-        include: { user: { select: { id: true, name: true } } },
+        include: {
+            user: { select: { id: true, name: true } },
+            attachments: true
+        },
     });
 
     return (
@@ -38,11 +41,12 @@ export default async function DmPage({ params }: Props) {
             threadId={threadId}
             otherUser={otherUser}
             currentUser={{ id: currentUser.id, name: currentUser.name }}
-            initialMessages={messages.map((m) => ({
+            initialMessages={messages.map((m: any) => ({
                 id: m.id,
                 content: m.content,
                 createdAt: m.createdAt.toISOString(),
                 user: m.user,
+                attachments: m.attachments,
             }))}
         />
     );

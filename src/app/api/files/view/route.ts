@@ -21,16 +21,23 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Fetch the file from Vercel Blob
-        // We use fetch with the same token used for put/head
+        console.log(`[Proxy] Fetching blob: ${url}`);
+        const token = process.env.BLOB_READ_WRITE_TOKEN;
+        if (!token) {
+            console.error("[Proxy] BLOB_READ_WRITE_TOKEN is missing");
+            return new NextResponse("Server configuration error", { status: 500 });
+        }
+
         const response = await fetch(url, {
             headers: {
-                Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+                Authorization: `Bearer ${token}`,
             },
         });
 
         if (!response.ok) {
-            return new NextResponse("Failed to fetch blob", { status: response.status });
+            const errorText = await response.text();
+            console.error(`[Proxy] Failed to fetch blob: ${response.status} ${response.statusText}`, errorText);
+            return new NextResponse(`Failed to fetch blob: ${response.statusText}`, { status: response.status });
         }
 
         // Forward the response with correct headers

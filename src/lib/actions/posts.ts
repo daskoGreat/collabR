@@ -26,6 +26,9 @@ export async function createPost(spaceId: string, formData: FormData) {
         ? parsed.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [];
 
+    const attachmentsRaw = formData.get("attachments") as string;
+    const attachments = attachmentsRaw ? JSON.parse(attachmentsRaw) : [];
+
     await prisma.post.create({
         data: {
             spaceId,
@@ -33,6 +36,15 @@ export async function createPost(spaceId: string, formData: FormData) {
             title: parsed.data.title,
             content: parsed.data.content,
             tags,
+            attachments: {
+                create: attachments.map((a: any) => ({
+                    name: a.name,
+                    url: a.url,
+                    mimeType: a.mimeType,
+                    size: a.size,
+                    storageKey: a.url.split("/").pop() || "unknown",
+                }))
+            }
         },
     });
 
@@ -48,8 +60,24 @@ export async function addAnswer(
     const content = formData.get("content") as string;
     if (!content?.trim()) return { error: "answer can't be empty" };
 
+    const attachmentsRaw = formData.get("attachments") as string;
+    const attachments = attachmentsRaw ? JSON.parse(attachmentsRaw) : [];
+
     await prisma.postAnswer.create({
-        data: { postId, userId: user.id, content: content.trim() },
+        data: {
+            postId,
+            userId: user.id,
+            content: content.trim(),
+            attachments: {
+                create: attachments.map((a: any) => ({
+                    name: a.name,
+                    url: a.url,
+                    mimeType: a.mimeType,
+                    size: a.size,
+                    storageKey: a.url.split("/").pop() || "unknown",
+                }))
+            }
+        },
     });
 
     revalidatePath(`/spaces/${spaceId}/help/${postId}`);

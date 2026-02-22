@@ -22,17 +22,21 @@ export default async function ChatPage({ params }: Props) {
         where: { channelId, deletedAt: null },
         orderBy: { createdAt: "asc" },
         take: 100,
-        include: { user: { select: { id: true, name: true } } },
+        include: {
+            user: { select: { id: true, name: true } },
+            attachments: true
+        },
     });
 
     return (
         <ChatView
             channel={{ id: channel.id, name: channel.name, spaceName: channel.space.name }}
-            initialMessages={messages.map((m: typeof messages[number]) => ({
+            initialMessages={messages.map((m: any) => ({
                 id: m.id,
                 content: m.content,
                 createdAt: m.createdAt.toISOString(),
                 user: { id: m.user.id, name: m.user.name },
+                attachments: m.attachments,
             }))}
             currentUser={{ id: user.id, name: user.name }}
             spaceId={id}

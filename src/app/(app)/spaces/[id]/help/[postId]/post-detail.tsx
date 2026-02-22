@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 import { addAnswer, markPostSolved, acceptAnswer } from "@/lib/actions/posts";
+import AttachmentPicker from "@/components/attachment-picker";
+import AttachmentList from "@/components/attachment-list";
+import MessageContent from "@/components/message-content";
+
+interface Attachment {
+    id?: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+}
 
 interface Answer {
     id: string;
@@ -9,6 +20,7 @@ interface Answer {
     accepted: boolean;
     createdAt: string;
     user: { id: string; name: string };
+    attachments?: Attachment[];
 }
 
 interface Post {
@@ -21,6 +33,7 @@ interface Post {
     userName: string;
     createdAt: string;
     answers: Answer[];
+    attachments?: Attachment[];
 }
 
 interface Props {
@@ -31,11 +44,16 @@ interface Props {
 
 export default function PostDetail({ spaceId, post, currentUserId }: Props) {
     const [answering, setAnswering] = useState(false);
+    const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
     const isOwner = currentUserId === post.userId;
 
     async function handleAnswer(formData: FormData) {
         setAnswering(true);
+        if (pendingAttachments.length > 0) {
+            formData.append("attachments", JSON.stringify(pendingAttachments));
+        }
         await addAnswer(post.id, spaceId, formData);
+        setPendingAttachments([]);
         setAnswering(false);
     }
 
@@ -73,9 +91,12 @@ export default function PostDetail({ spaceId, post, currentUserId }: Props) {
                     </div>
                 </div>
 
-                <p className="text-secondary" style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                    {post.content}
-                </p>
+                <div className="text-secondary" style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                    <MessageContent content={post.content} />
+                </div>
+                {post.attachments && post.attachments.length > 0 && (
+                    <AttachmentList attachments={post.attachments} readOnly />
+                )}
 
                 {post.tags.length > 0 && (
                     <div className="tags-list mt-4">
@@ -125,9 +146,12 @@ export default function PostDetail({ spaceId, post, currentUserId }: Props) {
                                 )}
                             </div>
                         </div>
-                        <p className="text-sm text-secondary" style={{ lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                            {answer.content}
-                        </p>
+                        <div className="text-sm text-secondary" style={{ lineHeight: 1.6 }}>
+                            <MessageContent content={answer.content} />
+                            {answer.attachments && answer.attachments.length > 0 && (
+                                <AttachmentList attachments={answer.attachments} readOnly />
+                            )}
+                        </div>
                     </div>
                 ))}
                 {post.answers.length === 0 && (
@@ -137,11 +161,32 @@ export default function PostDetail({ spaceId, post, currentUserId }: Props) {
                 )}
             </div>
 
-            {/* Answer form */}
             <div className="card">
                 <form className="auth-form" action={handleAnswer}>
+                    {pendingAttachments.length > 0 && (
+                        <div className="mb-4">
+                            <AttachmentList
+                                attachments={pendingAttachments}
+                                onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
+                            />
+                        </div>
+                    )}
                     <div className="form-group">
-                        <label className="form-label">your answer</label>
+                        <div className="row-between mb-2">
+                            <label className="form-label mb-0">your answer</label>
+                            <AttachmentPicker
+                                spaceId={spaceId}
+                                onUploadSuccess={(url, file) => {
+                                    setPendingAttachments(prev => [...prev, {
+                                        url,
+                                        name: file.name,
+                                        mimeType: file.type,
+                                        size: file.size
+                                    }]);
+                                }}
+                                onUploadError={(err) => alert(err)}
+                            />
+                        </div>
                         <textarea
                             name="content"
                             className="input"
