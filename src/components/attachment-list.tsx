@@ -19,6 +19,13 @@ export default function AttachmentList({ attachments, onRemove, readOnly = false
 
     const isImage = (mime: string) => mime.startsWith("image/");
 
+    const getProxiedUrl = (url: string) => {
+        if (url.includes("public.blob.vercel-storage.com")) {
+            return `/api/files/view?url=${encodeURIComponent(url)}`;
+        }
+        return url;
+    };
+
     return (
         <div className="attachment-list mt-2 stack" style={{ gap: "var(--space-2)" }}>
             {attachments.map((file, i) => (
@@ -26,7 +33,7 @@ export default function AttachmentList({ attachments, onRemove, readOnly = false
                     {isImage(file.mimeType) ? (
                         <div className="attachment-preview card card-compact" style={{ padding: 0, overflow: "hidden", maxWidth: "300px" }}>
                             <img
-                                src={file.url}
+                                src={getProxiedUrl(file.url)}
                                 alt={file.name}
                                 style={{ width: "100%", height: "auto", display: "block" }}
                             />
@@ -50,7 +57,7 @@ export default function AttachmentList({ attachments, onRemove, readOnly = false
                                 )}
                             </div>
                             <a
-                                href={file.url}
+                                href={getProxiedUrl(file.url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn btn-ghost btn-sm"
