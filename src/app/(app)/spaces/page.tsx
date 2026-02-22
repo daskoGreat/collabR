@@ -50,7 +50,6 @@ export default async function SpacesPage() {
                     <div className="section">
                         <div className="row-between mb-4">
                             <h2 className="section-title !mb-0">mutual help needed</h2>
-                            <Link href="/opportunities" className="text-xs text-primary hover:underline">view all</Link>
                         </div>
                         <div className="stack">
                             {latestHelp.length === 0 ? (
