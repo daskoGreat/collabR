@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         // Upload to Vercel Blob
         const path = isSpaceFile ? `spaces/${spaceId}/${file.name}` : `attachments/${session.user.id}/${Date.now()}-${file.name}`;
         const blob = await put(path, file, {
-            access: "public",
+            access: "private",
         });
 
         // Save metadata to DB ONLY if it's a "Space File"
