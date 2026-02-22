@@ -95,7 +95,7 @@ model Invite {
   token     String    @unique @default(cuid())
   email     String?
   createdBy String
-  creator   User      @relation("InviteCreator", fields: [createdBy], references: [id])
+  creator   User      @relation("InviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   maxUses   Int       @default(1)
   uses      Int       @default(0)
   singleUse Boolean   @default(true)
@@ -104,7 +104,7 @@ model Invite {
   revoked   Boolean   @default(false)
   createdAt DateTime  @default(now())
 
-  user      User?     @relation(fields: [userId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([email])
@@ -344,8 +344,8 @@ model Report {
   resolvedAt DateTime?
   createdAt  DateTime     @default(now())
 
-  reporter User  @relation("Reporter", fields: [reporterId], references: [id])
-  resolver User? @relation("ReportResolver", fields: [resolvedBy], references: [id])
+  reporter User  @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver User? @relation("ReportResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
 
   @@index([status])
 }
@@ -358,8 +358,8 @@ model Ban {
   type      BanType  @default(SOFT)
   createdAt DateTime @default(now())
 
-  user   User @relation("BannedUser", fields: [userId], references: [id])
-  issuer User @relation("BanIssuer", fields: [bannedBy], references: [id])
+  user   User @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
+  issuer User @relation("BanIssuer", fields: [bannedBy], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -375,7 +375,7 @@ model AuditLog {
   metadata   Json?
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([action])

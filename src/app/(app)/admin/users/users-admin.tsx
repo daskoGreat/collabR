@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { banUser, unbanUser, changeUserRole, inviteNewUser, regenerateUserInvite } from "@/lib/actions/admin";
+import { banUser, unbanUser, changeUserRole, inviteNewUser, regenerateUserInvite, deleteUser } from "@/lib/actions/admin";
 
 interface User {
     id: string;
@@ -34,6 +34,8 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
     const [newToken, setNewToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [menuOpen, setMenuOpen] = useState<string | null>(null);
+    const [deleteModal, setDeleteModal] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     // Actions
     async function handleBan(formData: FormData) {
@@ -72,6 +74,16 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
         const url = `${window.location.origin}/invite/${token}`;
         navigator.clipboard.writeText(url);
     };
+
+    async function handleDelete(userId: string) {
+        setDeleting(true);
+        const result = await deleteUser(userId);
+        if (result?.error) {
+            alert(result.error);
+        }
+        setDeleting(false);
+        setDeleteModal(null);
+    }
 
     function getUserStatus(user: User) {
         if (user.banned) return { label: "disabled", class: "badge-red" };
@@ -201,6 +213,13 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                                         disable user
                                                                     </button>
                                                                 )}
+                                                                <button
+                                                                    className="dropdown-item text-danger"
+                                                                    onClick={() => { setDeleteModal(user.id); setMenuOpen(null); }}
+                                                                >
+                                                                    <span style={{ color: "var(--accent-danger)" }}>✖</span>
+                                                                    remove user
+                                                                </button>
                                                             </>
                                                         )}
                                                     </div>
@@ -316,6 +335,37 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteModal && (
+                <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()} style={{ borderColor: "var(--accent-danger)" }}>
+                        <div className="modal-title" style={{ color: "var(--accent-danger)" }}>terminal closure: remove member</div>
+                        <div className="helper-banner mb-6" style={{ background: "var(--accent-danger-bg)", borderColor: "var(--accent-danger)" }}>
+                            <strong style={{ color: "var(--accent-danger)" }}>WARNING:</strong> This action is permanent. Deleting this user will immediately revoke all access and remove their profile from the system.
+                        </div>
+                        <p className="text-sm text-secondary mb-6">
+                            Are you absolutely sure you want to remove <span className="font-bold text-bright">{users.find(u => u.id === deleteModal)?.name}</span>?
+                        </p>
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setDeleteModal(null)}
+                            >
+                                cancel
+                            </button>
+                            <button
+                                className="btn btn-danger"
+                                onClick={() => handleDelete(deleteModal)}
+                                disabled={deleting}
+                            >
+                                {deleting ? "executing..." : "confirm removal"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

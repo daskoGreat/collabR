@@ -378,3 +378,40 @@ export async function regenerateUserInvite(userId: string) {
     revalidatePath("/admin/users");
     return { token: invite.token };
 }
+
+export async function deleteUser(userId: string) {
+    const admin = await requireRole("ADMIN");
+
+    if (userId === admin.id) {
+        return { error: "you cannot delete your own account." };
+    }
+
+    // Capture user info for audit log before deletion
+    const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true }
+    });
+
+    if (!targetUser) {
+        return { error: "user not found." };
+    }
+
+    // Audit log entry
+    await prisma.auditLog.create({
+        data: {
+            userId: admin.id,
+            action: "user.delete",
+            targetType: "user",
+            targetId: userId,
+            metadata: { email: targetUser.email, name: targetUser.name }
+        }
+    });
+
+    // Delete the user - Prisma will handle relations due to Cascade
+    await prisma.user.delete({
+        where: { id: userId }
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+}
