@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/back-button";
