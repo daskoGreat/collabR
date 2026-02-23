@@ -51,7 +51,7 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
     return (
         <div className="feed-card group">
             <div className="feed-header">
-                <div className="feed-avatar">
+                <div className="feed-avatar border-none bg-primary/10 text-primary">
                     {post.user.name[0].toUpperCase()}
                 </div>
                 <div className="feed-meta">

@@ -41,16 +41,16 @@ export default function FeedComposer({ user }: Props) {
 
     if (!isExpanded) {
         return (
-            <div className="feed-card mb-10 p-4">
+            <div className="feed-card mb-10 p-5">
                 <div className="flex items-center gap-4">
-                    <div className="feed-avatar w-10 h-10">
+                    <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
                         {user.name[0].toUpperCase()}
                     </div>
                     <button
                         onClick={() => setIsExpanded(true)}
-                        className="feed-composer-input flex-1"
+                        className="feed-composer-input flex-1 hover:shadow-glow-sm"
                     >
-                        dela en ny insikt...
+                        dela en ny insikt eller fundering...
                     </button>
                 </div>
             </div>
@@ -58,24 +58,31 @@ export default function FeedComposer({ user }: Props) {
     }
 
     return (
-        <div className="feed-card mb-10 transition-all duration-300 ring-1 ring-neon-green/10">
+        <div className="feed-card mb-10 transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm">
             <form onSubmit={handleSubmit}>
-                <div className="p-4 flex gap-4">
-                    <div className="feed-avatar w-10 h-10">
-                        {user.name[0].toUpperCase()}
+                <div className="p-5">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
+                            {user.name[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <div className="text-sm font-bold text-bright">{user.name.toLowerCase()}</div>
+                            <div className="text-[10px] text-muted font-mono uppercase tracking-wider">delar en insikt</div>
+                        </div>
                     </div>
+
                     <textarea
                         autoFocus
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 min-h-[120px] resize-none text-bright"
+                        className="flex-1 feed-textarea resize-none min-h-[160px] w-full"
                         placeholder="vad vill du dela med communityt idag?"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                     />
                 </div>
 
-                <div className="px-4 pb-4">
+                <div className="px-5 pb-5">
                     {pendingAttachments.length > 0 && (
-                        <div className="mb-4 bg-secondary/5 rounded p-3">
+                        <div className="mb-4 bg-black/20 rounded p-3 border border-white/5">
                             <AttachmentList
                                 attachments={pendingAttachments}
                                 onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
@@ -83,7 +90,7 @@ export default function FeedComposer({ user }: Props) {
                         </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t border-subtle">
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
                         <AttachmentPicker
                             onUploadSuccess={(url, file) => setPendingAttachments([...pendingAttachments, { url, name: file.name, mimeType: file.type, size: file.size }])}
                             onUploadError={(err) => alert(err)}
@@ -93,7 +100,7 @@ export default function FeedComposer({ user }: Props) {
                         <div className="flex gap-3">
                             <button
                                 type="button"
-                                className="btn btn-ghost btn-sm"
+                                className="btn btn-ghost btn-sm text-muted hover:text-bright"
                                 onClick={() => {
                                     setIsExpanded(false);
                                     setContent("");
@@ -104,7 +111,7 @@ export default function FeedComposer({ user }: Props) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-primary btn-sm px-6"
+                                className="btn btn-primary btn-sm px-8 shadow-glow-sm"
                                 disabled={isSubmitting || (!content.trim() && pendingAttachments.length === 0)}
                             >
                                 {isSubmitting ? "postar..." : "publicera"}
