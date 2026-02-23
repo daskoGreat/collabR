@@ -3,14 +3,15 @@ import { auth } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import OpportunityDetail from "./opportunity-detail";
 
-export default async function OpportunityPage({ params }: { params: { id: string } }) {
+export default async function OpportunityPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
         redirect("/login");
     }
 
     const opportunity = await prisma.opportunity.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: {
             user: { select: { id: true, name: true } },
             attachments: true,

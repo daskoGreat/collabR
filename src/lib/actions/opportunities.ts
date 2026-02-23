@@ -21,7 +21,7 @@ async function requireUser() {
     if (!session?.user?.id) {
         throw new Error("Unauthorized");
     }
-    return session.user as { id: string, name: string };
+    return session.user as { id: string, name: string, role: string };
 }
 
 export async function createOpportunity(formData: FormData) {
@@ -121,7 +121,7 @@ export async function addOpportunityComment(opportunityId: string, formData: For
     await handleMentions(content, comment.id, "comment");
 
     revalidatePath(`/opportunities/${opportunityId}`);
-    return { success: true };
+    return { success: true, error: null };
 }
 
 async function handleMentions(content: string, targetId: string, type: "opportunity" | "comment") {
@@ -166,11 +166,11 @@ async function handleMentions(content: string, targetId: string, type: "opportun
 export async function deleteOpportunity(id: string) {
     const user = await requireUser();
     const opportunity = await prisma.opportunity.findUnique({ where: { id } });
-    if (!opportunity || (opportunity.userId !== user.id)) {
+    if (!opportunity || (opportunity.userId !== user.id && user.role !== "ADMIN")) {
         throw new Error("Unauthorized or not found");
     }
 
     await prisma.opportunity.delete({ where: { id } });
     revalidatePath("/opportunities");
-    return { success: true };
+    return { success: true, error: null };
 }

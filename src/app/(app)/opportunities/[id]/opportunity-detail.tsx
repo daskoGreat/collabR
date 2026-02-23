@@ -75,11 +75,18 @@ export default function OpportunityDetail({ opportunity, currentUserId }: Props)
     async function handleDelete() {
         if (!confirm("Är du säker på att du vill ta bort denna möjlighet?")) return;
         setIsDeleting(true);
-        const res = await deleteOpportunity(opportunity.id);
-        if (res?.success) {
-            router.push("/opportunities");
-        } else {
+        try {
+            const res = await deleteOpportunity(opportunity.id);
+            if (res?.success) {
+                router.push("/opportunities");
+            } else {
+                setIsDeleting(false);
+                alert(res?.error || "Kunde inte ta bort möjligheten");
+            }
+        } catch (err: any) {
             setIsDeleting(false);
+            console.error(err);
+            alert("Ett fel uppstod: " + (err.message || "Okänt fel"));
         }
     }
 

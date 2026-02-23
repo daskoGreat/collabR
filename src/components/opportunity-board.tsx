@@ -6,7 +6,7 @@ import OpportunityCard from "./opportunity-card";
 import { createOpportunity } from "@/lib/actions/opportunities";
 import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
-import { Spinner } from "./ui/loading-components";
+import { LoadingSpinner } from "./ui/loading-spinner";
 
 interface User {
     id: string;
@@ -34,7 +34,6 @@ import { PlusSquare, Zap } from "lucide-react";
 export default function OpportunityBoard({ initialOpportunities }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [opportunities, setOpportunities] = useState(initialOpportunities);
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState<string>("ALL");
     const [locationFilter, setLocationFilter] = useState<string>("ALL");
@@ -42,7 +41,7 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
     const [creating, setCreating] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
 
-    const filtered = opportunities.filter((o) => {
+    const filtered = initialOpportunities.filter((o) => {
         const matchesSearch = o.title.toLowerCase().includes(search.toLowerCase()) ||
             o.content.toLowerCase().includes(search.toLowerCase()) ||
             o.tags.some(t => t.toLowerCase().includes(search.toLowerCase()));
@@ -162,7 +161,7 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
                             <button type="submit" className="btn btn-primary min-w-[140px]" disabled={creating || isPending}>
                                 {creating || isPending ? (
                                     <div className="flex items-center gap-2">
-                                        <Spinner size="sm" />
+                                        <LoadingSpinner size="sm" />
                                         <span>publicerar...</span>
                                     </div>
                                 ) : "publicera möjlighet"}
@@ -173,13 +172,20 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
             )}
 
             <div className="mb-6 flex flex-col gap-4">
-                <input
-                    type="text"
-                    className="input w-full"
-                    placeholder="sök bland jobb, LIA och uppdrag..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+                <div className="relative">
+                    <input
+                        type="text"
+                        className="input w-full pr-10"
+                        placeholder="sök bland jobb, LIA och uppdrag..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    {search && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 animate-pulse text-[10px] font-mono pointer-events-none">
+                            SÖKER...
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex flex-wrap gap-6 items-center">
                     <div className="flex items-center gap-2">

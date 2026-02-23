@@ -5,7 +5,7 @@ import FeedPostCard from "@/components/feed-post-card";
 import FeedCommentSection from "@/components/feed-comment-section";
 import Link from "next/link";
 
-export default async function FeedPostPage({ params }: { params: { id: string } }) {
+export default async function FeedPostPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) redirect("/login");

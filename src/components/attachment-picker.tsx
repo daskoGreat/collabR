@@ -86,23 +86,35 @@ export default function AttachmentPicker({ onUploadSuccess, onUploadError, space
                         bottom: "100%",
                         left: "var(--space-4)",
                         right: "var(--space-4)",
-                        height: "2px",
-                        background: "rgba(0, 255, 136, 0.1)",
-                        borderRadius: "1px",
-                        overflow: "hidden",
-                        marginBottom: "var(--space-2)",
-                        boxShadow: "0 0 10px var(--neon-green-glow)"
+                        paddingBottom: "var(--space-2)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "2px"
                     }}
                 >
+                    <div style={{ fontSize: "10px", color: "var(--neon-green)", opacity: 0.8, fontWeight: "bold", letterSpacing: "0.05em" }}>
+                        LADDAR UPP... {progress}%
+                    </div>
                     <div
                         style={{
-                            height: "100%",
-                            width: `${progress}%`,
-                            background: "var(--neon-green)",
-                            transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                            boxShadow: "0 0 10px var(--neon-green)"
+                            height: "2px",
+                            background: "rgba(0, 255, 136, 0.1)",
+                            borderRadius: "1px",
+                            overflow: "hidden",
+                            boxShadow: "0 0 10px var(--neon-green-glow)"
                         }}
-                    />
+                    >
+                        <div
+                            style={{
+                                height: "100%",
+                                width: `${progress}%`,
+                                background: "var(--neon-green)",
+                                transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                                boxShadow: "0 0 10px var(--neon-green)"
+                            }}
+                            className="animate-pulse"
+                        />
+                    </div>
                 </div>
             )}
         </div>

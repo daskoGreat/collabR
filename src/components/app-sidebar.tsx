@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import {
     LayoutDashboard,
@@ -68,9 +69,11 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
     const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
     const [groupName, setGroupName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
         const fetchSidebarData = async () => {
+            setIsRefreshing(true);
             try {
                 const res = await fetch("/api/sidebar");
                 if (res.ok) {
@@ -83,6 +86,8 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                 }
             } catch (err) {
                 console.error("Failed to fetch sidebar data:", err);
+            } finally {
+                setIsRefreshing(false);
             }
         };
 
@@ -182,8 +187,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
             />
             <nav className={`sidebar ${isOpen ? "open" : ""}`}>
                 <div className="sidebar-header">
-                    <div className="sidebar-logo">
+                    <div className="sidebar-logo flex items-center gap-2">
                         <span className="sidebar-logo-prefix">~/</span>collab
+                        {isRefreshing && <LoadingSpinner size={12} className="opacity-50" />}
                     </div>
                 </div>
 
@@ -484,11 +490,12 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         <div className="modal-actions">
                             <button className="btn btn-secondary" onClick={() => setShowNewChat(false)}>avbryt</button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary flex items-center gap-2 justify-center"
                                 disabled={selectedUsers.length === 0 || isCreating}
                                 onClick={handleCreateThread}
                             >
-                                {isCreating ? "skapar..." : selectedUsers.length > 1 ? "skapa grupp" : "starta chatt"}
+                                {isCreating && <LoadingSpinner size="sm" className="text-current" />}
+                                <span>{isCreating ? "skapar..." : selectedUsers.length > 1 ? "skapa grupp" : "starta chatt"}</span>
                             </button>
                         </div>
                     </div>

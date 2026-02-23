@@ -11,9 +11,22 @@ interface MentionListProps {
     users: User[];
     selectedIndex: number;
     onSelect: (user: User) => void;
+    loading?: boolean;
 }
 
-export default function MentionList({ users, selectedIndex, onSelect }: MentionListProps) {
+import { LoadingSpinner } from "./ui/loading-spinner";
+
+export default function MentionList({ users, selectedIndex, onSelect, loading }: MentionListProps) {
+    if (loading) {
+        return (
+            <div className="mention-list-container">
+                <div className="mention-list p-4 flex justify-center">
+                    <LoadingSpinner size="sm" />
+                </div>
+            </div>
+        );
+    }
+
     if (users.length === 0) return null;
 
     return (

@@ -6,6 +6,7 @@ import AttachmentPicker from "@/components/attachment-picker";
 import AttachmentList from "@/components/attachment-list";
 import MessageContent from "@/components/message-content";
 import MentionList from "@/components/mention-list";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface User {
     id: string;
@@ -376,11 +377,12 @@ export default function ChatView({
                                         />
                                         <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
                                             <button
-                                                className="btn btn-primary btn-sm px-4"
+                                                className="btn btn-primary btn-sm px-4 flex items-center gap-2"
                                                 onClick={() => handleUpdate(msg.id)}
                                                 disabled={updating || !editContent.trim()}
                                             >
-                                                {updating ? "sparar..." : "spara ändringar"}
+                                                {updating && <LoadingSpinner size="sm" className="text-current" />}
+                                                <span>{updating ? "sparar..." : "spara ändringar"}</span>
                                             </button>
                                             <button
                                                 className="btn btn-secondary btn-sm px-4"
@@ -412,6 +414,7 @@ export default function ChatView({
                             users={mentionUsers}
                             selectedIndex={mentionIndex}
                             onSelect={(u) => insertMention(u)}
+                            loading={mentionLoading}
                         />
                     )}
                     {pendingAttachments.length > 0 && (
@@ -453,10 +456,11 @@ export default function ChatView({
                         </div>
                         <button
                             type="submit"
-                            className="btn btn-primary px-6 shadow-glow-sm"
+                            className="btn btn-primary px-6 shadow-glow-sm flex items-center gap-2"
                             disabled={sending || (!input.trim() && pendingAttachments.length === 0)}
                         >
-                            {sending ? "..." : "skicka"}
+                            {sending && <LoadingSpinner size="sm" className="text-current" />}
+                            <span>{sending ? "skickar..." : "skicka"}</span>
                         </button>
                     </form>
                 </div>
