@@ -51,7 +51,7 @@ export async function approveRequest(id: string) {
 
         return {
             success: true,
-            inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${invite.token}`
+            inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://collab-nine-gold.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`
         };
 
     } catch (error) {
