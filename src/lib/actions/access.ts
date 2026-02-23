@@ -14,7 +14,7 @@ export async function requestAccess(formData: FormData) {
         const rawData = {
             name: formData.get("name") as string,
             email: formData.get("email") as string,
-            message: formData.get("message") as string,
+            message: formData.get("message") ? formData.get("message") as string : undefined,
         };
 
         const validatedData = requestAccessSchema.parse(rawData);
