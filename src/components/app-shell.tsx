@@ -32,12 +32,12 @@ export default function AppShell({ user, spaces, dmThreads, children }: Props) {
                     onClick={() => setIsSidebarOpen(true)}
                     aria-label="Open menu"
                 >
-                    ☰
+                    <span className="mobile-menu-icon">☰</span>
                 </button>
                 <div className="sidebar-logo">
                     <span className="sidebar-logo-prefix">~/</span>collab
                 </div>
-                <div style={{ marginLeft: "auto" }}>
+                <div className="header-actions">
                     <UserMenu user={user} />
                 </div>
             </header>

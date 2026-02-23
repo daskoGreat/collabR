@@ -74,14 +74,14 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
     };
 
     return (
-        <div className="feed-card group">
-            <div className="feed-header">
-                <div className="feed-avatar border-none bg-primary/10 text-primary">
+        <div className="feed-card group transition-all duration-300 hover:shadow-glow-sm">
+            <div className="feed-header mb-4">
+                <div className="feed-avatar border-none bg-primary/10 text-primary font-bold">
                     {post.user.name[0].toUpperCase()}
                 </div>
                 <div className="feed-meta">
-                    <div className="feed-author">{post.user.name.toLowerCase()}</div>
-                    <div className="feed-time">
+                    <div className="feed-author font-bold text-bright">{post.user.name.toLowerCase()}</div>
+                    <div className="feed-time text-xs opacity-50 font-mono">
                         {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
                     </div>
                 </div>
@@ -89,7 +89,7 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
                 {post.user.id === currentUserId && (
                     <button
                         onClick={handleDelete}
-                        className={`opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
+                        className={`opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all duration-200 -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
                         disabled={isDeleting || isPending}
                         title="ta bort inlägg"
                     >
@@ -98,46 +98,46 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
                 )}
             </div>
 
-            <div className="feed-content">
+            <div className="feed-content text-md leading-relaxed mb-6">
                 {renderContent(post.content)}
             </div>
 
             {post.attachments.length > 0 && (
-                <div className="feed-media">
+                <div className="feed-media mb-6">
                     <AttachmentList attachments={post.attachments} />
                 </div>
             )}
 
-            <div className={`feed-actions ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`feed-actions border-t border-subtle pt-4 flex flex-wrap gap-2 ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
                 <button
                     onClick={() => handleReaction("LIKE")}
-                    className={`feed-action-btn ${hasReacted("LIKE") ? "active" : ""}`}
+                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("LIKE") ? "active text-accent-primary" : "hover:text-accent-primary"}`}
                     disabled={isReacting || isPending}
                 >
                     <ThumbsUp size={16} strokeWidth={hasReacted("LIKE") ? 2 : 1.5} fill={hasReacted("LIKE") ? "currentColor" : "none"} />
-                    <span>{reactionCount("LIKE") || "gilla"}</span>
+                    <span className="font-mono text-xs">{reactionCount("LIKE") || "gilla"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("ROCKET")}
-                    className={`feed-action-btn ${hasReacted("ROCKET") ? "active" : ""}`}
+                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("ROCKET") ? "active text-accent-secondary" : "hover:text-accent-secondary"}`}
                     disabled={isReacting || isPending}
                 >
                     <Rocket size={16} strokeWidth={hasReacted("ROCKET") ? 2 : 1.5} fill={hasReacted("ROCKET") ? "currentColor" : "none"} />
-                    <span>{reactionCount("ROCKET") || "raket"}</span>
+                    <span className="font-mono text-xs">{reactionCount("ROCKET") || "raket"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("CELEBRATE")}
-                    className={`feed-action-btn ${hasReacted("CELEBRATE") ? "active" : ""}`}
+                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("CELEBRATE") ? "active text-accent-warning" : "hover:text-accent-warning"}`}
                     disabled={isReacting || isPending}
                 >
                     <PartyPopper size={16} strokeWidth={hasReacted("CELEBRATE") ? 2 : 1.5} fill={hasReacted("CELEBRATE") ? "currentColor" : "none"} />
-                    <span>{reactionCount("CELEBRATE") || "fira"}</span>
+                    <span className="font-mono text-xs">{reactionCount("CELEBRATE") || "fira"}</span>
                 </button>
 
                 <div className="ml-auto flex items-center">
-                    <Link href={`/feed/${post.id}`} className="feed-action-btn hover:text-primary">
+                    <Link href={`/feed/${post.id}`} className="feed-action-btn hover:text-bright transition-colors duration-200">
                         <MessageSquare size={16} strokeWidth={1.5} />
-                        <span>{post._count.comments} kommentarer</span>
+                        <span className="font-mono text-xs">{post._count.comments} kommentarer</span>
                     </Link>
                 </div>
             </div>

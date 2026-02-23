@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import Link from "next/link";
 
 interface Opportunity {
@@ -31,40 +32,40 @@ export default function OpportunityCard({ opportunity }: Props) {
         : opportunity.content;
 
     return (
-        <Link href={`/opportunities/${opportunity.id}`} className="card card-hover opportunity-card no-underline">
-            <div className="row-between mb-2">
-                <span className={`badge badge-type status-${typeLabel}`}>
+        <Link href={`/opportunities/${opportunity.id}`} className="card card-hover opportunity-card no-underline group transition-all duration-300">
+            <div className="row-between mb-4">
+                <span className={`badge badge-type status-${typeLabel} font-mono uppercase tracking-tighter`}>
                     {typeLabel}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-muted">
-                    <MapPin size={12} strokeWidth={1.5} />
+                <span className="flex items-center gap-1.5 text-[10px] text-muted font-mono uppercase tracking-wider">
+                    <MapPin size={12} strokeWidth={1.5} className="opacity-50" />
                     {locationLabel}
                 </span>
             </div>
 
-            <h3 className="text-lg font-bold text-primary mb-2 line-clamp-1">
+            <h3 className="text-xl font-bold text-bright mb-3 line-clamp-1 group-hover:text-primary transition-colors">
                 {opportunity.title}
             </h3>
 
-            <p className="text-sm text-secondary mb-4 line-clamp-3">
+            <p className="text-sm text-secondary mb-6 line-clamp-3 leading-relaxed">
                 {truncatedContent}
             </p>
 
             <div className="mt-auto">
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-1.5 mb-4">
                     {opportunity.tags.map((tag) => (
-                        <span key={tag} className="tag tag-sm">
+                        <span key={tag} className="tag tag-sm bg-primary/5 text-primary/80 border-primary/20">
                             {tag}
                         </span>
                     ))}
                 </div>
 
-                <div className="row-between text-xs text-muted pt-2 border-t border-subtle">
-                    <span>av {opportunity.user.name}</span>
+                <div className="row-between text-[10px] text-muted pt-3 border-t border-subtle font-mono uppercase tracking-widest">
+                    <span className="opacity-70">av {opportunity.user.name.toLowerCase()}</span>
                     {opportunity.deadline && (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5 opacity-70">
                             <Clock size={12} strokeWidth={1.5} />
-                            {format(new Date(opportunity.deadline), "MMM d")}
+                            {format(new Date(opportunity.deadline), "MMM d", { locale: sv })}
                         </span>
                     )}
                 </div>

@@ -84,11 +84,14 @@ export default function AttachmentPicker({ onUploadSuccess, onUploadError, space
                     style={{
                         position: "absolute",
                         bottom: "100%",
-                        left: 0,
-                        right: 0,
+                        left: "var(--space-4)",
+                        right: "var(--space-4)",
                         height: "2px",
-                        background: "var(--bg-glass)",
-                        marginBottom: "var(--space-2)"
+                        background: "rgba(0, 255, 136, 0.1)",
+                        borderRadius: "1px",
+                        overflow: "hidden",
+                        marginBottom: "var(--space-2)",
+                        boxShadow: "0 0 10px var(--neon-green-glow)"
                     }}
                 >
                     <div
@@ -96,7 +99,8 @@ export default function AttachmentPicker({ onUploadSuccess, onUploadError, space
                             height: "100%",
                             width: `${progress}%`,
                             background: "var(--neon-green)",
-                            transition: "width 0.2s ease"
+                            transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                            boxShadow: "0 0 10px var(--neon-green)"
                         }}
                     />
                 </div>

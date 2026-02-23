@@ -100,22 +100,10 @@ export default function ChannelList({ spaceId, channels: initial, canManage }: P
                         {canManage && (
                             <button
                                 onClick={() => handleDelete(channel.id, channel.name)}
-                                style={{
-                                    position: "absolute",
-                                    right: "var(--space-2)",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    background: "none",
-                                    border: "none",
-                                    color: "var(--color-danger)",
-                                    cursor: "pointer",
-                                    fontSize: "var(--font-size-sm)",
-                                    padding: "var(--space-1)",
-                                    opacity: 0.6,
-                                }}
+                                className="btn-sidebar-action absolute right-4 top-1/2 -translate-y-1/2 hover:text-accent-danger border-none p-2"
                                 title="delete channel"
                             >
-                                ✕
+                                <span className="text-xs">✕</span>
                             </button>
                         )}
                     </div>

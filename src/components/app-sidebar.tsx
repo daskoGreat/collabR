@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
@@ -56,6 +56,7 @@ interface Props {
 
 export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: initialDmThreads, isOpen, onClose }: Props) {
     const pathname = usePathname();
+    const router = useRouter();
     const [spaces, setSpaces] = useState(initialSpaces);
     const [dmThreads, setDmThreads] = useState(initialDmThreads);
     const [hasOpportunityMention, setHasOpportunityMention] = useState(false);
@@ -158,7 +159,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                 setSelectedUsers([]);
                 setSearchQuery("");
                 setGroupName("");
-                window.location.href = `/dm/${threadId}`;
+                router.push(`/dm/${threadId}`);
             }
         } catch (err) {
             console.error("Failed to create thread:", err);

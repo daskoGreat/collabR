@@ -324,31 +324,31 @@ export default function ChatView({
                 </div>
             </div>
             <div className="chat-container">
-                <div className="chat-messages">
+                <div className="chat-messages scrollbar-thin">
                     {messages.length === 0 && (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">💬</div>
-                            <div className="empty-state-title">no messages yet</div>
+                        <div className="empty-state py-20 card border-dashed border-subtle">
+                            <div className="empty-state-icon text-muted/30">░</div>
+                            <div className="empty-state-title">tyst i kanalen</div>
                             <div className="empty-state-text">
-                                be the first to say something. no judgment here.
+                                bli den första att bryta tystnaden. alla insikter börjar med ett hej.
                             </div>
                         </div>
                     )}
                     {messages.map((msg) => (
-                        <div key={msg.id} className={`chat-message ${msg.user.id === currentUser.id ? "chat-message-own" : ""}`}>
-                            <div className="chat-message-avatar">
+                        <div key={msg.id} className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""}`}>
+                            <div className="chat-message-avatar font-bold">
                                 {getInitial(msg.user.name)}
                             </div>
                             <div className="chat-message-body">
                                 <div className="chat-message-header">
-                                    <span className="chat-message-name">{msg.user.name}</span>
-                                    <span className="chat-message-time">
+                                    <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
+                                    <span className="chat-message-time opacity-50 font-mono">
                                         {formatTime(msg.createdAt)}
                                     </span>
                                     {msg.user.id === currentUser.id && !editingId && (
-                                        <div className="chat-message-actions">
+                                        <div className="chat-message-actions opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
-                                                className="btn-link text-xs"
+                                                className="btn-link text-[10px] uppercase tracking-wider"
                                                 onClick={() => {
                                                     setEditingId(msg.id);
                                                     setEditContent(msg.content);
@@ -357,7 +357,7 @@ export default function ChatView({
                                                 redigera
                                             </button>
                                             <button
-                                                className="btn-link text-xs text-danger"
+                                                className="btn-link text-[10px] uppercase tracking-wider text-danger"
                                                 onClick={() => handleDelete(msg.id)}
                                             >
                                                 ta bort
@@ -366,24 +366,24 @@ export default function ChatView({
                                     )}
                                 </div>
                                 {editingId === msg.id ? (
-                                    <div className="chat-edit-area mt-1">
+                                    <div className="chat-edit-area mt-2">
                                         <textarea
-                                            className="input text-sm"
+                                            className="input text-sm min-h-[80px]"
                                             value={editContent}
                                             onChange={(e) => setEditContent(e.target.value)}
                                             autoFocus
                                             rows={2}
                                         />
-                                        <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
+                                        <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
                                             <button
-                                                className="btn btn-primary btn-sm"
+                                                className="btn btn-primary btn-sm px-4"
                                                 onClick={() => handleUpdate(msg.id)}
                                                 disabled={updating || !editContent.trim()}
                                             >
-                                                spara
+                                                {updating ? "sparar..." : "spara ändringar"}
                                             </button>
                                             <button
-                                                className="btn btn-ghost btn-sm"
+                                                className="btn btn-secondary btn-sm px-4"
                                                 onClick={() => setEditingId(null)}
                                                 disabled={updating}
                                             >
@@ -392,19 +392,21 @@ export default function ChatView({
                                         </div>
                                     </div>
                                 ) : (
-                                    <>
+                                    <div className="chat-content-vibe">
                                         <MessageContent content={msg.content} />
                                         {msg.attachments && msg.attachments.length > 0 && (
-                                            <AttachmentList attachments={msg.attachments} readOnly />
+                                            <div className="mt-3">
+                                                <AttachmentList attachments={msg.attachments} readOnly />
+                                            </div>
                                         )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
                     ))}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area" style={{ position: "relative" }}>
+                <div className="chat-input-area border-t border-subtle bg-secondary/50 backdrop-blur-sm">
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}
@@ -413,43 +415,48 @@ export default function ChatView({
                         />
                     )}
                     {pendingAttachments.length > 0 && (
-                        <div className="px-4 py-2 border-b border-subtle bg-secondary-alt">
+                        <div className="px-4 py-3 border-b border-subtle bg-black/20 rounded-t-lg mx-4">
                             <AttachmentList
                                 attachments={pendingAttachments}
                                 onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
                             />
                         </div>
                     )}
-                    <form className="chat-input-form" onSubmit={handleSend}>
-                        <AttachmentPicker
-                            spaceId={spaceId}
-                            onUploadSuccess={(url, file) => {
-                                setPendingAttachments(prev => [...prev, {
-                                    url,
-                                    name: file.name,
-                                    mimeType: file.type,
-                                    size: file.size
-                                }]);
-                            }}
-                            onUploadError={(err) => alert(err)}
-                        />
-                        <span className="chat-input-prompt">{">"}</span>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            className="input"
-                            placeholder={`message #${channel.name.toLowerCase()}...`}
-                            value={input}
-                            onChange={(e) => handleInputChange(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            autoFocus
-                        />
+                    <form className="chat-input-form items-center" onSubmit={handleSend}>
+                        <div className="flex items-center gap-1">
+                            <AttachmentPicker
+                                spaceId={spaceId}
+                                onUploadSuccess={(url, file) => {
+                                    setPendingAttachments(prev => [...prev, {
+                                        url,
+                                        name: file.name,
+                                        mimeType: file.type,
+                                        size: file.size
+                                    }]);
+                                }}
+                                onUploadError={(err) => alert(err)}
+                            />
+                        </div>
+                        <div className="chat-input-wrapper flex-1 relative flex items-center">
+                            <span className="chat-input-prompt absolute left-3 text-neon-green/30 select-none font-mono">{">"}</span>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="input w-full pl-8"
+                                placeholder={`meddelande till #${channel.name.toLowerCase()}...`}
+                                value={input}
+                                onChange={(e) => handleInputChange(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                autoFocus
+                                disabled={sending}
+                            />
+                        </div>
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className="btn btn-primary px-6 shadow-glow-sm"
                             disabled={sending || (!input.trim() && pendingAttachments.length === 0)}
                         >
-                            send
+                            {sending ? "..." : "skicka"}
                         </button>
                     </form>
                 </div>
