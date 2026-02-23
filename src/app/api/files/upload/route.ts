@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Identify if this is a "Space File" (needs registration in File model)
-    // or just a chat attachment (handled by Attachment model in other routes)
-    const isSpaceFile = spaceId && spaceId !== "dm";
+    // or just a chat/feed/opportunity attachment
+    const VIRTUAL_SPACES = ["dm", "feed", "feed-comments", "opportunities"];
+    const isSpaceFile = spaceId && !VIRTUAL_SPACES.includes(spaceId);
 
     if (isSpaceFile) {
         // Check membership only for actual space files
