@@ -37,7 +37,7 @@ function LoginForm() {
             <div className="auth-card card">
                 <div className="auth-title">collab</div>
                 <div className="auth-subtitle">
-                    private workspace. invite only.
+                    private workspace. access controlled.
                     <br />
                     <span className="text-muted">{"// authenticate to continue"}</span>
                 </div>
@@ -86,7 +86,7 @@ function LoginForm() {
                 </form>
 
                 <div className="auth-footer">
-                    no account? you need an invite link from an existing member.
+                    no account? <a href="/" className="hover:text-primary transition-colors">request access here</a>.
                 </div>
             </div>
         </div>

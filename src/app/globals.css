@@ -265,7 +265,33 @@ textarea.input {
   opacity: 0.5;
 }
 
-/* ── Cards ───────────────────────────────── */
+/* ── Mobile specific fixes ────────────────── */
+.mobile-menu-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--text-bright);
+  color: var(--bg-primary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--neon-green-glow);
+}
+
+.sidebar-overlay {
+  z-index: 2000 !important;
+}
+
+.sidebar {
+  z-index: 2001 !important;
+}
 
 .section-title {
   font-size: var(--font-size-xs);
@@ -429,10 +455,15 @@ textarea.input {
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 500;
+  z-index: 1000;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
   backdrop-filter: blur(12px);
+  padding: 0 var(--space-6);
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar-overlay {

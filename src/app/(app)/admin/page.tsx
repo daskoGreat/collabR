@@ -5,12 +5,13 @@ import BackButton from "@/components/back-button";
 export default async function AdminDashboard() {
     await requireRole("ADMIN", "MODERATOR");
 
-    const [userCount, spaceCount, inviteCount, pendingReports, recentActions] =
+    const [userCount, spaceCount, inviteCount, pendingReports, pendingRequests, recentActions] =
         await Promise.all([
             prisma.user.count(),
             prisma.space.count(),
             prisma.invite.count({ where: { revoked: false } }),
             prisma.report.count({ where: { status: "PENDING" } }),
+            prisma.joinRequest.count({ where: { status: "PENDING" } }),
             prisma.auditLog.findMany({
                 orderBy: { createdAt: "desc" },
                 take: 10,
@@ -41,6 +42,12 @@ export default async function AdminDashboard() {
                     <div className="card stat-card">
                         <div className="stat-value">{inviteCount}</div>
                         <div className="stat-label">active invites</div>
+                    </div>
+                    <div className="card stat-card">
+                        <div className="stat-value" style={pendingRequests > 0 ? { color: "var(--neon-green)" } : {}}>
+                            {pendingRequests}
+                        </div>
+                        <div className="stat-label">pending requests</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value" style={pendingReports > 0 ? { color: "var(--accent-danger)" } : {}}>

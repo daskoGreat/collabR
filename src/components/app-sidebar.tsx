@@ -20,7 +20,8 @@ import {
     History,
     Plus,
     X,
-    Search
+    Search,
+    Inbox
 } from "lucide-react";
 
 interface Channel {
@@ -375,6 +376,17 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                     <UserPlus size={16} strokeWidth={1.5} />
                                 </span>
                                 invites
+                            </Link>
+                            <Link
+                                href="/admin/requests"
+                                onClick={onClose}
+                                className={`sidebar-link ${isActive("/admin/requests") ? "active" : ""}`}
+                            >
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <Inbox size={16} strokeWidth={1.5} />
+                                </span>
+                                requests
+                                {/* Notification badge could be added here later if we fetch pending count */}
                             </Link>
                             <Link
                                 href="/admin/reports"

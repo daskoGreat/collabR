@@ -39,22 +39,24 @@ export default function UserMenu({ user }: Props) {
 
             {isOpen && (
                 <div
-                    className="card card-compact"
+                    className="card p-0 overflow-hidden shadow-2xl"
                     style={{
                         position: "absolute",
-                        top: "100%",
+                        top: "calc(100% + var(--space-2))",
                         right: 0,
-                        marginTop: "var(--space-2)",
-                        minWidth: "200px",
-                        zIndex: 100,
-                        boxShadow: "var(--shadow-lg)"
+                        minWidth: "240px",
+                        zIndex: 1000,
+                        background: "#121216", // Solid opaque background
+                        border: "1px solid var(--neon-green-dim)",
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.8), 0 0 20px var(--neon-green-glow)",
+                        animation: "fadeIn 0.2s ease-out"
                     }}
                 >
-                    <div className="sidebar-user" style={{ padding: "var(--space-2)", borderBottom: "1px solid var(--border-subtle)" }}>
-                        <div className="sidebar-user-avatar">{initial}</div>
+                    <div className="sidebar-user" style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.03)" }}>
+                        <div className="sidebar-user-avatar" style={{ width: "40px", height: "40px", fontSize: "14px" }}>{initial}</div>
                         <div className="sidebar-user-info">
-                            <div className="sidebar-user-name">{user.name}</div>
-                            <div className="sidebar-user-role">{user.role.toLowerCase()}</div>
+                            <div className="sidebar-user-name" style={{ fontSize: "var(--font-size-sm)", fontWeight: 700 }}>{user.name}</div>
+                            <div className="sidebar-user-role" style={{ fontSize: "10px", color: "var(--text-secondary)" }}>{user.role.toLowerCase()}</div>
                         </div>
                     </div>
 
@@ -79,15 +81,26 @@ export default function UserMenu({ user }: Props) {
                         </Link>
                         <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
                         <button
-                            className="sidebar-link text-danger"
-                            style={{ width: "100%", textAlign: "left" }}
+                            className="sidebar-link text-danger w-full text-left"
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: "var(--space-2) var(--space-3)",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "var(--space-3)",
+                                width: "100%",
+                                color: "var(--accent-danger)",
+                                font: "inherit"
+                            }}
                             onClick={() => {
                                 setIsOpen(false);
                                 setShowLogoutConfirm(true);
                             }}
                         >
                             <span className="sidebar-link-icon">⏻</span>
-                            Logga ut
+                            <span style={{ fontWeight: 700 }}>Logga ut</span>
                         </button>
                     </div>
                 </div>

@@ -35,6 +35,12 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
 enum OpportunityType {
   JOBB
   LIA
@@ -543,4 +549,19 @@ model FeedReaction {
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([feedPostId, userId, type])
+}
+
+// ─── JOIN REQUESTS ───────────────────────────────────────
+
+model JoinRequest {
+  id        String            @id @default(cuid())
+  name      String
+  email     String
+  message   String?
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([status])
+  @@index([email])
 }
