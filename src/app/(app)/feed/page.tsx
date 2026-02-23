@@ -7,6 +7,13 @@ export default async function FeedPage() {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true, name: true }
+    });
+
+    if (!user) redirect("/login");
+
     const posts = await prisma.feedPost.findMany({
         include: {
             user: { select: { id: true, name: true } },
@@ -32,7 +39,7 @@ export default async function FeedPage() {
         <div className="content-area">
             <FeedView
                 initialPosts={serializedPosts as any}
-                currentUserId={session.user.id}
+                currentUser={user as any}
             />
         </div>
     );

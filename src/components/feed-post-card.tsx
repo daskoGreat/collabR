@@ -49,76 +49,70 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
     };
 
     return (
-        <div className="card mb-4 group">
-            <div className="row-between mb-3">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                        {post.user.name[0].toUpperCase()}
-                    </div>
-                    <div>
-                        <div className="text-sm font-bold text-bright">{post.user.name.toLowerCase()}</div>
-                        <div className="text-[10px] text-muted">
-                            {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
-                        </div>
+        <div className="feed-card group">
+            <div className="feed-header">
+                <div className="feed-avatar">
+                    {post.user.name[0].toUpperCase()}
+                </div>
+                <div className="feed-meta">
+                    <div className="feed-author">{post.user.name.toLowerCase()}</div>
+                    <div className="feed-time">
+                        {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
                     </div>
                 </div>
 
                 {post.user.id === currentUserId && (
                     <button
                         onClick={handleDelete}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-red-400 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all -mt-2 -mr-2"
                         disabled={isDeleting}
+                        title="ta bort inlägg"
                     >
-                        ✕
+                        <span className="text-sm">✕</span>
                     </button>
                 )}
             </div>
 
-            <div className="text-sm text-secondary whitespace-pre-wrap leading-relaxed mb-4">
+            <div className="feed-content">
                 {renderContent(post.content)}
             </div>
 
             {post.attachments.length > 0 && (
-                <div className="mb-4">
+                <div className="feed-media">
                     <AttachmentList attachments={post.attachments} />
                 </div>
             )}
 
-            <div className="flex items-center gap-4 pt-4 border-t border-subtle">
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => handleReaction("LIKE")}
-                        className={`reaction-btn ${hasReacted("LIKE") ? "active" : ""}`}
-                    >
-                        👍 <span className="text-[10px] ml-1">{reactionCount("LIKE") || ""}</span>
-                    </button>
-                    <button
-                        onClick={() => handleReaction("ROCKET")}
-                        className={`reaction-btn ${hasReacted("ROCKET") ? "active" : ""}`}
-                    >
-                        🚀 <span className="text-[10px] ml-1">{reactionCount("ROCKET") || ""}</span>
-                    </button>
-                    <button
-                        onClick={() => handleReaction("CELEBRATE")}
-                        className={`reaction-btn ${hasReacted("CELEBRATE") ? "active" : ""}`}
-                    >
-                        🎉 <span className="text-[10px] ml-1">{reactionCount("CELEBRATE") || ""}</span>
-                    </button>
+            <div className="feed-actions">
+                <button
+                    onClick={() => handleReaction("LIKE")}
+                    className={`feed-action-btn ${hasReacted("LIKE") ? "active" : ""}`}
+                >
+                    <span>👍</span>
+                    <span>{reactionCount("LIKE") || "gilla"}</span>
+                </button>
+                <button
+                    onClick={() => handleReaction("ROCKET")}
+                    className={`feed-action-btn ${hasReacted("ROCKET") ? "active" : ""}`}
+                >
+                    <span>🚀</span>
+                    <span>{reactionCount("ROCKET") || "raket"}</span>
+                </button>
+                <button
+                    onClick={() => handleReaction("CELEBRATE")}
+                    className={`feed-action-btn ${hasReacted("CELEBRATE") ? "active" : ""}`}
+                >
+                    <span>🎉</span>
+                    <span>{reactionCount("CELEBRATE") || "fira"}</span>
+                </button>
+
+                <div className="ml-auto flex items-center">
+                    <Link href={`/feed/${post.id}`} className="feed-action-btn hover:text-primary">
+                        <span>💬</span>
+                        <span>{post._count.comments} kommentarer</span>
+                    </Link>
                 </div>
-
-                <Link href={`/feed/${post.id}`} className="text-[10px] text-muted uppercase hover:text-primary transition-colors">
-                    {post._count.comments} kommentarer
-                </Link>
             </div>
-
-            <style jsx>{`
-                .reaction-btn {
-                    @apply px-2 py-1 rounded bg-secondary/5 text-xs hover:bg-secondary/10 transition-colors border border-transparent;
-                }
-                .reaction-btn.active {
-                    @apply border-primary/30 bg-primary/10 text-primary;
-                }
-            `}</style>
         </div>
     );
 }

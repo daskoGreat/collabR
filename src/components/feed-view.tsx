@@ -20,29 +20,29 @@ interface FeedPost {
 
 interface Props {
     initialPosts: FeedPost[];
-    currentUserId: string;
+    currentUser: User;
 }
 
-export default function FeedView({ initialPosts, currentUserId }: Props) {
+export default function FeedView({ initialPosts, currentUser }: Props) {
     return (
-        <div className="max-w-2xl mx-auto py-8 px-4">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-bright mb-1 italic">insikter</h1>
-                <p className="text-sm text-muted">dela tankar, länkar och erfarenheter med dina kollegor.</p>
+        <div className="max-w-2xl mx-auto py-8">
+            <div className="mb-10 px-4">
+                <h1 className="text-3xl font-bold text-bright mb-2 italic tracking-tight">insikter</h1>
+                <p className="text-sm text-secondary leading-relaxed">dela tankar, länkar och erfarenheter med dina kollegor i ett samarbetsfokuserat flöde.</p>
             </div>
 
-            <FeedComposer />
+            <FeedComposer user={currentUser} />
 
-            <div className="flex flex-col">
+            <div className="space-y-6">
                 {initialPosts.length === 0 ? (
-                    <div className="empty-state py-20">
-                        <div className="empty-state-icon">░</div>
+                    <div className="empty-state py-20 card border-dashed">
+                        <div className="empty-state-icon text-muted/30">░</div>
                         <div className="empty-state-title">tyst i flödet</div>
                         <div className="empty-state-text">bli den första att dela något med communityt.</div>
                     </div>
                 ) : (
                     initialPosts.map((post) => (
-                        <FeedPostCard key={post.id} post={post} currentUserId={currentUserId} />
+                        <FeedPostCard key={post.id} post={post} currentUserId={currentUser.id} />
                     ))
                 )}
             </div>
