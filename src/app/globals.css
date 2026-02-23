@@ -267,38 +267,33 @@ textarea.input {
 
 /* ── Cards ───────────────────────────────── */
 
+.section-title {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--neon-green-dim), transparent);
+  opacity: 0.15;
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--space-5);
+  padding: var(--space-6);
   position: relative;
-  transition: all 0.2s ease;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--neon-green-glow), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.card-hover:hover {
-  border-color: var(--border-active);
-  box-shadow: var(--shadow-neon);
-}
-
-.card-hover:hover::before {
-  opacity: 1;
-}
-
-.card-compact {
-  padding: var(--space-4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Badges ──────────────────────────────── */
@@ -386,8 +381,9 @@ textarea.input {
 .tab.active {
   background: var(--bg-tertiary);
   color: var(--neon-green);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), 0 0 15px var(--neon-green-glow);
   text-shadow: 0 0 8px var(--neon-green-glow);
+  border: 1px solid var(--neon-green-dim);
 }
 
 .shadow-glow {
@@ -736,6 +732,22 @@ textarea.input {
   color: var(--text-muted);
   margin-top: var(--space-1);
   font-style: italic;
+}
+
+.helper-banner {
+  animation: fadeInDown 0.5s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .grid-2 {

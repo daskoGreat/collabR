@@ -11,9 +11,9 @@ export function Skeleton({ className = "", ...props }: React.HTMLAttributes<HTML
     );
 }
 
-export function CardSkeleton() {
+export function CardSkeleton({ className = "" }: { className?: string }) {
     return (
-        <div className="feed-card p-5 space-y-4">
+        <div className={`feed-card p-5 space-y-4 ${className}`}>
             <div className="flex items-center gap-3">
                 <Skeleton className="w-10 h-10 rounded-md" />
                 <div className="space-y-2">
