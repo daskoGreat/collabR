@@ -477,19 +477,45 @@ textarea.input {
   margin-top: var(--space-4);
 }
 
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-4);
+}
+
 .sidebar-section-title {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: var(--space-2) var(--space-3);
 }
 
 .sidebar-section-title::before {
   content: '# ';
   color: var(--neon-green-dim);
   opacity: 0.4;
+}
+
+.btn-sidebar-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-sidebar-action:hover {
+  color: var(--neon-green);
+  border-color: var(--neon-green-dim);
+  background: var(--neon-green-glow);
 }
 
 .sidebar-link {

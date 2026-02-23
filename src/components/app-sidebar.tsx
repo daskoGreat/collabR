@@ -218,7 +218,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     </Link>
 
                     <div className="sidebar-section">
-                        <div className="sidebar-section-title">your spaces</div>
+                        <div className="sidebar-section-header">
+                            <div className="sidebar-section-title">your spaces</div>
+                        </div>
                         {spaces.map((space) => (
                             <div key={space.id} className="sidebar-group">
                                 <Link
@@ -265,10 +267,14 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
 
                     {/* Direct Messages */}
                     <div className="sidebar-section">
-                        <div className="row-between items-center pr-3 mb-1">
-                            <div className="sidebar-section-title !mb-0">direct messages</div>
-                            <button className="text-muted hover:text-primary transition-colors" onClick={() => setShowNewChat(true)} title="New Chat">
-                                <Plus size={18} strokeWidth={1.5} />
+                        <div className="sidebar-section-header">
+                            <div className="sidebar-section-title">direct messages</div>
+                            <button
+                                className="btn-sidebar-action"
+                                onClick={() => setShowNewChat(true)}
+                                title="New Chat"
+                            >
+                                <Plus size={16} strokeWidth={2} />
                             </button>
                         </div>
                         {dmThreads.map((thread) => (
@@ -310,7 +316,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     </div>
 
                     <div className="sidebar-section">
-                        <div className="sidebar-section-title">marknad</div>
+                        <div className="sidebar-section-header">
+                            <div className="sidebar-section-title">marknad</div>
+                        </div>
                         <Link
                             href="/opportunities"
                             onClick={onClose}
@@ -328,7 +336,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
 
                     {isAdmin && (
                         <div className="sidebar-section">
-                            <div className="sidebar-section-title">admin</div>
+                            <div className="sidebar-section-header">
+                                <div className="sidebar-section-title">admin</div>
+                            </div>
                             <Link
                                 href="/admin"
                                 onClick={onClose}
