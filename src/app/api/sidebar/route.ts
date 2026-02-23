@@ -151,6 +151,17 @@ export async function GET() {
         }
     });
 
+    const unreadFeedMentions = await prisma.mention.count({
+        where: {
+            userId,
+            readAt: null,
+            OR: [
+                { feedPostId: { not: null } },
+                { feedCommentId: { not: null } }
+            ]
+        }
+    });
+
     const openHelpCount = await prisma.post.count({
         where: {
             spaceId: { in: spaceMembers.map(sm => sm.spaceId) },
@@ -163,6 +174,7 @@ export async function GET() {
         spaces,
         dmThreads: dmList,
         hasOpportunityMention: unreadOpportunityMentions > 0,
+        hasFeedMention: unreadFeedMentions > 0,
         openHelpCount
     });
 }

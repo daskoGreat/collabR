@@ -42,6 +42,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
     const [spaces, setSpaces] = useState(initialSpaces);
     const [dmThreads, setDmThreads] = useState(initialDmThreads);
     const [hasOpportunityMention, setHasOpportunityMention] = useState(false);
+    const [hasFeedMention, setHasFeedMention] = useState(false);
     const [openHelpCount, setOpenHelpCount] = useState(0);
     const [showNewChat, setShowNewChat] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -59,7 +60,8 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     setSpaces(data.spaces);
                     setDmThreads(data.dmThreads);
                     setHasOpportunityMention(data.hasOpportunityMention);
-                    setOpenHelpCount(data.openHelpCount || 0);
+                    setHasFeedMention(data.hasFeedMention);
+                    setOpenHelpCount(data.openHelpCount);
                 }
             } catch (err) {
                 console.error("Failed to fetch sidebar data:", err);
@@ -174,23 +176,23 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
                     >
                         <span className="sidebar-link-icon">⌂</span>
-                        <span className="flex-1">community home</span>
+                        <span className="flex-1">navet</span>
                         {openHelpCount > 0 && (
-                            <span className="badge badge-notification" style={{ background: "var(--accent-magenta)", color: "white" }}>
+                            <span className="badge badge-primary scale-75">
                                 {openHelpCount}
                             </span>
                         )}
                     </Link>
 
                     <Link
-                        href="/opportunities"
+                        href="/feed"
                         onClick={onClose}
-                        className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
+                        className={`sidebar-link ${isActive("/feed") ? "active" : ""}`}
                     >
-                        <span className="sidebar-link-icon">✧</span>
-                        jobb & möjligheter
-                        {hasOpportunityMention && (
-                            <span className="badge badge-notification badge-mention">!</span>
+                        <span className="sidebar-link-icon">░</span>
+                        insikter
+                        {hasFeedMention && (
+                            <span className="mention-dot" title="Nya omnämnanden i feeden" />
                         )}
                     </Link>
 
@@ -274,6 +276,21 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 no conversations yet
                             </div>
                         )}
+                    </div>
+
+                    <div className="sidebar-section">
+                        <div className="sidebar-section-title">marknad</div>
+                        <Link
+                            href="/opportunities"
+                            onClick={onClose}
+                            className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
+                        >
+                            <span className="sidebar-link-icon">✧</span>
+                            jobb & möjligheter
+                            {hasOpportunityMention && (
+                                <span className="badge badge-notification badge-mention">!</span>
+                            )}
+                        </Link>
                     </div>
 
                     {isAdmin && (

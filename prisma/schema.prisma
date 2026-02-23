@@ -84,6 +84,9 @@ model User {
   opportunityComments OpportunityComment[]
   threadMemberships ThreadMember[]
   invites           Invite[]
+  feedPosts         FeedPost[]
+  feedComments      FeedComment[]
+  feedReactions     FeedReaction[]
 
   @@index([email])
 }
@@ -406,6 +409,10 @@ model Attachment {
   opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   opportunityCommentId String?
   opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
+  feedPostId      String?
+  feedPost        FeedPost?      @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  feedCommentId   String?
+  feedComment     FeedComment?   @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
   @@index([directMessageId])
@@ -436,6 +443,10 @@ model Mention {
   opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   opportunityCommentId String?
   opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
+  feedPostId      String?
+  feedPost        FeedPost?      @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  feedCommentId   String?
+  feedComment     FeedComment?   @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
 
   readAt    DateTime?
   createdAt DateTime @default(now())
@@ -484,4 +495,52 @@ model OpportunityComment {
   mentions    Mention[]
 
   @@index([opportunityId])
+}
+
+// ─── FEED ────────────────────────────────────────────────
+
+model FeedPost {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments    FeedComment[]
+  reactions   FeedReaction[]
+  attachments Attachment[]
+  mentions    Mention[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model FeedComment {
+  id         String   @id @default(cuid())
+  feedPostId String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  post        FeedPost     @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+  mentions    Mention[]
+
+  @@index([feedPostId])
+}
+
+model FeedReaction {
+  id         String   @id @default(cuid())
+  feedPostId String
+  userId     String
+  type       String // e.g., "LIKE", "ROCKET", "CELEBRATE"
+  createdAt  DateTime @default(now())
+
+  post FeedPost @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedPostId, userId, type])
 }

@@ -1,8 +1,10 @@
 import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { sv } from "date-fns/locale";
 
-export default async function SpacesPage() {
+export default async function NavetPage() {
     const user = await requireAuth();
 
     const memberships = await prisma.spaceMember.findMany({
@@ -19,6 +21,7 @@ export default async function SpacesPage() {
 
     const spaceIds = memberships.map(m => m.spaceId);
 
+    // Fetch active help requests
     const latestHelp = await prisma.post.findMany({
         where: { spaceId: { in: spaceIds }, solved: false },
         take: 3,
@@ -26,35 +29,213 @@ export default async function SpacesPage() {
         include: { user: { select: { name: true } }, space: { select: { name: true } } }
     });
 
-    const latestOpps = await prisma.opportunity.findMany({
-        take: 3,
+    const latestFeed = await prisma.feedPost.findMany({
+        include: { user: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true } } }
+        take: 3
+    });
+
+    // Fetch active DM threads
+    const threadMemberships = await prisma.threadMember.findMany({
+        where: { userId: user.id },
+        include: {
+            thread: {
+                include: {
+                    members: {
+                        include: {
+                            user: { select: { id: true, name: true, lastSeenAt: true } }
+                        }
+                    },
+                    messages: {
+                        take: 1,
+                        orderBy: { createdAt: "desc" }
+                    }
+                }
+            }
+        },
+        orderBy: { joinedAt: "desc" },
+        take: 4
+    });
+
+    // Online users (threshold 5 min)
+    const now = new Date();
+    const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
+    const onlineUsers = await prisma.user.findMany({
+        where: {
+            lastSeenAt: {
+                gt: new Date(now.getTime() - ONLINE_THRESHOLD_MS)
+            },
+            id: { not: user.id }
+        },
+        select: { id: true, name: true },
+        take: 8
+    });
+
+    // Unread mentions
+    const mentions = await prisma.mention.findMany({
+        where: { userId: user.id, readAt: null },
+        include: {
+            message: { include: { channel: true } },
+            directMessage: { include: { thread: true } },
+            post: true,
+            task: true
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5
     });
 
     return (
         <>
             <div className="topbar">
                 <div className="topbar-title">
-                    <span className="topbar-title-highlight">$</span> community dashboard
+                    <span className="topbar-title-highlight">$</span> navet
                 </div>
             </div>
             <div className="content-area">
                 <div className="helper-banner mb-8">
-                    <div className="text-lg mb-1"><strong>goda nyheter, {user.name.split(" ")[0].toLowerCase()}.</strong></div>
-                    tillsammans bygger vi något större. här är vad som händer i dina cirklar just nu.
+                    <div className="text-lg mb-1"><strong>välkommen till kontoret, {user.name.split(" ")[0].toLowerCase()}.</strong></div>
+                    det här är navet i vårt samarbete. här ser du vad som händer och vem som är här.
+                </div>
+
+                <div className="grid-3 mb-12">
+                    {/* Collaborative Pulse (Mentions/Presence) */}
+                    <div className="section col-span-2">
+                        <div className="row-between mb-4">
+                            <h2 className="section-title !mb-0">senaste händelser</h2>
+                        </div>
+                        <div className="stack">
+                            {mentions.length === 0 ? (
+                                <div className="card card-compact text-muted text-xs italic p-4 border-dashed border-subtle">
+                                    inga nya omnämnanden. du är helt uppdaterad.
+                                </div>
+                            ) : (
+                                mentions.map(m => (
+                                    <div key={m.id} className="card card-compact border-l-2 border-l-primary/50">
+                                        <div className="text-xs text-muted mb-1">
+                                            {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true, locale: sv })}
+                                        </div>
+                                        <div className="text-sm">
+                                            {m.message && (
+                                                <Link href={`/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}`} className="hover:underline">
+                                                    omnämnande i <strong>#{m.message.channel.name}</strong>
+                                                </Link>
+                                            )}
+                                            {m.directMessage && (
+                                                <Link href={`/dm/${m.directMessage.threadId}`} className="hover:underline">
+                                                    nytt meddelande i en direktchatt
+                                                </Link>
+                                            )}
+                                            {m.post && (
+                                                <Link href={`/spaces/${m.post.spaceId}/help/${m.post.id}`} className="hover:underline">
+                                                    omnämnande i hjälptråden <strong>{m.post.title}</strong>
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Who's here right now */}
+                    <div className="section">
+                        <h2 className="section-title">vilka är här?</h2>
+                        <div className="card card-compact bg-primary/5 border-primary/20">
+                            <div className="flex flex-wrap gap-3">
+                                {onlineUsers.length === 0 ? (
+                                    <div className="text-xs text-muted italic">just nu är det bara du här.</div>
+                                ) : (
+                                    onlineUsers.map(u => (
+                                        <div key={u.id} className="flex items-center gap-2 group">
+                                            <div className="w-2 h-2 rounded-full bg-success shadow-[0_0_5px_var(--success)]" />
+                                            <span className="text-xs font-medium group-hover:text-bright">{u.name.toLowerCase()}</span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            {onlineUsers.length > 0 && (
+                                <div className="mt-4 pt-4 border-t border-subtle text-[10px] text-muted uppercase tracking-wider">
+                                    {onlineUsers.length} kollegor aktiva
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid-2 mb-12">
-                    {/* Mutual Help Pulse */}
+                    {/* Active Chats/Collaborations */}
                     <div className="section">
-                        <div className="row-between mb-4">
-                            <h2 className="section-title !mb-0">mutual help needed</h2>
+                        <h2 className="section-title">pågående samarbeten</h2>
+                        <div className="stack">
+                            {threadMemberships.length === 0 ? (
+                                <div className="p-4 border-dashed border-subtle rounded text-center text-xs text-muted">
+                                    inga aktiva chattar än.
+                                </div>
+                            ) : (
+                                threadMemberships.map(m => {
+                                    const t = (m as any).thread;
+                                    const otherMember = t.members.find((mem: any) => mem.userId !== user.id);
+                                    const name = t.isGroup ? (t.name || "Grupp") : (otherMember?.user.name || "Användare");
+                                    const lastMsg = t.messages[0];
+
+                                    return (
+                                        <Link key={t.id} href={`/dm/${t.id}`} className="card card-hover card-compact">
+                                            <div className="row-between">
+                                                <span className="font-bold text-bright">{name.toLowerCase()}</span>
+                                                <span className="text-[10px] text-muted uppercase">
+                                                    {formatDistanceToNow(new Date(t.createdAt), { locale: sv })} sedan
+                                                </span>
+                                            </div>
+                                            {lastMsg && (
+                                                <div className="text-xs text-secondary mt-1 truncate">
+                                                    {lastMsg.content}
+                                                </div>
+                                            )}
+                                        </Link>
+                                    );
+                                })
+                            )}
                         </div>
+                    </div>
+
+                    {/* Latest Feed Insights */}
+                    <div className="section">
+                        <h2 className="section-title">senaste insikter</h2>
+                        <div className="stack">
+                            {latestFeed.length === 0 ? (
+                                <div className="card card-compact text-muted text-xs italic p-4 border-dashed border-subtle">
+                                    inga insikter delade än.
+                                </div>
+                            ) : (
+                                latestFeed.map(post => (
+                                    <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover card-compact">
+                                        <div className="row-between">
+                                            <span className="font-bold text-bright">{post.user.name.toLowerCase()}</span>
+                                            <span className="text-[10px] text-muted uppercase">
+                                                {formatDistanceToNow(new Date(post.createdAt), { locale: sv })}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-secondary mt-1 truncate">
+                                            {post.content}
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                            <Link href="/feed" className="text-[10px] text-primary hover:underline uppercase font-bold text-right pr-2">
+                                visa alla →
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid-2 mb-12">
+                    {/* Help Needed */}
+                    <div className="section">
+                        <h2 className="section-title">puls: hjälp behövs</h2>
                         <div className="stack">
                             {latestHelp.length === 0 ? (
                                 <div className="card card-compact text-muted text-xs italic p-4 border-dashed border-subtle">
-                                    no active requests. everything seems to be running smoothly.
+                                    inga aktiva förfrågningar just nu.
                                 </div>
                             ) : (
                                 latestHelp.map(post => (
@@ -63,48 +244,37 @@ export default async function SpacesPage() {
                                             <span className="font-bold text-bright">{post.title}</span>
                                             <span className="text-[10px] text-muted uppercase">#{post.space.name}</span>
                                         </div>
-                                        <div className="text-xs text-secondary mt-1">by {post.user.name}</div>
+                                        <div className="text-xs text-secondary mt-1">av {post.user.name}</div>
                                     </Link>
                                 ))
                             )}
                         </div>
                     </div>
 
-                    {/* Fresh Opportunities */}
+                    {/* Your Spaces (Move here to balance GRID) */}
                     <div className="section">
-                        <div className="row-between mb-4">
-                            <h2 className="section-title !mb-0">new opportunities</h2>
-                            <Link href="/opportunities" className="text-xs text-primary hover:underline">view all</Link>
-                        </div>
-                        <div className="stack">
-                            {latestOpps.length === 0 ? (
-                                <div className="card card-compact text-muted text-xs italic p-4 border-dashed border-subtle">
-                                    the board is quiet. be the first to share an opening.
-                                </div>
-                            ) : (
-                                latestOpps.map(opp => (
-                                    <Link key={opp.id} href={`/opportunities/${opp.id}`} className="card card-hover card-compact">
-                                        <div className="row-between">
-                                            <span className="font-bold text-bright">{opp.title}</span>
-                                            <span className="badge badge-magenta badge-xs">{opp.type.toLowerCase()}</span>
-                                        </div>
-                                        <div className="text-xs text-secondary mt-1">{opp.user.name} shared an opening</div>
-                                    </Link>
-                                ))
-                            )}
+                        <h2 className="section-title">dina kontor</h2>
+                        <div className="grid grid-cols-2 gap-2">
+                            {memberships.map(sm => (
+                                <Link key={sm.space.id} href={`/spaces/${sm.space.id}`} className="card card-hover card-compact border-subtle">
+                                    <div className="font-bold text-bright truncate">{sm.space.name}</div>
+                                    <div className="text-[10px] text-muted uppercase mt-1">
+                                        {sm.space._count.members} medlemmar • {sm.space._count.channels} kanaler
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
                 </div>
 
                 <div className="section">
-                    <h2 className="section-title">your spaces</h2>
+                    <h2 className="section-title">dina arbetsytor</h2>
                     {memberships.length === 0 ? (
                         <div className="empty-state">
                             <div className="empty-state-icon">∅</div>
-                            <div className="empty-state-title">a blank canvas</div>
+                            <div className="empty-state-title">en tom rymd</div>
                             <div className="empty-state-text">
-                                you haven&apos;t joined any collaboration spaces yet.
-                                reaching out to an admin is a great first step.
+                                du har inte gått med i några samarbetsytor än.
                             </div>
                         </div>
                     ) : (
@@ -120,24 +290,13 @@ export default async function SpacesPage() {
                                             <h3 style={{ fontSize: "var(--font-size-md)", fontWeight: 700 }}>
                                                 <span className="text-neon">#</span> {space.name.toLowerCase()}
                                             </h3>
-                                            {space.isDefault && (
-                                                <span className="badge badge-green">default</span>
-                                            )}
                                         </div>
-                                        {space.description && (
-                                            <p className="text-secondary text-sm mb-4">
-                                                {space.description}
-                                            </p>
-                                        )}
                                         <div className="row" style={{ gap: "var(--space-4)" }}>
                                             <span className="text-xs text-muted">
-                                                {space._count.members} members
+                                                {space._count.members} medlemmar
                                             </span>
                                             <span className="text-xs text-muted">
-                                                {space._count.channels} channels
-                                            </span>
-                                            <span className="text-xs text-muted">
-                                                {space._count.tasks} tasks
+                                                {space._count.channels} kanaler
                                             </span>
                                         </div>
                                     </div>
