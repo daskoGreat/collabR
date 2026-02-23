@@ -1,29 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { addFeedComment } from "@/lib/actions/feed";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
-import AttachmentList from "./attachment-list";
+import { addFeedComment } from "@/lib/actions/feed";
 import AttachmentPicker from "./attachment-picker";
-
-interface Comment {
-    id: string;
-    content: string;
-    createdAt: string;
-    user: { name: string };
-    attachments: any[];
-}
+import AttachmentList from "./attachment-list";
+import { Spinner } from "./ui/loading-components";
 
 interface Props {
     postId: string;
-    comments: Comment[];
+    comments: any[];
 }
 
+import { MessageSquare } from "lucide-react";
+
 export default function FeedCommentSection({ postId, comments }: Props) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [content, setContent] = useState("");
-    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -31,24 +29,33 @@ export default function FeedCommentSection({ postId, comments }: Props) {
 
         setIsSubmitting(true);
         const formData = new FormData();
+        formData.append("postId", postId);
         formData.append("content", content);
         if (pendingAttachments.length > 0) {
             formData.append("attachments", JSON.stringify(pendingAttachments));
         }
 
         const res = await addFeedComment(postId, formData);
-        setIsSubmitting(false);
 
         if (res.success) {
-            setContent("");
-            setPendingAttachments([]);
-            window.location.reload();
+            startTransition(() => {
+                router.refresh();
+                setContent("");
+                setPendingAttachments([]);
+                setIsSubmitting(false);
+            });
+        } else {
+            setIsSubmitting(false);
+            alert("Kunde inte skicka kommentar");
         }
     }
 
     return (
         <div className="mt-8">
-            <h3 className="text-xs text-muted uppercase font-bold mb-4">Kommentarer ({comments.length})</h3>
+            <h3 className="text-xs text-muted uppercase font-bold mb-4 flex items-center gap-2">
+                <MessageSquare size={14} strokeWidth={1.5} />
+                Kommentarer ({comments.length})
+            </h3>
 
             <div className="space-y-3 mb-8">
                 {comments.map((comment) => (
@@ -99,10 +106,20 @@ export default function FeedCommentSection({ postId, comments }: Props) {
                             />
                             <button
                                 type="submit"
-                                className="btn btn-primary btn-sm px-5"
-                                disabled={isSubmitting || (!content.trim() && pendingAttachments.length === 0)}
+                                className="btn btn-primary btn-sm px-8 min-w-[120px]"
+                                disabled={isSubmitting || isPending || (!content.trim() && pendingAttachments.length === 0)}
                             >
-                                {isSubmitting ? "skickar..." : "kommentera"}
+                                {isSubmitting || isPending ? (
+                                    <div className="flex items-center gap-2">
+                                        <Spinner size="sm" />
+                                        <span>skickar...</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <MessageSquare size={14} strokeWidth={1.5} />
+                                        <span>kommentera</span>
+                                    </div>
+                                )}
                             </button>
                         </div>
                     </div>

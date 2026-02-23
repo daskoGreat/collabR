@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import OpportunityCard from "./opportunity-card";
 import { createOpportunity } from "@/lib/actions/opportunities";
 import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
+import { Spinner } from "./ui/loading-components";
 
 interface User {
     id: string;
@@ -27,7 +29,11 @@ interface Props {
     initialOpportunities: Opportunity[];
 }
 
+import { PlusSquare, Zap } from "lucide-react";
+
 export default function OpportunityBoard({ initialOpportunities }: Props) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [opportunities, setOpportunities] = useState(initialOpportunities);
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState<string>("ALL");
@@ -50,14 +56,19 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
         if (pendingAttachments.length > 0) {
             formData.append("attachments", JSON.stringify(pendingAttachments));
         }
+
         const res = await createOpportunity(formData);
-        setCreating(false);
+
         if (res?.success) {
-            setShowCreate(false);
-            setPendingAttachments([]);
-            // In a real app, we'd probably re-fetch or use Pusher to update the list
-            // For now, we'll rely on the user refreshing or revalidatePath if it's a server component
-            window.location.reload();
+            startTransition(() => {
+                router.refresh();
+                setShowCreate(false);
+                setPendingAttachments([]);
+                setCreating(false);
+            });
+        } else {
+            setCreating(false);
+            alert("Kunde inte skapa möjlighet");
         }
     }
 
@@ -69,7 +80,8 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
                     <p className="page-subtitle">hitta ditt nästa äventyr eller dela en öppning</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
-                    + dela möjlighet
+                    <PlusSquare size={18} strokeWidth={1.5} className="mr-2" />
+                    <span>dela möjlighet</span>
                 </button>
             </div>
 
@@ -147,8 +159,13 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
                             <button type="button" className="btn btn-secondary" onClick={() => setShowCreate(false)}>
                                 avbryt
                             </button>
-                            <button type="submit" className="btn btn-primary" disabled={creating}>
-                                {creating ? "publicerar..." : "publicera möjlighet"}
+                            <button type="submit" className="btn btn-primary min-w-[140px]" disabled={creating || isPending}>
+                                {creating || isPending ? (
+                                    <div className="flex items-center gap-2">
+                                        <Spinner size="sm" />
+                                        <span>publicerar...</span>
+                                    </div>
+                                ) : "publicera möjlighet"}
                             </button>
                         </div>
                     </form>
@@ -199,7 +216,9 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
 
             {filtered.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-state-icon">✧</div>
+                    <div className="empty-state-icon">
+                        <Zap size={32} strokeWidth={1} />
+                    </div>
                     <div className="empty-state-title">the board is quiet</div>
                     <div className="empty-state-text">
                         if you know of an open door or a teammate in need, be the first to share it with the community.

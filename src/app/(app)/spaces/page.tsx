@@ -3,10 +3,14 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
+import { Suspense } from "react";
+import { Skeleton, CardSkeleton } from "@/components/ui/loading-components";
 
 export default async function NavetPage({ searchParams }: { searchParams: { view?: string } }) {
     const user = await requireAuth();
     const { view = "dashboard" } = searchParams;
+
+    // ... memberships and onlineUsers fetching (kept for sidebar)
 
     // Common data
     const memberships = await prisma.spaceMember.findMany({
@@ -81,24 +85,26 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
 
                 <div className="grid-navet">
                     {/* Primary Content Area */}
-                    <div className="space-y-12">
-                        {view === "dashboard" && (
-                            <DashboardView
-                                user={user}
-                                spaceIds={spaceIds}
-                                mentions={mentions}
-                                memberships={memberships}
-                            />
-                        )}
-                        {view === "collaborations" && (
-                            <CollaborationsView user={user} />
-                        )}
-                        {view === "pulse" && (
-                            <PulseView spaceIds={spaceIds} />
-                        )}
-                        {view === "offices" && (
-                            <OfficesView memberships={memberships} />
-                        )}
+                    <div className="min-h-[600px]">
+                        <Suspense key={view} fallback={<NavetSkeleton view={view} />}>
+                            {view === "dashboard" && (
+                                <DashboardView
+                                    user={user}
+                                    spaceIds={spaceIds}
+                                    mentions={mentions}
+                                    memberships={memberships}
+                                />
+                            )}
+                            {view === "collaborations" && (
+                                <CollaborationsView user={user} />
+                            )}
+                            {view === "pulse" && (
+                                <PulseView spaceIds={spaceIds} />
+                            )}
+                            {view === "offices" && (
+                                <OfficesView memberships={memberships} />
+                            )}
+                        </Suspense>
                     </div>
 
                     {/* Sidebar / Pulse Area */}
@@ -358,6 +364,29 @@ function OfficesView({ memberships }: any) {
                     </Link>
                 ))}
             </div>
+        </div>
+    );
+}
+
+function NavetSkeleton({ view }: { view: string }) {
+    return (
+        <div className="space-y-12 animate-in fade-in duration-500">
+            <div className="section">
+                <Skeleton className="w-48 h-6 mb-6" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardSkeleton />
+                    <CardSkeleton />
+                </div>
+            </div>
+            {view === "dashboard" && (
+                <div className="section">
+                    <Skeleton className="w-48 h-6 mb-6" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <CardSkeleton />
+                        <CardSkeleton />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

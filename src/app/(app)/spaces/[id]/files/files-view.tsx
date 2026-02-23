@@ -1,7 +1,7 @@
-"use client";
-
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import BackButton from "@/components/back-button";
+import { Spinner } from "@/components/ui/loading-components";
 
 interface FileItem {
     id: string;
@@ -25,7 +25,11 @@ function formatSize(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+import { Upload, FileText, Download } from "lucide-react";
+
 export default function FilesView({ spaceId, files }: Props) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
     const fileRef = useRef<HTMLInputElement>(null);
@@ -50,13 +54,17 @@ export default function FilesView({ spaceId, files }: Props) {
             if (!res.ok) {
                 const data = await res.json();
                 setError(data.error || "upload failed");
+                setUploading(false);
             } else {
-                window.location.reload();
+                startTransition(() => {
+                    router.refresh();
+                    setUploading(false);
+                });
             }
         } catch {
             setError("upload failed. try again.");
-        } finally {
             setUploading(false);
+        } finally {
             if (fileRef.current) fileRef.current.value = "";
         }
     }
@@ -80,11 +88,21 @@ export default function FilesView({ spaceId, files }: Props) {
                         id="file-upload"
                     />
                     <button
-                        className="btn btn-primary"
+                        className="btn btn-primary min-w-[140px]"
                         onClick={() => fileRef.current?.click()}
-                        disabled={uploading}
+                        disabled={uploading || isPending}
                     >
-                        {uploading ? "uploading..." : "+ upload file"}
+                        {uploading || isPending ? (
+                            <div className="flex items-center gap-2">
+                                <Spinner size="sm" />
+                                <span>laddar upp...</span>
+                            </div>
+                        ) : (
+                            <>
+                                <Upload size={18} strokeWidth={1.5} className="mr-2" />
+                                <span>upload file</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -93,7 +111,9 @@ export default function FilesView({ spaceId, files }: Props) {
 
             {files.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-state-icon">⊞</div>
+                    <div className="empty-state-icon">
+                        <FileText size={32} strokeWidth={1} />
+                    </div>
                     <div className="empty-state-title">no files yet</div>
                     <div className="empty-state-text">
                         upload docs, configs, screenshots — whatever helps.
@@ -131,7 +151,8 @@ export default function FilesView({ spaceId, files }: Props) {
                                             rel="noopener noreferrer"
                                             className="btn btn-ghost btn-sm"
                                         >
-                                            ↓ download
+                                            <Download size={14} strokeWidth={1.5} className="mr-2" />
+                                            <span>download</span>
                                         </a>
                                     </td>
                                 </tr>

@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import Link from "next/link";
-import { useState } from "react";
-import { toggleFeedReaction, deleteFeedPost } from "@/lib/actions/feed";
+import { deleteFeedPost, toggleFeedReaction } from "@/lib/actions/feed";
 import AttachmentList from "./attachment-list";
+import { Spinner } from "./ui/loading-components";
 
 interface FeedPost {
     id: string;
@@ -18,25 +20,48 @@ interface FeedPost {
 }
 
 interface Props {
-    post: FeedPost;
+    post: any; // Changed from FeedPost to any as per instruction
     currentUserId: string;
 }
 
+import { ThumbsUp, Rocket, PartyPopper, MessageSquare, Trash2 } from "lucide-react";
+
 export default function FeedPostCard({ post, currentUserId }: Props) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isReacting, setIsReacting] = useState(false);
 
     const hasReacted = (type: string) => post.reactions.some(r => r.userId === currentUserId && r.type === type);
     const reactionCount = (type: string) => post.reactions.filter(r => r.type === type).length;
 
     async function handleReaction(type: string) {
-        await toggleFeedReaction(post.id, type);
+        if (isReacting) return;
+        setIsReacting(true);
+        const res = await toggleFeedReaction(post.id, type);
+        if (res.success) {
+            startTransition(() => {
+                router.refresh();
+                setIsReacting(false);
+            });
+        } else {
+            setIsReacting(false);
+        }
     }
 
     async function handleDelete() {
-        if (!confirm("är du säker på att du vill ta bort posten?")) return;
+        if (!confirm("är du säker på att du vill ta bort detta inlägg?")) return;
         setIsDeleting(true);
-        await deleteFeedPost(post.id);
-        window.location.reload();
+        const res = await deleteFeedPost(post.id);
+        if (res.success) {
+            startTransition(() => {
+                router.refresh();
+                setIsDeleting(false);
+            });
+        } else {
+            setIsDeleting(false);
+            alert("Kunde inte ta bort inlägg");
+        }
     }
 
     // Helper to detect links and mentions (simple version for now)
@@ -64,11 +89,11 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
                 {post.user.id === currentUserId && (
                     <button
                         onClick={handleDelete}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all -mt-2 -mr-2"
-                        disabled={isDeleting}
+                        className={`opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
+                        disabled={isDeleting || isPending}
                         title="ta bort inlägg"
                     >
-                        <span className="text-sm">✕</span>
+                        {isDeleting ? <Spinner size="sm" /> : <Trash2 size={16} strokeWidth={1.5} />}
                     </button>
                 )}
             </div>
@@ -83,32 +108,35 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
                 </div>
             )}
 
-            <div className="feed-actions">
+            <div className={`feed-actions ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
                 <button
                     onClick={() => handleReaction("LIKE")}
                     className={`feed-action-btn ${hasReacted("LIKE") ? "active" : ""}`}
+                    disabled={isReacting || isPending}
                 >
-                    <span>👍</span>
+                    <ThumbsUp size={16} strokeWidth={hasReacted("LIKE") ? 2 : 1.5} fill={hasReacted("LIKE") ? "currentColor" : "none"} />
                     <span>{reactionCount("LIKE") || "gilla"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("ROCKET")}
                     className={`feed-action-btn ${hasReacted("ROCKET") ? "active" : ""}`}
+                    disabled={isReacting || isPending}
                 >
-                    <span>🚀</span>
+                    <Rocket size={16} strokeWidth={hasReacted("ROCKET") ? 2 : 1.5} fill={hasReacted("ROCKET") ? "currentColor" : "none"} />
                     <span>{reactionCount("ROCKET") || "raket"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("CELEBRATE")}
                     className={`feed-action-btn ${hasReacted("CELEBRATE") ? "active" : ""}`}
+                    disabled={isReacting || isPending}
                 >
-                    <span>🎉</span>
+                    <PartyPopper size={16} strokeWidth={hasReacted("CELEBRATE") ? 2 : 1.5} fill={hasReacted("CELEBRATE") ? "currentColor" : "none"} />
                     <span>{reactionCount("CELEBRATE") || "fira"}</span>
                 </button>
 
                 <div className="ml-auto flex items-center">
                     <Link href={`/feed/${post.id}`} className="feed-action-btn hover:text-primary">
-                        <span>💬</span>
+                        <MessageSquare size={16} strokeWidth={1.5} />
                         <span>{post._count.comments} kommentarer</span>
                     </Link>
                 </div>

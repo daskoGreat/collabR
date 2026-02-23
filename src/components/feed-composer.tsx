@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createFeedPost } from "@/lib/actions/feed";
 import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
+import { Spinner } from "./ui/loading-components";
 
 interface Props {
     user: { id: string; name: string };
 }
 
 export default function FeedComposer({ user }: Props) {
-    const [content, setContent] = useState("");
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [isExpanded, setIsExpanded] = useState(false);
-    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+    const [content, setContent] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -27,15 +31,21 @@ export default function FeedComposer({ user }: Props) {
         }
 
         const res = await createFeedPost(formData);
-        setIsSubmitting(false);
 
         if (res.success) {
-            setContent("");
-            setPendingAttachments([]);
-            setIsExpanded(false);
-            window.location.reload();
+            startTransition(() => {
+                router.refresh();
+                setIsExpanded(false);
+                setContent("");
+                setPendingAttachments([]);
+                setIsSubmitting(false);
+            });
         } else if (res.error) {
+            setIsSubmitting(false);
             alert(res.error);
+        } else {
+            setIsSubmitting(false);
+            alert("Kunde inte skapa inlägg"); // Fallback for generic error
         }
     }
 
@@ -111,10 +121,15 @@ export default function FeedComposer({ user }: Props) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-primary btn-sm px-8 shadow-glow-sm"
-                                disabled={isSubmitting || (!content.trim() && pendingAttachments.length === 0)}
+                                className="btn btn-primary btn-sm px-8 shadow-glow-sm min-w-[120px]"
+                                disabled={isSubmitting || isPending || (!content.trim() && pendingAttachments.length === 0)}
                             >
-                                {isSubmitting ? "postar..." : "publicera"}
+                                {isSubmitting || isPending ? (
+                                    <div className="flex items-center gap-2">
+                                        <Spinner size="sm" />
+                                        <span>postar...</span>
+                                    </div>
+                                ) : "publicera"}
                             </button>
                         </div>
                     </div>

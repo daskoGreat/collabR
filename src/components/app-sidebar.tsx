@@ -5,6 +5,23 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+import {
+    LayoutDashboard,
+    Sparkles,
+    Hash,
+    MessageSquare,
+    User,
+    Users,
+    Star,
+    Settings,
+    UserCog,
+    UserPlus,
+    History,
+    Plus,
+    X,
+    Search
+} from "lucide-react";
+
 interface Channel {
     id: string;
     name: string;
@@ -175,7 +192,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         onClick={onClose}
                         className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
                     >
-                        <span className="sidebar-link-icon">⌂</span>
+                        <span className="sidebar-link-icon">
+                            <LayoutDashboard size={18} strokeWidth={1.5} />
+                        </span>
                         <span className="flex-1">navet</span>
                         {openHelpCount > 0 && (
                             <span className="badge badge-primary scale-75">
@@ -189,7 +208,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         onClick={onClose}
                         className={`sidebar-link ${isActive("/feed") ? "active" : ""}`}
                     >
-                        <span className="sidebar-link-icon">░</span>
+                        <span className="sidebar-link-icon">
+                            <Sparkles size={18} strokeWidth={1.5} />
+                        </span>
                         insikter
                         {hasFeedMention && (
                             <span className="mention-dot" title="Nya omnämnanden i feeden" />
@@ -205,7 +226,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                     onClick={onClose}
                                     className={`sidebar-link ${isActive(`/spaces/${space.id}`) && !pathname.includes("/chat/") ? "active" : ""}`}
                                 >
-                                    <span className="sidebar-link-icon">#</span>
+                                    <span className="sidebar-link-icon">
+                                        <Hash size={18} strokeWidth={1.5} />
+                                    </span>
                                     {space.name.toLowerCase()}
                                 </Link>
                                 <div className="sidebar-sub-nav">
@@ -216,7 +239,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                             className={`sidebar-link sidebar-link-sub ${isActive(`/spaces/${space.id}/chat/${ch.id}`) ? "active" : ""}`}
                                             onClick={onClose}
                                         >
-                                            <span className="sidebar-link-icon">#</span>
+                                            <span className="sidebar-link-icon">
+                                                <Hash size={14} strokeWidth={1.5} />
+                                            </span>
                                             <span className="sidebar-link-text">{ch.name.toLowerCase()}</span>
                                             {ch.hasMention ? (
                                                 <span className="badge badge-notification badge-mention">!</span>
@@ -230,7 +255,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         ))}
                         {spaces.length === 0 && (
                             <div className="sidebar-link text-muted" style={{ cursor: "default" }}>
-                                <span className="sidebar-link-icon">∅</span>
+                                <span className="sidebar-link-icon">
+                                    <Hash size={18} strokeWidth={1.5} className="opacity-20" />
+                                </span>
                                 no spaces yet
                             </div>
                         )}
@@ -240,7 +267,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     <div className="sidebar-section">
                         <div className="row-between items-center pr-3 mb-1">
                             <div className="sidebar-section-title !mb-0">direct messages</div>
-                            <button className="text-muted hover:text-primary text-lg" onClick={() => setShowNewChat(true)} title="New Chat">+</button>
+                            <button className="text-muted hover:text-primary transition-colors" onClick={() => setShowNewChat(true)} title="New Chat">
+                                <Plus size={18} strokeWidth={1.5} />
+                            </button>
                         </div>
                         {dmThreads.map((thread) => (
                             <Link
@@ -250,7 +279,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 className={`sidebar-link ${isActive(`/dm/${thread.id}`) ? "active" : ""}`}
                             >
                                 <span className={`sidebar-link-icon ${!thread.isGroup && thread.isOnline ? "text-success" : ""}`}>
-                                    {thread.isGroup ? "⚑" : "@"}
+                                    {thread.isGroup ? <Users size={16} strokeWidth={1.5} /> : <User size={16} strokeWidth={1.5} />}
                                 </span>
                                 <span className="flex-1 truncate">
                                     {thread.isGroup
@@ -272,7 +301,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         ))}
                         {dmThreads.length === 0 && (
                             <div className="sidebar-link text-muted" style={{ cursor: "default", fontSize: "var(--font-size-xs)" }}>
-                                <span className="sidebar-link-icon">∅</span>
+                                <span className="sidebar-link-icon">
+                                    <MessageSquare size={16} strokeWidth={1.5} className="opacity-20" />
+                                </span>
                                 no conversations yet
                             </div>
                         )}
@@ -285,7 +316,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                             onClick={onClose}
                             className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
                         >
-                            <span className="sidebar-link-icon">✧</span>
+                            <span className="sidebar-link-icon">
+                                <Star size={18} strokeWidth={1.5} />
+                            </span>
                             jobb & möjligheter
                             {hasOpportunityMention && (
                                 <span className="badge badge-notification badge-mention">!</span>
@@ -301,7 +334,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${pathname === "/admin" ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">⚙</span>
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <Settings size={16} strokeWidth={1.5} />
+                                </span>
                                 dashboard
                             </Link>
                             <Link
@@ -309,7 +344,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${isActive("/admin/users") ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">⊡</span>
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <UserCog size={16} strokeWidth={1.5} />
+                                </span>
                                 users
                             </Link>
                             <Link
@@ -317,7 +354,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${isActive("/admin/invites") ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">⊞</span>
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <UserPlus size={16} strokeWidth={1.5} />
+                                </span>
                                 invites
                             </Link>
                             <Link
@@ -325,7 +364,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${isActive("/admin/reports") ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">⚑</span>
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <X size={16} strokeWidth={1.5} />
+                                </span>
                                 reports
                             </Link>
                             <Link
@@ -333,7 +374,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 onClick={onClose}
                                 className={`sidebar-link ${isActive("/admin/audit") ? "active" : ""}`}
                             >
-                                <span className="sidebar-link-icon">◎</span>
+                                <span className="sidebar-link-icon text-[14px]">
+                                    <History size={16} strokeWidth={1.5} />
+                                </span>
                                 audit log
                             </Link>
                         </div>
@@ -356,19 +399,24 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     <div className="card max-w-md w-full p-6 shadow-2xl border border-primary/20">
                         <div className="modal-title flex justify-between items-center mb-6">
                             <span>ny konversation</span>
-                            <button className="text-muted hover:text-white" onClick={() => setShowNewChat(false)}>✕</button>
+                            <button className="text-muted hover:text-white transition-colors" onClick={() => setShowNewChat(false)}>
+                                <X size={20} strokeWidth={1.5} />
+                            </button>
                         </div>
 
                         <div className="form-group mb-4">
                             <label className="form-label">sök medlemmar</label>
-                            <input
-                                type="text"
-                                className="input w-full"
-                                placeholder="namn eller e-post..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                autoFocus
-                            />
+                            <div className="relative">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                                <input
+                                    type="text"
+                                    className="input w-full pl-10"
+                                    placeholder="namn eller e-post..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
                             {searchResults.length > 0 && (
                                 <div className="card card-compact mt-1 max-h-[200px] overflow-y-auto border border-subtle">
                                     {searchResults.map(u => (
@@ -383,7 +431,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                                 setSearchResults([]);
                                             }}
                                         >
-                                            <span className="sidebar-link-icon">@</span>
+                                            <span className="sidebar-link-icon">
+                                                <User size={14} strokeWidth={1.5} />
+                                            </span>
                                             {u.name}
                                         </button>
                                     ))}
@@ -398,7 +448,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                     {selectedUsers.map(u => (
                                         <div key={u.id} className="badge p-2 bg-primary/10 border border-primary/30 flex items-center gap-2">
                                             <span>{u.name}</span>
-                                            <button className="text-muted hover:text-danger" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))}>✕</button>
+                                            <button className="text-muted hover:text-danger" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))}>
+                                                <X size={12} strokeWidth={2} />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>

@@ -19,6 +19,8 @@ interface Props {
     opportunity: Opportunity;
 }
 
+import { MapPin, Clock } from "lucide-react";
+
 export default function OpportunityCard({ opportunity }: Props) {
     const typeLabel = opportunity.type.toLowerCase();
     const locationLabel = opportunity.location.toLowerCase();
@@ -34,7 +36,8 @@ export default function OpportunityCard({ opportunity }: Props) {
                 <span className={`badge badge-type status-${typeLabel}`}>
                     {typeLabel}
                 </span>
-                <span className="text-xs text-muted">
+                <span className="flex items-center gap-1 text-xs text-muted">
+                    <MapPin size={12} strokeWidth={1.5} />
                     {locationLabel}
                 </span>
             </div>
@@ -59,7 +62,10 @@ export default function OpportunityCard({ opportunity }: Props) {
                 <div className="row-between text-xs text-muted pt-2 border-t border-subtle">
                     <span>av {opportunity.user.name}</span>
                     {opportunity.deadline && (
-                        <span>Deadline: {format(new Date(opportunity.deadline), "MMM d")}</span>
+                        <span className="flex items-center gap-1">
+                            <Clock size={12} strokeWidth={1.5} />
+                            {format(new Date(opportunity.deadline), "MMM d")}
+                        </span>
                     )}
                 </div>
             </div>

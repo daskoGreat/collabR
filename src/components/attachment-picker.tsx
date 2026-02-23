@@ -8,6 +8,8 @@ interface Props {
     spaceId: string;
 }
 
+import { Paperclip } from "lucide-react";
+
 export default function AttachmentPicker({ onUploadSuccess, onUploadError, spaceId }: Props) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -74,7 +76,7 @@ export default function AttachmentPicker({ onUploadSuccess, onUploadError, space
                 title="Bifoga fil"
                 style={{ fontSize: "1.1rem" }}
             >
-                📎
+                <Paperclip size={18} strokeWidth={1.5} />
             </button>
 
             {uploading && (
