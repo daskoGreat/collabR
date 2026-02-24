@@ -425,7 +425,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                             { targetId: 'nav-kontor', title: 'Dina Kontor', content: 'Dina olika samarbeten är uppdelade i kontor. Varje kontor har sina egna kanaler, uppdrag och filer.' },
                             { targetId: 'nav-direktmeddelanden', title: 'Direktmeddelanden', content: 'Snabb kommunikation ansikte mot ansikte (i textform). Här hittar du både 1-till-1 chatter och mindre grupper.' }
                         ])}
-                        className="sidebar-link w-full text-left mb-2"
+                        className="sidebar-link"
                     >
                         <span className="sidebar-link-icon">
                             <HelpCircle size={18} strokeWidth={1.5} />

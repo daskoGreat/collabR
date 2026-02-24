@@ -653,7 +653,15 @@ textarea.input {
   font-weight: 500;
   transition: all var(--motion-xs) var(--ease-out);
   text-decoration: none;
+  border: none;
+  background: transparent;
   border-left: 2px solid transparent;
+  cursor: pointer;
+  line-height: inherit;
+  font-family: inherit;
+  text-align: left;
+  outline: none;
+  appearance: none;
 }
 
 .sidebar-link:hover {
