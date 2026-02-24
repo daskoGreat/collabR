@@ -17,6 +17,7 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
     const [requests, setRequests] = useState<Request[]>(initialRequests);
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
     const [generatedInvites, setGeneratedInvites] = useState<Record<string, string>>({});
+    const [pusherConnected, setPusherConnected] = useState(false);
 
     useEffect(() => {
         console.log("Subscribing to Pusher channel 'admin'...");
@@ -25,6 +26,12 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
 
         channel.bind("pusher:subscription_succeeded", () => {
             console.log("Pusher subscription to 'admin' succeeded");
+            setPusherConnected(true);
+        });
+
+        channel.bind("pusher:subscription_error", (err: any) => {
+            console.error("Pusher subscription error:", err);
+            setPusherConnected(false);
         });
 
         channel.bind("new-join-request", (newRequest: Request) => {
@@ -98,7 +105,13 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold section-title mb-4">Pending Access Requests</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold section-title">Pending Access Requests</h2>
+                <div className={`text-[10px] uppercase tracking-widest flex items-center gap-2 ${pusherConnected ? 'text-success' : 'text-muted'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${pusherConnected ? 'bg-success animate-pulse' : 'bg-muted'}`} />
+                    {pusherConnected ? 'Live Connection Active' : 'Real-time Offline (Reload required)'}
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-4">
                 {requests.map(request => (
