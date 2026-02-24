@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { approveRequest, denyRequest } from "@/lib/actions/join-requests";
+import { getPusherClient } from "@/lib/pusher-client";
 
 interface Request {
     id: string;
@@ -16,6 +17,23 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
     const [requests, setRequests] = useState<Request[]>(initialRequests);
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
     const [generatedInvites, setGeneratedInvites] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const pusher = getPusherClient();
+        const channel = pusher.subscribe("admin");
+
+        channel.bind("new-join-request", (newRequest: Request) => {
+            setRequests(prev => {
+                // Check if already exists (prevent duplicates)
+                if (prev.some(r => r.id === newRequest.id)) return prev;
+                return [newRequest, ...prev];
+            });
+        });
+
+        return () => {
+            pusher.unsubscribe("admin");
+        };
+    }, []);
 
     async function handleApprove(id: string) {
         setLoadingMap(prev => ({ ...prev, [id]: true }));

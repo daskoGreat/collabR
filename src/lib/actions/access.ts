@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { getPusherServer } from "@/lib/pusher-server";
 
 const requestAccessSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -43,13 +44,17 @@ export async function requestAccess(formData: FormData) {
             }
         }
 
-        await prisma.joinRequest.create({
+        const request = await prisma.joinRequest.create({
             data: {
                 name: validatedData.name,
                 email: validatedData.email,
                 message: validatedData.message,
             },
         });
+
+        // Trigger real-time update for admins
+        const pusher = getPusherServer();
+        await pusher.trigger("admin", "new-join-request", request);
 
         return { success: true };
     } catch (error) {
