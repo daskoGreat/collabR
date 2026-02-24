@@ -103,7 +103,10 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     }, [currentStepIndex, steps]);
 
     const overlay = isActive && highlightRect && (
-        <div className="walkthrough-overlay fixed inset-0 z-[99999] pointer-events-none">
+        <div
+            className="walkthrough-overlay fixed inset-0 pointer-events-none"
+            style={{ zIndex: 999999 }}
+        >
             {/* The Dimmer Backdrop - using 4 panels to allow clear highlight */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto" style={{
                 clipPath: `polygon(
