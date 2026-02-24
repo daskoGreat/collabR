@@ -19,7 +19,7 @@ export async function sendInviteEmail({
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Collab <invitations@collab.skoglund.cc>', // Adjust this to a verified domain if needed
+            from: 'Collab <onboarding@resend.dev>', // Use onboarding@resend.dev until domain is verified
             to: [email],
             subject: 'inbjudan',
             react: <InviteEmail name={name} inviteLink={inviteLink} />,
@@ -31,8 +31,11 @@ export async function sendInviteEmail({
         }
 
         return { success: true, data };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Unexpected email delivery error:', error);
-        return { success: false, error: 'Internal server error' };
+        return {
+            success: false,
+            error: error?.message || (typeof error === 'string' ? error : 'Internal server error')
+        };
     }
 }
