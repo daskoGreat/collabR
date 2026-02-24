@@ -44,6 +44,10 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
     };
 
     return (
-        <OpportunityDetail opportunity={serializedOpportunity as any} currentUserId={session.user.id} />
+        <OpportunityDetail
+            opportunity={serializedOpportunity as any}
+            currentUserId={session.user.id}
+            currentUserName={session.user.name ?? undefined}
+        />
     );
 }

@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createFeedPost } from "@/lib/actions/feed";
 import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
 import { Spinner } from "./ui/loading-components";
+import MentionList from "./mention-list";
+
+interface User {
+    id: string;
+    name: string;
+}
 
 interface Props {
     user: { id: string; name: string };
@@ -18,6 +24,13 @@ export default function FeedComposer({ user }: Props) {
     const [content, setContent] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+
+    // Mention state
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+    const [mentionUsers, setMentionUsers] = useState<User[]>([]);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionLoading, setMentionLoading] = useState(false);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -49,6 +62,83 @@ export default function FeedComposer({ user }: Props) {
         }
     }
 
+    // Mention handlers
+    const handleInputChange = (val: string) => {
+        setContent(val);
+        const cursorPosition = inputRef.current?.selectionStart || 0;
+        const textBeforeCursor = val.slice(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (mentionMatch) {
+            setMentionQuery(mentionMatch[1]);
+            setMentionIndex(0);
+        } else {
+            setMentionQuery(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (mentionQuery !== null && mentionUsers.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev + 1) % mentionUsers.length);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length);
+            } else if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                insertMention(mentionUsers[mentionIndex]);
+            } else if (e.key === "Escape") {
+                setMentionQuery(null);
+            }
+        }
+    };
+
+    const insertMention = (targetUser: User) => {
+        if (!inputRef.current) return;
+        const cursorPosition = inputRef.current.selectionStart || 0;
+        const textBeforeCursor = content.slice(0, cursorPosition);
+        const textAfterCursor = content.slice(cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+        const newText = textBeforeCursor.slice(0, lastAtIndex) + `@${targetUser.name} ` + textAfterCursor;
+        setContent(newText);
+        setMentionQuery(null);
+
+        // Refocus and set cursor
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                const newPos = lastAtIndex + targetUser.name.length + 2;
+                inputRef.current.selectionStart = newPos;
+                inputRef.current.selectionEnd = newPos;
+            }
+        }, 0);
+    };
+
+    // Fetch mentions
+    useEffect(() => {
+        if (mentionQuery === null) return;
+
+        const timer = setTimeout(async () => {
+            setMentionLoading(true);
+            try {
+                // Global search for feed
+                const res = await fetch(`/api/users/search?q=${mentionQuery}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMentionUsers(data);
+                }
+            } catch (err) {
+                console.error("Mention search failed:", err);
+            } finally {
+                setMentionLoading(false);
+            }
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, [mentionQuery]);
+
     if (!isExpanded) {
         return (
             <div className="feed-card mb-10 p-5">
@@ -68,7 +158,7 @@ export default function FeedComposer({ user }: Props) {
     }
 
     return (
-        <div className="feed-card mb-10 transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm">
+        <div className="feed-card mb-10 transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm relative">
             <form onSubmit={handleSubmit}>
                 <div className="p-5">
                     <div className="flex items-center gap-3 mb-5">
@@ -81,13 +171,25 @@ export default function FeedComposer({ user }: Props) {
                         </div>
                     </div>
 
-                    <textarea
-                        autoFocus
-                        className="flex-1 feed-textarea resize-none min-h-[160px] w-full"
-                        placeholder="vad vill du dela med communityt idag?"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                    />
+                    <div className="relative">
+                        {mentionQuery !== null && (
+                            <MentionList
+                                users={mentionUsers}
+                                selectedIndex={mentionIndex}
+                                onSelect={(u) => insertMention(u)}
+                                loading={mentionLoading}
+                            />
+                        )}
+                        <textarea
+                            ref={inputRef}
+                            autoFocus
+                            className="flex-1 feed-textarea resize-none min-h-[160px] w-full"
+                            placeholder="vad vill du dela med communityt idag?"
+                            value={content}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                        />
+                    </div>
                 </div>
 
                 <div className="px-5 pb-5">

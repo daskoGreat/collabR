@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="sv" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <ThemeProvider
-          attribute="class"
+          attribute="data-theme"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange

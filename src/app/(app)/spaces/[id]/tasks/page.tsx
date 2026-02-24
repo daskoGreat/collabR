@@ -53,6 +53,7 @@ export default async function TasksPage({ params }: Props) {
                 }))}
                 members={members.map((m: typeof members[number]) => m.user)}
                 currentUserId={user.id}
+                currentUserName={user.name}
             />
         </>
     );

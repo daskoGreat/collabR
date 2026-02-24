@@ -7,6 +7,12 @@ import AttachmentList from "@/components/attachment-list";
 import MessageContent from "@/components/message-content";
 import { updatePresence, renameThread, leaveThread } from "@/lib/actions/chat";
 import { useRouter } from "next/navigation";
+import MentionList from "@/components/mention-list";
+
+interface User {
+    id: string;
+    name: string;
+}
 
 interface Attachment {
     id: string;
@@ -42,6 +48,12 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
     const [editContent, setEditContent] = useState("");
     const [updating, setUpdating] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+
+    // Mention state
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+    const [mentionUsers, setMentionUsers] = useState<User[]>([]);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionLoading, setMentionLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isRenaming, setIsRenaming] = useState(false);
     const [newName, setNewName] = useState(title);
@@ -162,6 +174,79 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
         }
     }
 
+    // Mention handlers
+    const handleInputChange = (val: string) => {
+        setInput(val);
+        const cursorPosition = inputRef.current?.selectionStart || 0;
+        const textBeforeCursor = val.slice(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (mentionMatch) {
+            setMentionQuery(mentionMatch[1]);
+            setMentionIndex(0);
+        } else {
+            setMentionQuery(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (mentionQuery !== null && mentionUsers.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev + 1) % mentionUsers.length);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length);
+            } else if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                insertMention(mentionUsers[mentionIndex]);
+            } else if (e.key === "Escape") {
+                setMentionQuery(null);
+            }
+        }
+    };
+
+    const insertMention = (targetUser: User) => {
+        if (!inputRef.current) return;
+        const cursorPosition = inputRef.current.selectionStart || 0;
+        const textBeforeCursor = input.slice(0, cursorPosition);
+        const textAfterCursor = input.slice(cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+        const newText = textBeforeCursor.slice(0, lastAtIndex) + `@${targetUser.name} ` + textAfterCursor;
+        setInput(newText);
+        setMentionQuery(null);
+
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                const newPos = lastAtIndex + targetUser.name.length + 2;
+                inputRef.current.selectionStart = newPos;
+                inputRef.current.selectionEnd = newPos;
+            }
+        }, 0);
+    };
+
+    useEffect(() => {
+        if (mentionQuery === null) return;
+        const timer = setTimeout(async () => {
+            setMentionLoading(true);
+            try {
+                // DM mentions are global for now as well
+                const res = await fetch(`/api/users/search?q=${mentionQuery}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMentionUsers(data);
+                }
+            } catch (err) {
+                console.error("Mention search failed:", err);
+            } finally {
+                setMentionLoading(false);
+            }
+        }, 200);
+        return () => clearTimeout(timer);
+    }, [mentionQuery]);
+
     async function handleUpdate(messageId: string) {
         if (!editContent.trim() || updating) return;
         setUpdating(true);
@@ -212,8 +297,8 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                             {!isGroup && otherUser && (
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     <div className={`w-2 h-2 rounded-full ${otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
-                                            ? "bg-success shadow-[0_0_8px_var(--success)]"
-                                            : "bg-muted"
+                                        ? "bg-success shadow-[0_0_8px_var(--success)]"
+                                        : "bg-muted"
                                         }`} />
                                     <span className="text-[10px] text-muted uppercase font-bold tracking-wider">
                                         {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
@@ -285,108 +370,129 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                             </div>
                         </div>
                     )}
-                    {messages.map((msg) => (
-                        <div key={msg.id} className={`chat-message ${msg.user.id === currentUser.id ? "chat-message-own" : ""}`}>
-                            <div className="chat-message-avatar">
-                                {msg.user.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="chat-message-body">
-                                <div className="chat-message-header">
-                                    <span className="chat-message-name">{msg.user.name}</span>
-                                    <span className="chat-message-time">{formatTime(msg.createdAt)}</span>
-                                    {msg.user.id === currentUser.id && !editingId && (
-                                        <div className="chat-message-actions">
-                                            <button
-                                                className="btn-link text-xs"
-                                                onClick={() => {
-                                                    setEditingId(msg.id);
-                                                    setEditContent(msg.content);
-                                                }}
-                                            >
-                                                redigera
-                                            </button>
-                                            <button
-                                                className="btn-link text-xs text-danger"
-                                                onClick={() => handleDelete(msg.id)}
-                                            >
-                                                ta bort
-                                            </button>
+                    {messages.map((msg) => {
+                        const isMentioned = msg.content.toLowerCase().includes(`@${currentUser.name.toLowerCase()}`);
+                        return (
+                            <div key={msg.id} className={`chat-message ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""}`}>
+                                <div className="chat-message-avatar">
+                                    {msg.user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="chat-message-body">
+                                    <div className="chat-message-header">
+                                        <span className="chat-message-name">{msg.user.name}</span>
+                                        <span className="chat-message-time">{formatTime(msg.createdAt)}</span>
+                                        {msg.user.id === currentUser.id && !editingId && (
+                                            <div className="chat-message-actions">
+                                                <button
+                                                    className="btn-link text-xs"
+                                                    onClick={() => {
+                                                        setEditingId(msg.id);
+                                                        setEditContent(msg.content);
+                                                    }}
+                                                >
+                                                    redigera
+                                                </button>
+                                                <button
+                                                    className="btn-link text-xs text-danger"
+                                                    onClick={() => handleDelete(msg.id)}
+                                                >
+                                                    ta bort
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {editingId === msg.id ? (
+                                        <div className="chat-edit-area mt-1">
+                                            <textarea
+                                                className="input text-sm"
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                autoFocus
+                                                rows={2}
+                                            />
+                                            <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
+                                                <button
+                                                    className="btn btn-primary btn-sm"
+                                                    onClick={() => handleUpdate(msg.id)}
+                                                    disabled={updating || !editContent.trim()}
+                                                >
+                                                    spara
+                                                </button>
+                                                <button
+                                                    className="btn btn-ghost btn-sm"
+                                                    onClick={() => setEditingId(null)}
+                                                    disabled={updating}
+                                                >
+                                                    avbryt
+                                                </button>
+                                            </div>
                                         </div>
+                                    ) : (
+                                        <>
+                                            <MessageContent content={msg.content} currentUserName={currentUser.name} />
+                                            {msg.attachments && msg.attachments.length > 0 && (
+                                                <AttachmentList attachments={msg.attachments} readOnly />
+                                            )}
+                                        </>
                                     )}
                                 </div>
-                                {editingId === msg.id ? (
-                                    <div className="chat-edit-area mt-1">
-                                        <textarea
-                                            className="input text-sm"
-                                            value={editContent}
-                                            onChange={(e) => setEditContent(e.target.value)}
-                                            autoFocus
-                                            rows={2}
-                                        />
-                                        <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
-                                            <button
-                                                className="btn btn-primary btn-sm"
-                                                onClick={() => handleUpdate(msg.id)}
-                                                disabled={updating || !editContent.trim()}
-                                            >
-                                                spara
-                                            </button>
-                                            <button
-                                                className="btn btn-ghost btn-sm"
-                                                onClick={() => setEditingId(null)}
-                                                disabled={updating}
-                                            >
-                                                avbryt
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <MessageContent content={msg.content} />
-                                        {msg.attachments && msg.attachments.length > 0 && (
-                                            <AttachmentList attachments={msg.attachments} readOnly />
-                                        )}
-                                    </>
-                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area">
+                <div className="chat-input-area border-t border-subtle bg-secondary/50 backdrop-blur-sm">
+                    {mentionQuery !== null && (
+                        <MentionList
+                            users={mentionUsers}
+                            selectedIndex={mentionIndex}
+                            onSelect={(u) => insertMention(u)}
+                            loading={mentionLoading}
+                        />
+                    )}
                     {pendingAttachments.length > 0 && (
-                        <div className="px-4 py-2 border-b border-subtle bg-secondary-alt">
+                        <div className="px-4 py-3 border-b border-subtle bg-black/20 rounded-t-lg mx-4">
                             <AttachmentList
                                 attachments={pendingAttachments}
                                 onRemove={(url) => setPendingAttachments(prev => prev.filter(a => a.url !== url))}
                             />
                         </div>
                     )}
-                    <form className="chat-input-form" onSubmit={handleSend}>
-                        <AttachmentPicker
-                            spaceId="dm" // DM space identifier or similar
-                            onUploadSuccess={(url, file) => {
-                                setPendingAttachments(prev => [...prev, {
-                                    url,
-                                    name: file.name,
-                                    mimeType: file.type,
-                                    size: file.size
-                                }]);
-                            }}
-                            onUploadError={(err) => alert(err)}
-                        />
-                        <span className="chat-input-prompt">{">"}</span>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            className="input"
-                            placeholder={`meddelande till ${title.toLowerCase()}...`}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            autoFocus
-                        />
-                        <button type="submit" className="btn btn-primary" disabled={sending || (!input.trim() && pendingAttachments.length === 0)}>
-                            send
+                    <form className="chat-input-form items-center" onSubmit={handleSend}>
+                        <div className="flex items-center gap-1">
+                            <AttachmentPicker
+                                spaceId="dm"
+                                onUploadSuccess={(url, file) => {
+                                    setPendingAttachments(prev => [...prev, {
+                                        url,
+                                        name: file.name,
+                                        mimeType: file.type,
+                                        size: file.size
+                                    }]);
+                                }}
+                                onUploadError={(err) => alert(err)}
+                            />
+                        </div>
+                        <div className="chat-input-wrapper flex-1 relative flex items-center">
+                            <span className="chat-input-prompt absolute left-3 text-neon-green/30 select-none font-mono">{">"}</span>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="input w-full pl-8"
+                                placeholder={`meddelande till ${title.toLowerCase()}...`}
+                                value={input}
+                                onChange={(e) => handleInputChange(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                autoFocus
+                                disabled={sending}
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="btn btn-primary px-6 shadow-glow-sm flex items-center gap-2"
+                            disabled={sending || (!input.trim() && pendingAttachments.length === 0)}
+                        >
+                            <span>{sending ? "skickar..." : "skicka"}</span>
                         </button>
                     </form>
                 </div>

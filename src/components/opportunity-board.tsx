@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import MentionList from "./mention-list";
 import OpportunityCard from "./opportunity-card";
 import { createOpportunity } from "@/lib/actions/opportunities";
 import AttachmentPicker from "./attachment-picker";
@@ -27,11 +28,12 @@ interface Opportunity {
 
 interface Props {
     initialOpportunities: Opportunity[];
+    currentUserName?: string;
 }
 
 import { PlusSquare, Zap } from "lucide-react";
 
-export default function OpportunityBoard({ initialOpportunities }: Props) {
+export default function OpportunityBoard({ initialOpportunities, currentUserName }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [search, setSearch] = useState("");
@@ -40,6 +42,14 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
     const [showCreate, setShowCreate] = useState(false);
     const [creating, setCreating] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
+    const [content, setContent] = useState("");
+
+    // Mention state
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+    const [mentionUsers, setMentionUsers] = useState<User[]>([]);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionLoading, setMentionLoading] = useState(false);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const filtered = initialOpportunities.filter((o) => {
         const matchesSearch = o.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,8 +60,10 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
         return matchesSearch && matchesType && matchesLocation;
     });
 
-    async function handleCreate(formData: FormData) {
+    async function handleCreate(e: React.FormEvent) {
+        e.preventDefault();
         setCreating(true);
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
         if (pendingAttachments.length > 0) {
             formData.append("attachments", JSON.stringify(pendingAttachments));
         }
@@ -63,6 +75,7 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
                 router.refresh();
                 setShowCreate(false);
                 setPendingAttachments([]);
+                setContent("");
                 setCreating(false);
             });
         } else {
@@ -70,6 +83,78 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
             alert("Kunde inte skapa möjlighet");
         }
     }
+
+    // Mention handlers
+    const handleInputChange = (val: string) => {
+        setContent(val);
+        const cursorPosition = inputRef.current?.selectionStart || 0;
+        const textBeforeCursor = val.slice(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (mentionMatch) {
+            setMentionQuery(mentionMatch[1]);
+            setMentionIndex(0);
+        } else {
+            setMentionQuery(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (mentionQuery !== null && mentionUsers.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev + 1) % mentionUsers.length);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length);
+            } else if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                insertMention(mentionUsers[mentionIndex]);
+            } else if (e.key === "Escape") {
+                setMentionQuery(null);
+            }
+        }
+    };
+
+    const insertMention = (targetUser: User) => {
+        if (!inputRef.current) return;
+        const cursorPosition = inputRef.current.selectionStart || 0;
+        const textBeforeCursor = content.slice(0, cursorPosition);
+        const textAfterCursor = content.slice(cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+        const newText = textBeforeCursor.slice(0, lastAtIndex) + `@${targetUser.name} ` + textAfterCursor;
+        setContent(newText);
+        setMentionQuery(null);
+
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                const newPos = lastAtIndex + targetUser.name.length + 2;
+                inputRef.current.selectionStart = newPos;
+                inputRef.current.selectionEnd = newPos;
+            }
+        }, 0);
+    };
+
+    useEffect(() => {
+        if (mentionQuery === null) return;
+        const timer = setTimeout(async () => {
+            setMentionLoading(true);
+            try {
+                const res = await fetch(`/api/users/search?q=${mentionQuery}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMentionUsers(data);
+                }
+            } catch (err) {
+                console.error("Mention search failed:", err);
+            } finally {
+                setMentionLoading(false);
+            }
+        }, 200);
+        return () => clearTimeout(timer);
+    }, [mentionQuery]);
 
     return (
         <div className="content-area">
@@ -87,7 +172,7 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
             {showCreate && (
                 <div className="card mb-8">
                     <div className="modal-title">ny post</div>
-                    <form className="auth-form" action={handleCreate}>
+                    <form className="auth-form" onSubmit={handleCreate}>
                         <div className="form-group">
                             <label className="form-label">rubrik</label>
                             <input type="text" name="title" className="input" placeholder="t.ex. Senior Frontend Utvecklare" required />
@@ -114,7 +199,27 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
 
                         <div className="form-group">
                             <label className="form-label">beskrivning</label>
-                            <textarea name="content" className="input" rows={6} placeholder="berätta mer om rollen, krav och vad ni erbjuder..." required />
+                            <div className="relative">
+                                {mentionQuery !== null && (
+                                    <MentionList
+                                        users={mentionUsers}
+                                        selectedIndex={mentionIndex}
+                                        onSelect={(u) => insertMention(u)}
+                                        loading={mentionLoading}
+                                    />
+                                )}
+                                <textarea
+                                    ref={inputRef}
+                                    name="content"
+                                    className="input"
+                                    rows={6}
+                                    placeholder="berätta mer om rollen, krav och vad ni erbjuder..."
+                                    required
+                                    value={content}
+                                    onChange={(e) => handleInputChange(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                />
+                            </div>
                         </div>
 
                         <div className="row">
@@ -233,7 +338,7 @@ export default function OpportunityBoard({ initialOpportunities }: Props) {
             ) : (
                 <div className="opportunities-grid">
                     {filtered.map((opportunity) => (
-                        <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+                        <OpportunityCard key={opportunity.id} opportunity={opportunity} currentUserName={currentUserName} />
                     ))}
                 </div>
             )}

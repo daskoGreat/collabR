@@ -1056,6 +1056,7 @@ textarea.input {
   padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
+  position: relative;
 }
 
 .chat-input-form {
@@ -1485,6 +1486,254 @@ tr:hover td {
 .flex-1 {
   flex: 1;
 }
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.gap-1 {
+  gap: var(--space-1);
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.px-2 {
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.px-4 {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.px-6 {
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+.mx-4 {
+  margin-left: var(--space-4);
+  margin-right: var(--space-4);
+}
+
+.pl-8 {
+  padding-left: var(--space-8);
+}
+
+.border-dashed {
+  border-style: dashed;
+}
+
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+/* Opacity utilities if needed */
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
+}
+
+/* Position utilities */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+/* Flex utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* Spacing utilities */
+.gap-1 {
+  gap: var(--space-1);
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.gap-6 {
+  gap: var(--space-6);
+}
+
+.px-4 {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.px-5 {
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+}
+
+.px-8 {
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+
+.pt-4 {
+  padding-top: var(--space-4);
+}
+
+.pb-4 {
+  padding-top: var(--space-4);
+}
+
+.pb-5 {
+  padding-bottom: var(--space-5);
+}
+
+.pl-8 {
+  padding-left: var(--space-8);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+
+.mb-5 {
+  margin-bottom: var(--space-5);
+}
+
+.mb-6 {
+  margin-bottom: var(--space-6);
+}
+
+.mb-8 {
+  margin-bottom: var(--space-8);
+}
+
+.mb-10 {
+  margin-bottom: var(--space-10);
+}
+
+/* Border utilities */
+.border-t {
+  border-top-width: 1px;
+}
+
+.border-b {
+  border-bottom-width: 1px;
+}
+
+.border-white\/5 {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Other utilities */
+.rounded {
+  border-radius: var(--radius-md);
+}
+
+.ring-1 {
+  box-shadow: 0 0 0 1px var(--neon-green-dim);
+}
+
+.ring-neon-green\/5 {
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.05);
+}
+
+.text-muted\/30 {
+  color: rgba(68, 68, 79, 0.3);
+}
+
+.bg-secondary\/50 {
+  background-color: rgba(17, 17, 20, 0.5);
+}
+
+.bg-black\/20 {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.text-neon-green\/30 {
+  color: rgba(0, 255, 136, 0.3);
+}
+
+.rounded-t-lg {
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
 
 .error-text {
   color: var(--accent-danger);
@@ -2041,6 +2290,39 @@ tr:hover td {
   background: var(--neon-magenta);
   color: white;
   box-shadow: 0 0 10px var(--neon-magenta-glow);
+  animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px var(--neon-magenta-glow);
+  }
+
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--neon-magenta-glow);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px var(--neon-magenta-glow);
+  }
+}
+
+.mention-token-me {
+  background: var(--neon-magenta-glow);
+  color: var(--neon-magenta);
+  padding: 0 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  text-shadow: 0 0 8px var(--neon-magenta-glow);
+  border: 1px solid var(--neon-magenta-glow);
+}
+
+.chat-message-mentioned {
+  background: var(--neon-magenta-glow) !important;
+  border-left: 3px solid var(--neon-magenta);
 }
 
 /* ── Opportunities ────────────────────────── */

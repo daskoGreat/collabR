@@ -49,6 +49,7 @@ export default async function HelpPage({ params }: Props) {
                     createdAt: p.createdAt.toISOString(),
                 }))}
                 currentUserId={user.id}
+                currentUserName={user.name}
             />
         </>
     );

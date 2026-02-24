@@ -42,7 +42,7 @@ export default function FeedView({ initialPosts, currentUser }: Props) {
                     </div>
                 ) : (
                     initialPosts.map((post) => (
-                        <FeedPostCard key={post.id} post={post} currentUserId={currentUser.id} />
+                        <FeedPostCard key={post.id} post={post} currentUserId={currentUser.id} currentUserName={currentUser.name} />
                     ))
                 )}
             </div>

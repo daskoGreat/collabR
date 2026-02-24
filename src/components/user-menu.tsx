@@ -14,7 +14,7 @@ export default function UserMenu({ user }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [mounted, setMounted] = useState(false);
-    const { theme, setTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Prevent hydration mismatch
@@ -95,10 +95,10 @@ export default function UserMenu({ user }: Props) {
                         <button
                             className="sidebar-link w-full text-left"
                             style={{ background: "none", border: "none", width: "100%", cursor: "pointer" }}
-                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                         >
-                            <span className="sidebar-link-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
-                            {theme === "dark" ? "Dagläge" : "Nattläge"}
+                            <span className="sidebar-link-icon">{resolvedTheme === "dark" ? "☀️" : "🌙"}</span>
+                            {resolvedTheme === "dark" ? "Dagläge" : "Nattläge"}
                         </button>
 
                         <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />

@@ -28,6 +28,9 @@ export default async function OpportunitiesPage() {
     }));
 
     return (
-        <OpportunityBoard initialOpportunities={serializedOpportunities as any} />
+        <OpportunityBoard
+            initialOpportunities={serializedOpportunities as any}
+            currentUserName={session.user.name ?? undefined}
+        />
     );
 }

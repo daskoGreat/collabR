@@ -56,6 +56,7 @@ export default async function TaskDetailPage({ params }: Props) {
                     })),
                 }}
                 currentUserId={user.id}
+                currentUserName={user.name}
             />
         </>
     );

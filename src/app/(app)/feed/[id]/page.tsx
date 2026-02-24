@@ -49,9 +49,9 @@ export default async function FeedPostPage({ params }: { params: Promise<{ id: s
                     ← tillbaka till insikter
                 </Link>
 
-                <FeedPostCard post={serializedPost as any} currentUserId={session.user.id} />
+                <FeedPostCard post={serializedPost as any} currentUserId={session.user.id} currentUserName={session.user.name ?? undefined} />
 
-                <FeedCommentSection postId={post.id} comments={serializedPost.comments as any} />
+                <FeedCommentSection postId={post.id} comments={serializedPost.comments as any} currentUserName={session.user.name ?? undefined} />
             </div>
         </div>
     );

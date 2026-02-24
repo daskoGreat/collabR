@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import BackButton from "@/components/back-button";
 import MessageContent from "@/components/message-content";
@@ -8,6 +8,7 @@ import AttachmentList from "@/components/attachment-list";
 import AttachmentPicker from "@/components/attachment-picker";
 import { addOpportunityComment, deleteOpportunity } from "@/lib/actions/opportunities";
 import { useRouter } from "next/navigation";
+import MentionList from "@/components/mention-list";
 
 interface User {
     id: string;
@@ -49,18 +50,29 @@ interface Opportunity {
 interface Props {
     opportunity: Opportunity;
     currentUserId: string;
+    currentUserName?: string;
 }
 
-export default function OpportunityDetail({ opportunity, currentUserId }: Props) {
+export default function OpportunityDetail({ opportunity, currentUserId, currentUserName }: Props) {
     const router = useRouter();
     const [commentRefreshing, setCommentRefreshing] = useState(false);
     const [pendingAttachments, setPendingAttachments] = useState<{ url: string; name: string; mimeType: string; size: number }[]>([]);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [content, setContent] = useState("");
+
+    // Mention state
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+    const [mentionUsers, setMentionUsers] = useState<User[]>([]);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionLoading, setMentionLoading] = useState(false);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const isCreator = opportunity.user.id === currentUserId;
 
-    async function handleAddComment(formData: FormData) {
+    async function handleAddComment(e: React.FormEvent) {
+        e.preventDefault();
         setCommentRefreshing(true);
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
         if (pendingAttachments.length > 0) {
             formData.append("attachments", JSON.stringify(pendingAttachments));
         }
@@ -68,9 +80,81 @@ export default function OpportunityDetail({ opportunity, currentUserId }: Props)
         setCommentRefreshing(false);
         if (res?.success) {
             setPendingAttachments([]);
-            // revalidatePath in server action handles server refresh
+            setContent("");
         }
     }
+
+    // Mention handlers
+    const handleInputChange = (val: string) => {
+        setContent(val);
+        const cursorPosition = inputRef.current?.selectionStart || 0;
+        const textBeforeCursor = val.slice(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (mentionMatch) {
+            setMentionQuery(mentionMatch[1]);
+            setMentionIndex(0);
+        } else {
+            setMentionQuery(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (mentionQuery !== null && mentionUsers.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev + 1) % mentionUsers.length);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length);
+            } else if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                insertMention(mentionUsers[mentionIndex]);
+            } else if (e.key === "Escape") {
+                setMentionQuery(null);
+            }
+        }
+    };
+
+    const insertMention = (targetUser: User) => {
+        if (!inputRef.current) return;
+        const cursorPosition = inputRef.current.selectionStart || 0;
+        const textBeforeCursor = content.slice(0, cursorPosition);
+        const textAfterCursor = content.slice(cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+        const newText = textBeforeCursor.slice(0, lastAtIndex) + `@${targetUser.name} ` + textAfterCursor;
+        setContent(newText);
+        setMentionQuery(null);
+
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                const newPos = lastAtIndex + targetUser.name.length + 2;
+                inputRef.current.selectionStart = newPos;
+                inputRef.current.selectionEnd = newPos;
+            }
+        }, 0);
+    };
+
+    useEffect(() => {
+        if (mentionQuery === null) return;
+        const timer = setTimeout(async () => {
+            setMentionLoading(true);
+            try {
+                const res = await fetch(`/api/users/search?q=${mentionQuery}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMentionUsers(data);
+                }
+            } catch (err) {
+                console.error("Mention search failed:", err);
+            } finally {
+                setMentionLoading(false);
+            }
+        }, 200);
+        return () => clearTimeout(timer);
+    }, [mentionQuery]);
 
     async function handleDelete() {
         if (!confirm("Är du säker på att du vill ta bort denna möjlighet?")) return;
@@ -90,13 +174,15 @@ export default function OpportunityDetail({ opportunity, currentUserId }: Props)
         }
     }
 
+    const isOpportunityMentioned = currentUserName && opportunity.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
+
     return (
         <div className="content-area max-w-4xl mx-auto">
             <div className="mb-4">
                 <BackButton />
             </div>
 
-            <div className="card mb-8">
+            <div className={`card mb-8 ${isOpportunityMentioned ? "chat-message-mentioned" : ""}`}>
                 <div className="row-between mb-4">
                     <div className="flex items-center gap-3">
                         <span className={`badge badge-type status-${opportunity.type.toLowerCase()}`}>
@@ -128,7 +214,7 @@ export default function OpportunityDetail({ opportunity, currentUserId }: Props)
                 </div>
 
                 <div className="prose prose-invert mb-8">
-                    <MessageContent content={opportunity.content} />
+                    <MessageContent content={opportunity.content} currentUserName={currentUserName} />
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-8">
@@ -177,36 +263,51 @@ export default function OpportunityDetail({ opportunity, currentUserId }: Props)
                 </h3>
 
                 <div className="stack gap-4 mb-8">
-                    {opportunity.comments.map(comment => (
-                        <div key={comment.id} className="card card-compact border-l-2 border-l-neon-green bg-tertiary">
-                            <div className="row-between mb-2">
-                                <span className="font-bold text-secondary text-sm">{comment.user.name}</span>
-                                <span className="text-xs text-muted">{format(new Date(comment.createdAt), "HH:mm, PPP")}</span>
-                            </div>
-                            <div className="text-sm">
-                                <MessageContent content={comment.content} />
-                            </div>
-                            {comment.attachments.length > 0 && (
-                                <div className="mt-4">
-                                    <AttachmentList attachments={comment.attachments} />
+                    {opportunity.comments.map(comment => {
+                        const isCommentMentioned = currentUserName && comment.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
+                        return (
+                            <div key={comment.id} className={`card card-compact border-l-2 border-l-neon-green bg-tertiary ${isCommentMentioned ? "chat-message-mentioned" : ""}`}>
+                                <div className="row-between mb-2">
+                                    <span className="font-bold text-secondary text-sm">{comment.user.name}</span>
+                                    <span className="text-xs text-muted">{format(new Date(comment.createdAt), "HH:mm, PPP")}</span>
                                 </div>
-                            )}
-                        </div>
-                    ))}
+                                <div className="text-sm">
+                                    <MessageContent content={comment.content} currentUserName={currentUserName} />
+                                </div>
+                                {comment.attachments.length > 0 && (
+                                    <div className="mt-4">
+                                        <AttachmentList attachments={comment.attachments} />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                     {opportunity.comments.length === 0 && (
                         <p className="text-muted text-center py-8">inga kommentarer än. bli den första!</p>
                     )}
                 </div>
 
                 <div className="card bg-secondary">
-                    <form action={handleAddComment}>
-                        <div className="form-group mb-4">
+                    <form onSubmit={handleAddComment}>
+                        <div className="form-group mb-4 relative">
+                            {mentionQuery !== null && (
+                                <MentionList
+                                    users={mentionUsers}
+                                    selectedIndex={mentionIndex}
+                                    onSelect={(u) => insertMention(u)}
+                                    loading={mentionLoading}
+                                />
+                            )}
                             <textarea
+                                ref={inputRef}
                                 name="content"
                                 className="input w-full"
                                 rows={3}
                                 placeholder="skriv en kommentar... använd @ för att tagga någon"
                                 required
+                                value={content}
+                                onChange={(e) => handleInputChange(e.target.value)}
+                                onKeyDown={handleKeyDown}
                             />
                         </div>
 

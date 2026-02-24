@@ -20,20 +20,22 @@ interface FeedPost {
 }
 
 interface Props {
-    post: any; // Changed from FeedPost to any as per instruction
+    post: any;
     currentUserId: string;
+    currentUserName?: string;
 }
 
 import { ThumbsUp, Rocket, PartyPopper, MessageSquare, Trash2 } from "lucide-react";
+import MessageContent from "./message-content";
 
-export default function FeedPostCard({ post, currentUserId }: Props) {
+export default function FeedPostCard({ post, currentUserId, currentUserName }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [isDeleting, setIsDeleting] = useState(false);
     const [isReacting, setIsReacting] = useState(false);
 
-    const hasReacted = (type: string) => post.reactions.some(r => r.userId === currentUserId && r.type === type);
-    const reactionCount = (type: string) => post.reactions.filter(r => r.type === type).length;
+    const hasReacted = (type: string) => post.reactions.some((r: any) => r.userId === currentUserId && r.type === type);
+    const reactionCount = (type: string) => post.reactions.filter((r: any) => r.type === type).length;
 
     async function handleReaction(type: string) {
         if (isReacting) return;
@@ -64,17 +66,10 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
         }
     }
 
-    // Helper to detect links and mentions (simple version for now)
-    const renderContent = (content: string) => {
-        return content.split(/(\s+)/).map((part, i) => {
-            if (part.startsWith("@")) return <span key={i} className="text-primary font-bold">{part}</span>;
-            if (part.startsWith("http")) return <a key={i} href={part} target="_blank" rel="noopener" className="text-primary hover:underline">{part}</a>;
-            return part;
-        });
-    };
+    const isMentioned = currentUserName && post.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
 
     return (
-        <div className="feed-card group transition-all duration-300 hover:shadow-glow-sm">
+        <div className={`feed-card group transition-all duration-300 hover:shadow-glow-sm ${isMentioned ? "chat-message-mentioned" : ""}`}>
             <div className="feed-header mb-4">
                 <div className="feed-avatar border-none bg-primary/10 text-primary font-bold">
                     {post.user.name[0].toUpperCase()}
@@ -98,8 +93,8 @@ export default function FeedPostCard({ post, currentUserId }: Props) {
                 )}
             </div>
 
-            <div className="feed-content text-md leading-relaxed mb-6">
-                {renderContent(post.content)}
+            <div className="feed-content mb-6">
+                <MessageContent content={post.content} currentUserName={currentUserName} />
             </div>
 
             {post.attachments.length > 0 && (

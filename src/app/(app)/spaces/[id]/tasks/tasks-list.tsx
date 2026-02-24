@@ -4,6 +4,7 @@ import { useState } from "react";
 import BackButton from "@/components/back-button";
 import { createTask, updateTaskStatus } from "@/lib/actions/tasks";
 import Link from "next/link";
+import MessageContent from "@/components/message-content";
 
 interface Task {
     id: string;
@@ -22,9 +23,10 @@ interface Props {
     tasks: Task[];
     members: { id: string; name: string }[];
     currentUserId: string;
+    currentUserName?: string;
 }
 
-export default function TasksList({ spaceId, tasks, members }: Props) {
+export default function TasksList({ spaceId, tasks, members, currentUserName }: Props) {
     const [filter, setFilter] = useState<string>("ALL");
     const [showCreate, setShowCreate] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -123,45 +125,48 @@ export default function TasksList({ spaceId, tasks, members }: Props) {
                 </div>
             ) : (
                 <div className="stack">
-                    {filtered.map((task) => (
-                        <div key={task.id} className={`card card-hover card-compact task-card status-${task.status.toLowerCase().replace("_", "-")}`}>
-                            <div className="row-between">
-                                <Link
-                                    href={`/spaces/${spaceId}/tasks/${task.id}`}
-                                    style={{ textDecoration: "none", flex: 1 }}
-                                >
-                                    <span className="task-title">{task.title}</span>
-                                </Link>
-                                <select
-                                    className="select"
-                                    value={task.status}
-                                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                                    style={{ minWidth: 120 }}
-                                >
-                                    <option value="OPEN">open</option>
-                                    <option value="IN_PROGRESS">in progress</option>
-                                    <option value="DONE">done</option>
-                                </select>
-                            </div>
-                            {task.description && (
-                                <p className="text-sm text-secondary mt-2" style={{ maxHeight: 60, overflow: "hidden" }}>
-                                    {task.description}
-                                </p>
-                            )}
-                            <div className="task-meta mt-2">
-                                {task.assignee && <span>→ {task.assignee.name}</span>}
-                                <span>by {task.creator.name}</span>
-                                {task.commentCount > 0 && <span>💬 {task.commentCount}</span>}
-                                {task.tags.length > 0 && (
-                                    <div className="tags-list">
-                                        {task.tags.map((tag) => (
-                                            <span key={tag} className="tag">{tag}</span>
-                                        ))}
+                    {filtered.map((task) => {
+                        const isMentioned = currentUserName && task.description?.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
+                        return (
+                            <div key={task.id} className={`card card-hover card-compact task-card status-${task.status.toLowerCase().replace("_", "-")} ${isMentioned ? "chat-message-mentioned" : ""}`}>
+                                <div className="row-between">
+                                    <Link
+                                        href={`/spaces/${spaceId}/tasks/${task.id}`}
+                                        style={{ textDecoration: "none", flex: 1 }}
+                                    >
+                                        <span className="task-title">{task.title}</span>
+                                    </Link>
+                                    <select
+                                        className="select"
+                                        value={task.status}
+                                        onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                        style={{ minWidth: 120 }}
+                                    >
+                                        <option value="OPEN">open</option>
+                                        <option value="IN_PROGRESS">in progress</option>
+                                        <option value="DONE">done</option>
+                                    </select>
+                                </div>
+                                {task.description && (
+                                    <div className="text-sm text-secondary mt-2 line-clamp-2">
+                                        <MessageContent content={task.description} currentUserName={currentUserName} />
                                     </div>
                                 )}
+                                <div className="task-meta mt-2">
+                                    {task.assignee && <span>→ {task.assignee.name}</span>}
+                                    <span>by {task.creator.name}</span>
+                                    {task.commentCount > 0 && <span>💬 {task.commentCount}</span>}
+                                    {task.tags.length > 0 && (
+                                        <div className="tags-list">
+                                            {task.tags.map((tag) => (
+                                                <span key={tag} className="tag">{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

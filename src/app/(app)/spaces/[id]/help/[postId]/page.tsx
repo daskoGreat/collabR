@@ -58,6 +58,7 @@ export default async function PostDetailPage({ params }: Props) {
                     })),
                 }}
                 currentUserId={user.id}
+                currentUserName={user.name}
             />
         </>
     );

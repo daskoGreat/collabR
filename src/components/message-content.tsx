@@ -4,9 +4,10 @@ import LinkPreview from "./link-preview";
 
 interface Props {
     content: string;
+    currentUserName?: string;
 }
 
-export default function MessageContent({ content }: Props) {
+export default function MessageContent({ content, currentUserName }: Props) {
     // Regex for basic URL detection
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const mentionRegex = /(@[\w\s.ÅÄÖåäö]+?)(?=\s|$|[,.!?])/g;
@@ -30,12 +31,14 @@ export default function MessageContent({ content }: Props) {
                                 className="text-accent hover:underline"
                                 style={{ color: "var(--accent-color)" }}
                             >
+                                {part}
                             </a>
                         );
                     }
                     if (part.match(mentionRegex)) {
+                        const isMe = currentUserName && part.toLowerCase() === `@${currentUserName.toLowerCase()}`;
                         return (
-                            <span key={i} className="mention-token">
+                            <span key={i} className={isMe ? "mention-token-me" : "mention-token"}>
                                 {part}
                             </span>
                         );

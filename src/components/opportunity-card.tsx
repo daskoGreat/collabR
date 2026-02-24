@@ -18,21 +18,26 @@ interface Opportunity {
 
 interface Props {
     opportunity: Opportunity;
+    currentUserName?: string;
 }
 
 import { MapPin, Clock } from "lucide-react";
 
-export default function OpportunityCard({ opportunity }: Props) {
+import MessageContent from "./message-content";
+
+export default function OpportunityCard({ opportunity, currentUserName }: Props) {
     const typeLabel = opportunity.type.toLowerCase();
     const locationLabel = opportunity.location.toLowerCase();
 
     // Truncate content for the card
-    const truncatedContent = opportunity.content.length > 150
-        ? opportunity.content.slice(0, 150) + "..."
+    const truncatedContent = opportunity.content.length > 200
+        ? opportunity.content.slice(0, 200) + "..."
         : opportunity.content;
 
+    const isMentioned = currentUserName && opportunity.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
+
     return (
-        <Link href={`/opportunities/${opportunity.id}`} className="card card-hover opportunity-card no-underline group transition-all duration-300">
+        <Link href={`/opportunities/${opportunity.id}`} className={`card card-hover opportunity-card no-underline group transition-all duration-300 ${isMentioned ? "chat-message-mentioned" : ""}`}>
             <div className="row-between mb-4">
                 <span className={`badge badge-type status-${typeLabel} font-mono uppercase tracking-tighter`}>
                     {typeLabel}
@@ -47,9 +52,9 @@ export default function OpportunityCard({ opportunity }: Props) {
                 {opportunity.title}
             </h3>
 
-            <p className="text-sm text-secondary mb-6 line-clamp-3 leading-relaxed">
-                {truncatedContent}
-            </p>
+            <div className="text-sm text-secondary mb-6 leading-relaxed">
+                <MessageContent content={truncatedContent} currentUserName={currentUserName} />
+            </div>
 
             <div className="mt-auto">
                 <div className="flex flex-wrap gap-1.5 mb-4">

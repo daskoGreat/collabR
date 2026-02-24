@@ -335,77 +335,80 @@ export default function ChatView({
                             </div>
                         </div>
                     )}
-                    {messages.map((msg) => (
-                        <div key={msg.id} className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""}`}>
-                            <div className="chat-message-avatar font-bold">
-                                {getInitial(msg.user.name)}
-                            </div>
-                            <div className="chat-message-body">
-                                <div className="chat-message-header">
-                                    <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
-                                    <span className="chat-message-time opacity-50 font-mono">
-                                        {formatTime(msg.createdAt)}
-                                    </span>
-                                    {msg.user.id === currentUser.id && !editingId && (
-                                        <div className="chat-message-actions opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                className="btn-link text-[10px] uppercase tracking-wider"
-                                                onClick={() => {
-                                                    setEditingId(msg.id);
-                                                    setEditContent(msg.content);
-                                                }}
-                                            >
-                                                redigera
-                                            </button>
-                                            <button
-                                                className="btn-link text-[10px] uppercase tracking-wider text-danger"
-                                                onClick={() => handleDelete(msg.id)}
-                                            >
-                                                ta bort
-                                            </button>
-                                        </div>
-                                    )}
+                    {messages.map((msg) => {
+                        const isMentioned = msg.content.toLowerCase().includes(`@${currentUser.name.toLowerCase()}`);
+                        return (
+                            <div key={msg.id} className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""}`}>
+                                <div className="chat-message-avatar font-bold">
+                                    {getInitial(msg.user.name)}
                                 </div>
-                                {editingId === msg.id ? (
-                                    <div className="chat-edit-area mt-2">
-                                        <textarea
-                                            className="input text-sm min-h-[80px]"
-                                            value={editContent}
-                                            onChange={(e) => setEditContent(e.target.value)}
-                                            autoFocus
-                                            rows={2}
-                                        />
-                                        <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
-                                            <button
-                                                className="btn btn-primary btn-sm px-4 flex items-center gap-2"
-                                                onClick={() => handleUpdate(msg.id)}
-                                                disabled={updating || !editContent.trim()}
-                                            >
-                                                {updating && <LoadingSpinner size="sm" className="text-current" />}
-                                                <span>{updating ? "sparar..." : "spara ändringar"}</span>
-                                            </button>
-                                            <button
-                                                className="btn btn-secondary btn-sm px-4"
-                                                onClick={() => setEditingId(null)}
-                                                disabled={updating}
-                                            >
-                                                avbryt
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="chat-content-vibe">
-                                        <MessageContent content={msg.content} />
-                                        {msg.attachments && msg.attachments.length > 0 && (
-                                            <div className="mt-3">
-                                                <AttachmentList attachments={msg.attachments} readOnly />
+                                <div className="chat-message-body">
+                                    <div className="chat-message-header">
+                                        <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
+                                        <span className="chat-message-time opacity-50 font-mono">
+                                            {formatTime(msg.createdAt)}
+                                        </span>
+                                        {msg.user.id === currentUser.id && !editingId && (
+                                            <div className="chat-message-actions opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    className="btn-link text-[10px] uppercase tracking-wider"
+                                                    onClick={() => {
+                                                        setEditingId(msg.id);
+                                                        setEditContent(msg.content);
+                                                    }}
+                                                >
+                                                    redigera
+                                                </button>
+                                                <button
+                                                    className="btn-link text-[10px] uppercase tracking-wider text-danger"
+                                                    onClick={() => handleDelete(msg.id)}
+                                                >
+                                                    ta bort
+                                                </button>
                                             </div>
                                         )}
                                     </div>
-                                )}
+                                    {editingId === msg.id ? (
+                                        <div className="chat-edit-area mt-2">
+                                            <textarea
+                                                className="input text-sm min-h-[80px]"
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                autoFocus
+                                                rows={2}
+                                            />
+                                            <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
+                                                <button
+                                                    className="btn btn-primary btn-sm px-4 flex items-center gap-2"
+                                                    onClick={() => handleUpdate(msg.id)}
+                                                    disabled={updating || !editContent.trim()}
+                                                >
+                                                    {updating && <LoadingSpinner size="sm" className="text-current" />}
+                                                    <span>{updating ? "sparar..." : "spara ändringar"}</span>
+                                                </button>
+                                                <button
+                                                    className="btn btn-secondary btn-sm px-4"
+                                                    onClick={() => setEditingId(null)}
+                                                    disabled={updating}
+                                                >
+                                                    avbryt
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="chat-content-vibe">
+                                            <MessageContent content={msg.content} currentUserName={currentUser.name} />
+                                            {msg.attachments && msg.attachments.length > 0 && (
+                                                <div className="mt-3">
+                                                    <AttachmentList attachments={msg.attachments} readOnly />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     <div ref={messagesEndRef} />
                 </div>
                 <div className="chat-input-area border-t border-subtle bg-secondary/50 backdrop-blur-sm">
