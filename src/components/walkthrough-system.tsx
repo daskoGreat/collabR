@@ -66,6 +66,17 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
         }
     };
 
+    // ESC key listener
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isActive) {
+                stopWalkthrough();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isActive]);
+
     // Update highlight rectangle when step changes
     useEffect(() => {
         if (currentStepIndex >= 0 && steps[currentStepIndex]) {
@@ -105,7 +116,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     const overlay = isActive && highlightRect && (
         <div
             className="walkthrough-overlay fixed inset-0 pointer-events-none"
-            style={{ zIndex: 999999 }}
+            style={{ zIndex: 'var(--z-walkthrough)' }}
         >
             {/* The Dimmer Backdrop - using 4 panels to allow clear highlight */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto" style={{
@@ -183,7 +194,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     return (
         <WalkthroughContext.Provider value={{ startWalkthrough, stopWalkthrough, isActive }}>
             {children}
-            {mounted && overlay && createPortal(overlay, document.body)}
+            {mounted && overlay && createPortal(overlay, document.getElementById('walkthrough-root') || document.body)}
         </WalkthroughContext.Provider>
     );
 }

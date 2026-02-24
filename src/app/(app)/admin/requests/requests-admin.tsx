@@ -24,6 +24,13 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
             if (result.success && result.inviteUrl) {
                 setGeneratedInvites(prev => ({ ...prev, [id]: result.inviteUrl! }));
                 setRequests(prev => prev.map(r => r.id === id ? { ...r, status: "APPROVED" } : r));
+
+                if (result.emailError) {
+                    alert(`Approved, but email failed: ${result.emailError}. Link generated for manual copy.`);
+                } else if (result.message) {
+                    // Show message (Optional alert, or just toast-like feedback)
+                    console.log(result.message);
+                }
             } else {
                 alert(result.error || "Failed to approve request.");
             }

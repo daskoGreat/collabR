@@ -22,6 +22,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <div id="walkthrough-root" />
         </ThemeProvider>
       </body>
     </html>

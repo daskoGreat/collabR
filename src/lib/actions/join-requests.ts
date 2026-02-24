@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
+import { sendInviteEmail } from "@/lib/email";
 
 export async function getPendingRequests() {
     await requireRole("ADMIN", "MODERATOR");
@@ -47,12 +48,32 @@ export async function approveRequest(id: string) {
             },
         });
 
+        const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://collab-nine-gold.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`;
+
+        // 3. Send invitation email via Resend
+        const emailResult = await sendInviteEmail({
+            email: request.email,
+            name: request.name,
+            inviteLink: inviteUrl
+        });
+
         revalidatePath("/admin/requests");
 
-        return {
-            success: true,
-            inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://collab-nine-gold.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`
-        };
+        if (emailResult.success) {
+            return {
+                success: true,
+                message: "Request approved and invitation email sent.",
+                inviteUrl
+            };
+        } else {
+            console.error("Email delivery failed after approval:", emailResult.error);
+            return {
+                success: true,
+                message: "Request approved, but email delivery failed. Please copy the link manually.",
+                inviteUrl,
+                emailError: emailResult.error
+            };
+        }
 
     } catch (error) {
         console.error("Error approving request:", error);
