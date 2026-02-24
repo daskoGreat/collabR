@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import LogoutConfirmation from "./logout-confirmation";
 
@@ -12,7 +13,14 @@ interface Props {
 export default function UserMenu({ user }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const { theme, setTheme } = useTheme();
     const menuRef = useRef<HTMLDivElement>(null);
+
+    // Prevent hydration mismatch
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -25,6 +33,8 @@ export default function UserMenu({ user }: Props) {
     }, []);
 
     const initial = user.name.charAt(0).toUpperCase();
+
+    if (!mounted) return null;
 
     return (
         <div className="user-menu-container" ref={menuRef} style={{ position: "relative" }}>
@@ -46,13 +56,13 @@ export default function UserMenu({ user }: Props) {
                         right: 0,
                         minWidth: "240px",
                         zIndex: 1000,
-                        background: "#121216", // Solid opaque background
-                        border: "1px solid var(--neon-green-dim)",
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.8), 0 0 20px var(--neon-green-glow)",
+                        background: "var(--bg-secondary)",
+                        border: "1px solid var(--border-active)",
+                        boxShadow: "var(--shadow-lg), 0 0 20px var(--neon-green-glow)",
                         animation: "fadeIn 0.2s ease-out"
                     }}
                 >
-                    <div className="sidebar-user" style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.03)" }}>
+                    <div className="sidebar-user" style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-glass)" }}>
                         <div className="sidebar-user-avatar" style={{ width: "40px", height: "40px", fontSize: "14px" }}>{initial}</div>
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name" style={{ fontSize: "var(--font-size-sm)", fontWeight: 700 }}>{user.name}</div>
@@ -79,7 +89,20 @@ export default function UserMenu({ user }: Props) {
                             <span className="sidebar-link-icon">⚙</span>
                             Inställningar
                         </Link>
+
                         <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
+
+                        <button
+                            className="sidebar-link w-full text-left"
+                            style={{ background: "none", border: "none", width: "100%", cursor: "pointer" }}
+                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        >
+                            <span className="sidebar-link-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
+                            {theme === "dark" ? "Dagläge" : "Nattläge"}
+                        </button>
+
+                        <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
+
                         <button
                             className="sidebar-link text-danger w-full text-left"
                             style={{

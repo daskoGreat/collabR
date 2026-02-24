@@ -1,6 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8rem;
+  --font-size-base: 0.85rem;
+  --font-size-md: 0.95rem;
+  --font-size-lg: 1.1rem;
+  --font-size-xl: 1.35rem;
+  --font-size-2xl: 1.75rem;
+  --font-size-3xl: 2.25rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Radius - sharper, more terminal-like */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --sidebar-width: 250px;
+  --topbar-height: 48px;
+}
+
+[data-theme='dark'],
+:root:not([data-theme='light']) {
   /* ── Kali / Terminal palette ─────────────── */
   --bg-primary: #0c0c0c;
   --bg-secondary: #111114;
@@ -41,59 +82,68 @@
   --accent-success: var(--neon-green);
   --accent-success-bg: var(--neon-green-glow);
 
-  /* Typography */
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-size-xs: 0.7rem;
-  --font-size-sm: 0.8rem;
-  --font-size-base: 0.85rem;
-  --font-size-md: 0.95rem;
-  --font-size-lg: 1.1rem;
-  --font-size-xl: 1.35rem;
-  --font-size-2xl: 1.75rem;
-  --font-size-3xl: 2.25rem;
-
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Radius - sharper, more terminal-like */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 10px;
-  --radius-full: 9999px;
-
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.6);
   --shadow-neon: 0 0 10px var(--neon-green-glow), 0 0 20px rgba(0, 255, 136, 0.04);
   --shadow-neon-strong: 0 0 15px var(--neon-green-glow-strong), 0 0 35px var(--neon-green-glow);
-
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Layout */
-  --sidebar-width: 250px;
-  --topbar-height: 48px;
 }
 
-/* ── Reset ───────────────────────────────── */
+[data-theme='light'] {
+  /* ── Light Palette ─────────────── */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f5;
+  --bg-tertiary: #e4e4e7;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(244, 244, 245, 0.95);
+  --bg-glass: rgba(0, 0, 0, 0.03);
+  --bg-glass-hover: rgba(0, 0, 0, 0.06);
+  --bg-input: rgba(255, 255, 255, 0.8);
+
+  --border-color: rgba(0, 168, 93, 0.1);
+  --border-active: rgba(0, 168, 93, 0.3);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --text-bright: #09090b;
+
+  /* Adjusted neon colors for light mode (more depth, less glow) */
+  --neon-green: #00a85d;
+  --neon-green-dim: #00874a;
+  --neon-green-glow: rgba(0, 168, 93, 0.1);
+  --neon-green-glow-strong: rgba(0, 168, 93, 0.2);
+  --neon-cyan: #0097a7;
+  --neon-cyan-glow: rgba(0, 151, 167, 0.1);
+  --neon-magenta: #c2185b;
+  --neon-magenta-glow: rgba(194, 24, 91, 0.1);
+  --neon-magenta-dim: #ad1457;
+
+  /* Semantic */
+  --accent-primary: var(--neon-green);
+  --accent-secondary: var(--neon-cyan);
+  --accent-danger: #dc2626;
+  --accent-danger-bg: rgba(220, 38, 38, 0.1);
+  --accent-warning: #d97706;
+  --accent-warning-bg: rgba(217, 119, 6, 0.1);
+  --accent-success: var(--neon-green);
+  --accent-success-bg: var(--neon-green-glow);
+
+  /* Shadows (softer for light mode) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-neon: 0 0 8px var(--neon-green-glow);
+  --shadow-neon-strong: 0 0 12px var(--neon-green-glow-strong);
+}
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 html,
