@@ -1,6 +1,7 @@
 import { requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import TasksList from "./tasks-list";
+import Link from "next/link";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -34,8 +35,11 @@ export default async function TasksPage({ params }: Props) {
         <>
             <div className="topbar">
                 <div className="topbar-title">
-                    <span className="text-muted">{space?.name.toLowerCase()} /</span>{" "}
-                    <span className="topbar-title-highlight">⊡</span> tasks
+                    <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                    <span className="text-muted mx-2">/</span>
+                    <Link href={`/spaces/${id}`} className="text-muted hover:text-primary transition-colors">#{space?.name.toLowerCase()}</Link>
+                    <span className="text-muted mx-2">/</span>
+                    <span className="topbar-title-highlight">⊡</span> uppdrag
                 </div>
             </div>
             <TasksList

@@ -7,6 +7,7 @@ import AttachmentList from "@/components/attachment-list";
 import MessageContent from "@/components/message-content";
 import MentionList from "@/components/mention-list";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import Link from "next/link";
 
 interface User {
     id: string;
@@ -318,7 +319,10 @@ export default function ChatView({
                 <div className="row" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
                     <div className="topbar-title">
-                        <span className="text-muted">{channel.spaceName.toLowerCase()} /</span>{" "}
+                        <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                        <span className="text-muted mx-2">/</span>
+                        <Link href={`/spaces/${spaceId}`} className="text-muted hover:text-primary transition-colors">#{channel.spaceName.toLowerCase()}</Link>
+                        <span className="text-muted mx-2">/</span>
                         <span className="topbar-title-highlight">#</span>
                         {channel.name.toLowerCase()}
                     </div>

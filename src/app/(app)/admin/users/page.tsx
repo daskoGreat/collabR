@@ -24,7 +24,7 @@ export default async function AdminUsersPage() {
                     <BackButton />
                     <div className="topbar-title">
                         <span className="text-muted">admin /</span>{" "}
-                        <span className="topbar-title-highlight">⊡</span> user management
+                        <span className="topbar-title-highlight">⊡</span> användarhantering
                     </div>
                 </div>
             </div>

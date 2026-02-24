@@ -49,11 +49,13 @@ export default async function SpaceDetailPage({ params }: Props) {
                 <div className="row" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
                     <div className="topbar-title">
+                        <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                        <span className="text-muted mx-2">/</span>
                         <span className="topbar-title-highlight">#</span> {space.name.toLowerCase()}
                     </div>
                 </div>
                 <div className="topbar-actions">
-                    <span className="text-xs text-muted">{space._count.members} members</span>
+                    <span className="text-xs text-muted">{space._count.members} medlemmar</span>
                 </div>
             </div>
             <div className="content-area">
@@ -64,19 +66,19 @@ export default async function SpaceDetailPage({ params }: Props) {
                 <div className="stats-grid">
                     <div className="card stat-card">
                         <div className="stat-value">{space._count.members}</div>
-                        <div className="stat-label">members</div>
+                        <div className="stat-label">medlemmar</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value">{space.channels.length}</div>
-                        <div className="stat-label">channels</div>
+                        <div className="stat-label">kanaler</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value">{space._count.tasks}</div>
-                        <div className="stat-label">tasks</div>
+                        <div className="stat-label">uppdrag</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value">{space._count.posts}</div>
-                        <div className="stat-label">questions</div>
+                        <div className="stat-label">frågor</div>
                     </div>
                 </div>
 
@@ -94,14 +96,14 @@ export default async function SpaceDetailPage({ params }: Props) {
                     <div>
                         <div className="row-between mb-4">
                             <h3 className="page-title" style={{ fontSize: "var(--font-size-md)" }}>
-                                quick nav
+                                snabbval
                             </h3>
                         </div>
                         <div className="stack">
                             <Link href={`/spaces/${id}/members`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">&#x22A1; members</span>
+                                        <span className="font-semibold">&#x22A1; medlemmar</span>
                                         <span className="badge badge-muted">{space._count.members}</span>
                                     </div>
                                 </div>
@@ -109,7 +111,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             <Link href={`/spaces/${id}/tasks`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">&#x22A1; tasks</span>
+                                        <span className="font-semibold">&#x22A1; uppdrag</span>
                                         <span className="badge badge-cyan">{space._count.tasks}</span>
                                     </div>
                                 </div>
@@ -117,7 +119,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             <Link href={`/spaces/${id}/help`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">? help &amp; questions</span>
+                                        <span className="font-semibold">? hjälp &amp; frågor</span>
                                         <span className="badge badge-magenta">{space._count.posts}</span>
                                     </div>
                                 </div>
@@ -125,7 +127,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                             <Link href={`/spaces/${id}/files`} style={{ textDecoration: "none" }}>
                                 <div className="card card-hover card-compact">
                                     <div className="row-between">
-                                        <span className="font-semibold">&#x229E; files</span>
+                                        <span className="font-semibold">&#x229E; filer</span>
                                         <span className="badge badge-muted">{space._count.files}</span>
                                     </div>
                                 </div>
@@ -137,7 +139,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                 {recentTasks.length > 0 && (
                     <div className="mt-6">
                         <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
-                            recent tasks
+                            senaste uppdragen
                         </h3>
                         <div className="stack">
                             {recentTasks.map((task: typeof recentTasks[number]) => (
@@ -162,7 +164,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                 {recentPosts.length > 0 && (
                     <div className="mt-6">
                         <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
-                            recent questions
+                            senaste frågorna
                         </h3>
                         <div className="stack">
                             {recentPosts.map((post: typeof recentPosts[number]) => (

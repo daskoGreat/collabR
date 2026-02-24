@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useWalkthrough } from "./walkthrough-system";
+import { HelpCircle } from "lucide-react";
 
 import {
     LayoutDashboard,
@@ -57,6 +59,7 @@ interface Props {
 }
 
 export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: initialDmThreads, isOpen, onClose }: Props) {
+    const { startWalkthrough } = useWalkthrough();
     const pathname = usePathname();
     const router = useRouter();
     const [spaces, setSpaces] = useState(initialSpaces);
@@ -196,6 +199,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
 
                 <div className="sidebar-nav">
                     <Link
+                        id="nav-navet"
                         href="/spaces"
                         onClick={onClose}
                         className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
@@ -212,6 +216,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                     </Link>
 
                     <Link
+                        id="nav-insikter"
                         href="/feed"
                         onClick={onClose}
                         className={`sidebar-link ${isActive("/feed") ? "active" : ""}`}
@@ -225,9 +230,9 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                         )}
                     </Link>
 
-                    <div className="sidebar-section">
+                    <div id="nav-kontor" className="sidebar-section">
                         <div className="sidebar-section-header">
-                            <div className="sidebar-section-title">your spaces</div>
+                            <div className="sidebar-section-title">dina kontor</div>
                         </div>
                         {spaces.map((space) => (
                             <div key={space.id} className="sidebar-group">
@@ -268,19 +273,19 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon">
                                     <Hash size={18} strokeWidth={1.5} className="opacity-20" />
                                 </span>
-                                no spaces yet
+                                inga kontor än
                             </div>
                         )}
                     </div>
 
                     {/* Direct Messages */}
-                    <div className="sidebar-section">
+                    <div id="nav-direktmeddelanden" className="sidebar-section">
                         <div className="sidebar-section-header">
-                            <div className="sidebar-section-title">direct messages</div>
+                            <div className="sidebar-section-title">direktmeddelanden</div>
                             <button
                                 className="btn-sidebar-action"
                                 onClick={() => setShowNewChat(true)}
-                                title="New Chat"
+                                title="Ny chatt"
                             >
                                 <Plus size={16} strokeWidth={2} />
                             </button>
@@ -318,7 +323,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon">
                                     <MessageSquare size={16} strokeWidth={1.5} className="opacity-20" />
                                 </span>
-                                no conversations yet
+                                inga konversationer än
                             </div>
                         )}
                     </div>
@@ -355,7 +360,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <Settings size={16} strokeWidth={1.5} />
                                 </span>
-                                dashboard
+                                överblick
                             </Link>
                             <Link
                                 href="/admin/users"
@@ -365,7 +370,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <UserCog size={16} strokeWidth={1.5} />
                                 </span>
-                                users
+                                användare
                             </Link>
                             <Link
                                 href="/admin/invites"
@@ -375,7 +380,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <UserPlus size={16} strokeWidth={1.5} />
                                 </span>
-                                invites
+                                inbjudningar
                             </Link>
                             <Link
                                 href="/admin/requests"
@@ -385,7 +390,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <Inbox size={16} strokeWidth={1.5} />
                                 </span>
-                                requests
+                                förfrågningar
                                 {/* Notification badge could be added here later if we fetch pending count */}
                             </Link>
                             <Link
@@ -396,7 +401,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <X size={16} strokeWidth={1.5} />
                                 </span>
-                                reports
+                                rapporter
                             </Link>
                             <Link
                                 href="/admin/audit"
@@ -406,13 +411,27 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                 <span className="sidebar-link-icon text-[14px]">
                                     <History size={16} strokeWidth={1.5} />
                                 </span>
-                                audit log
+                                händelselogg
                             </Link>
                         </div>
                     )}
                 </div>
 
                 <div className="sidebar-footer">
+                    <button
+                        onClick={() => startWalkthrough([
+                            { targetId: 'nav-navet', title: 'Navet', content: 'Här får du en överblick av allt som händer. Dina senaste omnämnanden, de senaste hjälp-förfrågningarna och färska insikter från dina kollegor.' },
+                            { targetId: 'nav-insikter', title: 'Insikter', content: 'Feeden där alla delar med sig av vad de lärt sig. Ett sätt att hålla sig uppdaterad utan att drunkna i brus.' },
+                            { targetId: 'nav-kontor', title: 'Dina Kontor', content: 'Dina olika samarbeten är uppdelade i kontor. Varje kontor har sina egna kanaler, uppdrag och filer.' },
+                            { targetId: 'nav-direktmeddelanden', title: 'Direktmeddelanden', content: 'Snabb kommunikation ansikte mot ansikte (i textform). Här hittar du både 1-till-1 chatter och mindre grupper.' }
+                        ])}
+                        className="sidebar-link mb-4 text-primary hover:bg-primary/5 border border-primary/20"
+                    >
+                        <span className="sidebar-link-icon text-primary">
+                            <HelpCircle size={16} strokeWidth={1.5} />
+                        </span>
+                        starta guidning
+                    </button>
                     <div className="sidebar-user" style={{ opacity: 0.7 }}>
                         <div className="sidebar-user-avatar">{initial}</div>
                         <div className="sidebar-user-info">

@@ -8,6 +8,7 @@ import MessageContent from "@/components/message-content";
 import { updatePresence, renameThread, leaveThread } from "@/lib/actions/chat";
 import { useRouter } from "next/navigation";
 import MentionList from "@/components/mention-list";
+import Link from "next/link";
 
 interface User {
     id: string;
@@ -291,6 +292,8 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                         <BackButton />
                         <div className="topbar-title flex flex-col items-start !gap-0">
                             <div className="flex items-center gap-2">
+                                <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                                <span className="text-muted">/</span>
                                 <span className="topbar-title-highlight">{isGroup ? "⚑" : "@"}</span>
                                 <span>{title.toLowerCase()}</span>
                             </div>
@@ -302,7 +305,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                         }`} />
                                     <span className="text-[10px] text-muted uppercase font-bold tracking-wider">
                                         {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
-                                            ? "online" : "offline"}
+                                            ? "aktiv" : "frånvarande"}
                                     </span>
                                 </div>
                             )}

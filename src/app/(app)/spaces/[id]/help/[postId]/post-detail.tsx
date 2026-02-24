@@ -153,7 +153,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                             {post.title}
                         </h2>
                         <div className="row mt-2" style={{ gap: "var(--space-4)" }}>
-                            <span className="text-xs text-muted">by {post.userName}</span>
+                            <span className="text-xs text-muted">av {post.userName}</span>
                             <span className="text-xs text-muted">
                                 {new Date(post.createdAt).toLocaleDateString("sv-SE")}
                             </span>
@@ -161,16 +161,16 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                     </div>
                     <div className="row">
                         {post.solved ? (
-                            <span className="badge badge-green">✓ solved</span>
+                            <span className="badge badge-green">✓ löst</span>
                         ) : (
                             <>
-                                <span className="badge badge-yellow">open</span>
+                                <span className="badge badge-yellow">öppen</span>
                                 {isOwner && (
                                     <button
                                         className="btn btn-primary btn-sm"
                                         onClick={() => markPostSolved(post.id, spaceId)}
                                     >
-                                        mark solved
+                                        markera som löst
                                     </button>
                                 )}
                             </>
@@ -196,7 +196,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
 
             {/* Answers */}
             <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
-                answers ({post.answers.length})
+                svar ({post.answers.length})
             </h3>
 
             <div className="stack mb-4">
@@ -218,7 +218,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                                         {answer.user.name}
                                     </span>
                                     {answer.accepted && (
-                                        <span className="badge badge-green">✓ accepted</span>
+                                        <span className="badge badge-green">✓ accepterat</span>
                                     )}
                                 </div>
                                 <div className="row">
@@ -230,7 +230,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                                             className="btn btn-ghost btn-sm"
                                             onClick={() => acceptAnswer(answer.id, post.id, spaceId)}
                                         >
-                                            accept
+                                            acceptera
                                         </button>
                                     )}
                                 </div>
@@ -246,7 +246,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                 })}
                 {post.answers.length === 0 && (
                     <p className="text-muted text-sm">
-                        no answers yet. be the hero.
+                        inga svar än. bli hjälten!
                     </p>
                 )}
             </div>
@@ -263,7 +263,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                     )}
                     <div className="form-group">
                         <div className="row-between mb-2">
-                            <label className="form-label mb-0">your answer</label>
+                            <label className="form-label mb-0">ditt svar</label>
                             <AttachmentPicker
                                 spaceId={spaceId}
                                 onUploadSuccess={(url, file) => {
@@ -290,7 +290,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                                 ref={inputRef}
                                 name="content"
                                 className="input"
-                                placeholder="share what you know..."
+                                placeholder="dela med dig av vad du vet..."
                                 required
                                 value={content}
                                 onChange={(e) => handleInputChange(e.target.value)}
@@ -301,7 +301,7 @@ export default function PostDetail({ spaceId, post, currentUserId, currentUserNa
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
                         <button type="submit" className="btn btn-primary" disabled={answering}>
-                            {answering ? "posting..." : "post answer"}
+                            {answering ? "publicerar..." : "skicka svar"}
                         </button>
                     </div>
                 </form>

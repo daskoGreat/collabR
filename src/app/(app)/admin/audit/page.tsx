@@ -18,30 +18,30 @@ export default async function AdminAuditPage() {
                     <BackButton />
                     <div className="topbar-title">
                         <span className="text-muted">admin /</span>{" "}
-                        <span className="topbar-title-highlight">◎</span> audit log
+                        <span className="topbar-title-highlight">◎</span> händelselogg
                     </div>
                 </div>
             </div>
             <div className="content-area">
                 <div className="page-header">
                     <div>
-                        <h1 className="page-title">audit log</h1>
-                        <p className="page-subtitle">all admin actions, no exceptions</p>
+                        <h1 className="page-title">händelselogg</h1>
+                        <p className="page-subtitle">alla admin-åtgärder, inga undantag</p>
                     </div>
                 </div>
 
                 {logs.length === 0 ? (
-                    <p className="text-muted text-sm">no actions logged yet.</p>
+                    <p className="text-muted text-sm">inga åtgärder loggade än.</p>
                 ) : (
                     <div className="table-wrapper">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>timestamp</th>
-                                    <th>user</th>
-                                    <th>action</th>
-                                    <th>target</th>
-                                    <th>details</th>
+                                    <th>tidsstämpel</th>
+                                    <th>användare</th>
+                                    <th>åtgärd</th>
+                                    <th>mål</th>
+                                    <th>detaljer</th>
                                 </tr>
                             </thead>
                             <tbody>

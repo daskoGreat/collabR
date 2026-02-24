@@ -2,6 +2,7 @@ import { requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import MembersList from "./members-list";
 import BackButton from "@/components/back-button";
+import Link from "next/link";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -34,16 +35,19 @@ export default async function MembersPage({ params }: Props) {
                 <div className="row" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
                     <div className="topbar-title">
-                        <span className="text-muted">{space?.name.toLowerCase()} /</span>{" "}
-                        <span className="topbar-title-highlight">⊡</span> members
+                        <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                        <span className="text-muted mx-2">/</span>
+                        <Link href={`/spaces/${id}`} className="text-muted hover:text-primary transition-colors">#{space?.name.toLowerCase()}</Link>
+                        <span className="text-muted mx-2">/</span>
+                        <span className="topbar-title-highlight">⊡</span> medlemmar
                     </div>
                 </div>
             </div>
             <div className="content-area">
                 <div className="page-header">
                     <div>
-                        <h1 className="page-title">members</h1>
-                        <p className="page-subtitle">{members.length} people in this space</p>
+                        <h1 className="page-title">medlemmar</h1>
+                        <p className="page-subtitle">{members.length} personer på det här kontoret</p>
                     </div>
                 </div>
                 <MembersList

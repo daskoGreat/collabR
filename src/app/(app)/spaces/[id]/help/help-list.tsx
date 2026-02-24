@@ -152,17 +152,17 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
 
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">help &amp; questions</h1>
+                    <h1 className="page-title">hjälp & frågor</h1>
                     <p className="page-subtitle">fråga, svara, lär dig — prestige optional</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
-                    + ask a question
+                    + ställ en fråga
                 </button>
             </div>
 
             {showCreate && (
                 <div className="card mb-4">
-                    <div className="modal-title">new question</div>
+                    <div className="modal-title">ny fråga</div>
                     <form className="auth-form" onSubmit={handleCreate}>
                         {pendingAttachments.length > 0 && (
                             <div className="mb-4">
@@ -174,7 +174,7 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                         )}
                         <div className="form-group">
                             <div className="row-between mb-2">
-                                <label className="form-label mb-0">title</label>
+                                <label className="form-label mb-0">rubrik</label>
                                 <AttachmentPicker
                                     spaceId={spaceId}
                                     onUploadSuccess={(url, file) => {
@@ -188,10 +188,10 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                                     onUploadError={(err) => alert(err)}
                                 />
                             </div>
-                            <input type="text" name="title" className="input" placeholder="what do you need help with?" required />
+                            <input type="text" name="title" className="input" placeholder="vad behöver du hjälp med?" required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">details</label>
+                            <label className="form-label">detaljer</label>
                             <div className="relative">
                                 {mentionQuery !== null && (
                                     <MentionList
@@ -205,7 +205,7 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                                     ref={inputRef}
                                     name="content"
                                     className="input"
-                                    placeholder="context, what you've tried, error messages..."
+                                    placeholder="sammanhang, vad du har provat, felmeddelanden..."
                                     required
                                     value={content}
                                     onChange={(e) => handleInputChange(e.target.value)}
@@ -214,13 +214,13 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                             </div>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">tags (comma-separated)</label>
+                            <label className="form-label">taggar (komma-separerade)</label>
                             <input type="text" name="tags" className="input" placeholder="react, docker, auth" />
                         </div>
                         <div className="modal-actions">
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowCreate(false)}>cancel</button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowCreate(false)}>avbryt</button>
                             <button type="submit" className="btn btn-primary" disabled={creating}>
-                                {creating ? "posting..." : "post question"}
+                                {creating ? "publicerar..." : "ställ fråga"}
                             </button>
                         </div>
                     </form>
@@ -234,7 +234,7 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                         className={`tab ${filter === f ? "active" : ""}`}
                         onClick={() => setFilter(f)}
                     >
-                        {f} ({f === "all" ? posts.length : f === "solved" ? posts.filter((p) => p.solved).length : posts.filter((p) => !p.solved).length})
+                        {f === "all" ? "alla" : f === "solved" ? "lösta" : "öppna"} ({f === "all" ? posts.length : f === "solved" ? posts.filter((p) => p.solved).length : posts.filter((p) => !p.solved).length})
                     </button>
                 ))}
             </div>
@@ -242,9 +242,9 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
             {filtered.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">?</div>
-                    <div className="empty-state-title">the collective knowledge is waiting</div>
+                    <div className="empty-state-title">gemensam kunskap väntar</div>
                     <div className="empty-state-text">
-                        every question asked helps us all grow. don&apos;t be shy — be the one who starts the conversation.
+                        varje fråga som ställs hjälper oss alla att växa. tveka inte — var den som startar konversationen.
                     </div>
                 </div>
             ) : (
@@ -263,17 +263,17 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                                             {post.title}
                                         </span>
                                         {post.solved ? (
-                                            <span className="badge badge-green">✓ solved</span>
+                                            <span className="badge badge-green">✓ löst</span>
                                         ) : (
-                                            <span className="badge badge-yellow">open</span>
+                                            <span className="badge badge-yellow">öppen</span>
                                         )}
                                     </div>
                                     <div className="text-sm text-secondary mt-2 line-clamp-2">
                                         <MessageContent content={post.content} currentUserName={currentUserName} />
                                     </div>
                                     <div className="row mt-2" style={{ gap: "var(--space-4)" }}>
-                                        <span className="text-xs text-muted">by {post.user.name}</span>
-                                        <span className="text-xs text-muted">{post.answerCount} answers</span>
+                                        <span className="text-xs text-muted">av {post.user.name}</span>
+                                        <span className="text-xs text-muted">{post.answerCount} svar</span>
                                         {post.tags.length > 0 && (
                                             <div className="tags-list">
                                                 {post.tags.map((tag) => (

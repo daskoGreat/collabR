@@ -71,7 +71,7 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                 <div className="mb-8 overflow-x-auto pb-2">
                     <div className="tabs">
                         <Link href="?view=dashboard" className={`tab ${view === "dashboard" ? "active" : ""}`}>
-                            dashboard
+                            överblick
                         </Link>
                         <Link href="?view=collaborations" className={`tab ${view === "collaborations" ? "active" : ""}`}>
                             samarbeten
@@ -112,7 +112,7 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                     {/* Sidebar / Pulse Area */}
                     <div className="sticky top-8 space-y-10 hidden lg:block">
                         <div className="section">
-                            <h2 className="section-title mb-4">vilka är här?</h2>
+                            <h2 className="section-title mb-4">medlemmar online</h2>
                             <div className="card card-compact bg-success/[0.02] border-success/10 p-5">
                                 <div className="flex flex-wrap gap-x-4 gap-y-3">
                                     {onlineUsers.length === 0 ? (
@@ -135,7 +135,7 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                         </div>
 
                         <div className="section">
-                            <h2 className="section-title mb-4">system status</h2>
+                            <h2 className="section-title mb-4">systemstatus</h2>
                             <div className="card card-compact bg-tertiary/30 border-subtle/30 p-5">
                                 <div className="space-y-3 text-[10px] uppercase tracking-widest font-bold">
                                     <div className="row-between">

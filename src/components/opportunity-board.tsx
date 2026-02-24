@@ -330,9 +330,9 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
                     <div className="empty-state-icon">
                         <Zap size={32} strokeWidth={1} />
                     </div>
-                    <div className="empty-state-title">the board is quiet</div>
+                    <div className="empty-state-title">det är tyst på tavlan</div>
                     <div className="empty-state-text">
-                        if you know of an open door or a teammate in need, be the first to share it with the community.
+                        hittar du en tillgänglig roll eller ett uppdrag? dela gärna med dig till communityt.
                     </div>
                 </div>
             ) : (

@@ -53,36 +53,36 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
             </div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">tasks</h1>
+                    <h1 className="page-title">uppdrag</h1>
                     <p className="page-subtitle">uppdrag, grejer att göra, saker att fixa</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
-                    + new task
+                    + nytt uppdrag
                 </button>
             </div>
 
             {/* Create form */}
             {showCreate && (
                 <div className="card mb-4">
-                    <div className="modal-title">new task</div>
+                    <div className="modal-title">nytt uppdrag</div>
                     <form className="auth-form" action={handleCreate}>
                         <div className="form-group">
-                            <label className="form-label">title</label>
-                            <input type="text" name="title" className="input" placeholder="what needs doing?" required />
+                            <label className="form-label">rubrik</label>
+                            <input type="text" name="title" className="input" placeholder="vad behöver göras?" required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">description</label>
-                            <textarea name="description" className="input" placeholder="details, context, whatever helps..." />
+                            <label className="form-label">beskrivning</label>
+                            <textarea name="description" className="input" placeholder="detaljer, sammanhang, vad som helst som hjälper..." />
                         </div>
                         <div className="row">
                             <div className="form-group flex-1">
-                                <label className="form-label">tags (comma-separated)</label>
+                                <label className="form-label">taggar (komma-separerade)</label>
                                 <input type="text" name="tags" className="input" placeholder="bug, feature, docs" />
                             </div>
                             <div className="form-group flex-1">
-                                <label className="form-label">assign to</label>
+                                <label className="form-label">tilldela till</label>
                                 <select name="assigneeId" className="select w-full">
-                                    <option value="">unassigned</option>
+                                    <option value="">otilldelad</option>
                                     {members.map((m) => (
                                         <option key={m.id} value={m.id}>{m.name}</option>
                                     ))}
@@ -91,10 +91,10 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                         </div>
                         <div className="modal-actions">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowCreate(false)}>
-                                cancel
+                                avbryt
                             </button>
                             <button type="submit" className="btn btn-primary" disabled={creating}>
-                                {creating ? "creating..." : "create task"}
+                                {creating ? "skapar..." : "skapa uppdrag"}
                             </button>
                         </div>
                     </form>
@@ -109,7 +109,7 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                         className={`tab ${filter === s ? "active" : ""}`}
                         onClick={() => setFilter(s)}
                     >
-                        {s === "ALL" ? "all" : s.toLowerCase().replace("_", " ")} ({s === "ALL" ? tasks.length : tasks.filter((t) => t.status === s).length})
+                        {s === "ALL" ? "alla" : s === "OPEN" ? "öppna" : s === "IN_PROGRESS" ? "pågående" : "klara"} ({s === "ALL" ? tasks.length : tasks.filter((t) => t.status === s).length})
                     </button>
                 ))}
             </div>
@@ -118,9 +118,9 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
             {filtered.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">⊡</div>
-                    <div className="empty-state-title">clear skies</div>
+                    <div className="empty-state-title">fri sikt</div>
                     <div className="empty-state-text">
-                        nothing urgent on the radar? reach out to a peer and see where you can lend a hand.
+                        inget bråttom på radarn? hör av dig till en kollega och se var du kan hjälpa till.
                     </div>
                 </div>
             ) : (
@@ -142,9 +142,9 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                                         onChange={(e) => handleStatusChange(task.id, e.target.value)}
                                         style={{ minWidth: 120 }}
                                     >
-                                        <option value="OPEN">open</option>
-                                        <option value="IN_PROGRESS">in progress</option>
-                                        <option value="DONE">done</option>
+                                        <option value="OPEN">öppen</option>
+                                        <option value="IN_PROGRESS">pågående</option>
+                                        <option value="DONE">klar</option>
                                     </select>
                                 </div>
                                 {task.description && (
@@ -154,7 +154,7 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                                 )}
                                 <div className="task-meta mt-2">
                                     {task.assignee && <span>→ {task.assignee.name}</span>}
-                                    <span>by {task.creator.name}</span>
+                                    <span>av {task.creator.name}</span>
                                     {task.commentCount > 0 && <span>💬 {task.commentCount}</span>}
                                     {task.tags.length > 0 && (
                                         <div className="tags-list">

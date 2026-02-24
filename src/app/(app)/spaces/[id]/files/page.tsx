@@ -1,6 +1,7 @@
 import { requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import FilesView from "./files-view";
+import Link from "next/link";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -25,8 +26,11 @@ export default async function FilesPage({ params }: Props) {
         <>
             <div className="topbar">
                 <div className="topbar-title">
-                    <span className="text-muted">{space?.name.toLowerCase()} /</span>{" "}
-                    <span className="topbar-title-highlight">⊞</span> files
+                    <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
+                    <span className="text-muted mx-2">/</span>
+                    <Link href={`/spaces/${id}`} className="text-muted hover:text-primary transition-colors">#{space?.name.toLowerCase()}</Link>
+                    <span className="text-muted mx-2">/</span>
+                    <span className="topbar-title-highlight">⊞</span> filer
                 </div>
             </div>
             <FilesView

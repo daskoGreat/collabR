@@ -55,7 +55,7 @@ export default function FilesView({ spaceId, files }: Props) {
 
             if (!res.ok) {
                 const data = await res.json();
-                setError(data.error || "upload failed");
+                setError(data.error || "uppladdning misslyckades");
                 setUploading(false);
             } else {
                 startTransition(() => {
@@ -64,7 +64,7 @@ export default function FilesView({ spaceId, files }: Props) {
                 });
             }
         } catch {
-            setError("upload failed. try again.");
+            setError("uppladdning misslyckades. försök igen.");
             setUploading(false);
         } finally {
             if (fileRef.current) fileRef.current.value = "";
@@ -78,8 +78,8 @@ export default function FilesView({ spaceId, files }: Props) {
             </div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">files</h1>
-                    <p className="page-subtitle">shared files for this space</p>
+                    <h1 className="page-title">filer</h1>
+                    <p className="page-subtitle">delade filer för det här kontoret</p>
                 </div>
                 <div>
                     <input
@@ -102,7 +102,7 @@ export default function FilesView({ spaceId, files }: Props) {
                         ) : (
                             <>
                                 <Upload size={18} strokeWidth={1.5} className="mr-2" />
-                                <span>upload file</span>
+                                <span>ladda upp fil</span>
                             </>
                         )}
                     </button>
@@ -116,9 +116,9 @@ export default function FilesView({ spaceId, files }: Props) {
                     <div className="empty-state-icon">
                         <FileText size={32} strokeWidth={1} />
                     </div>
-                    <div className="empty-state-title">no files yet</div>
+                    <div className="empty-state-title">inga filer än</div>
                     <div className="empty-state-text">
-                        upload docs, configs, screenshots — whatever helps.
+                        ladda upp dokument, skisser, skärmdumpar — vad som helst som hjälper.
                     </div>
                 </div>
             ) : (
@@ -126,11 +126,11 @@ export default function FilesView({ spaceId, files }: Props) {
                     <table>
                         <thead>
                             <tr>
-                                <th>name</th>
-                                <th>size</th>
-                                <th>type</th>
-                                <th>uploaded by</th>
-                                <th>date</th>
+                                <th>namn</th>
+                                <th>storlek</th>
+                                <th>typ</th>
+                                <th>uppladdad av</th>
+                                <th>datum</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -154,7 +154,7 @@ export default function FilesView({ spaceId, files }: Props) {
                                             className="btn btn-ghost btn-sm"
                                         >
                                             <Download size={14} strokeWidth={1.5} className="mr-2" />
-                                            <span>download</span>
+                                            <span>ladda ner</span>
                                         </a>
                                     </td>
                                 </tr>

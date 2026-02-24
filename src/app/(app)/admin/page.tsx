@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
                 <div className="row" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
                     <div className="topbar-title">
-                        <span className="topbar-title-highlight">⚙</span> admin dashboard
+                        <span className="topbar-title-highlight">⚙</span> överblick
                     </div>
                 </div>
             </div>
@@ -33,44 +33,44 @@ export default async function AdminDashboard() {
                 <div className="stats-grid">
                     <div className="card stat-card">
                         <div className="stat-value">{userCount}</div>
-                        <div className="stat-label">users</div>
+                        <div className="stat-label">användare</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value">{spaceCount}</div>
-                        <div className="stat-label">spaces</div>
+                        <div className="stat-label">kontor</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value">{inviteCount}</div>
-                        <div className="stat-label">active invites</div>
+                        <div className="stat-label">aktiva inbjudningar</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value" style={pendingRequests > 0 ? { color: "var(--neon-green)" } : {}}>
                             {pendingRequests}
                         </div>
-                        <div className="stat-label">pending requests</div>
+                        <div className="stat-label">väntande förfrågningar</div>
                     </div>
                     <div className="card stat-card">
                         <div className="stat-value" style={pendingReports > 0 ? { color: "var(--accent-danger)" } : {}}>
                             {pendingReports}
                         </div>
-                        <div className="stat-label">pending reports</div>
+                        <div className="stat-label">väntande rapporter</div>
                     </div>
                 </div>
 
                 <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
-                    recent actions
+                    senaste händelser
                 </h3>
                 {recentActions.length === 0 ? (
-                    <p className="text-muted text-sm">no actions logged yet.</p>
+                    <p className="text-muted text-sm">inga åtgärder loggade än.</p>
                 ) : (
                     <div className="table-wrapper">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>action</th>
-                                    <th>by</th>
-                                    <th>target</th>
-                                    <th>when</th>
+                                    <th>åtgärd</th>
+                                    <th>av</th>
+                                    <th>mål</th>
+                                    <th>när</th>
                                 </tr>
                             </thead>
                             <tbody>

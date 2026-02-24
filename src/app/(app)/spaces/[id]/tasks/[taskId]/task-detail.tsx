@@ -161,9 +161,9 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                         value={task.status}
                         onChange={(e) => handleStatusChange(e.target.value)}
                     >
-                        <option value="OPEN">open</option>
-                        <option value="IN_PROGRESS">in progress</option>
-                        <option value="DONE">done</option>
+                        <option value="OPEN">öppen</option>
+                        <option value="IN_PROGRESS">pågående</option>
+                        <option value="DONE">klar</option>
                     </select>
                 </div>
 
@@ -176,16 +176,16 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                 <div className="row" style={{ gap: "var(--space-5)", flexWrap: "wrap" }}>
                     {task.assignee && (
                         <div>
-                            <span className="text-xs text-muted">assigned to: </span>
+                            <span className="text-xs text-muted">tilldelad till: </span>
                             <span className="text-sm text-cyan">{task.assignee.name}</span>
                         </div>
                     )}
                     <div>
-                        <span className="text-xs text-muted">created by: </span>
+                        <span className="text-xs text-muted">skapad av: </span>
                         <span className="text-sm">{task.creator.name}</span>
                     </div>
                     <div>
-                        <span className="text-xs text-muted">created: </span>
+                        <span className="text-xs text-muted">skapad: </span>
                         <span className="text-sm">
                             {new Date(task.createdAt).toLocaleDateString("sv-SE")}
                         </span>
@@ -203,7 +203,7 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
 
             {/* Comments */}
             <h3 className="page-title mb-4" style={{ fontSize: "var(--font-size-md)" }}>
-                comments ({task.comments.length})
+                kommentarer ({task.comments.length})
             </h3>
 
             <div className="stack mb-4">
@@ -229,7 +229,7 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                     );
                 })}
                 {task.comments.length === 0 && (
-                    <p className="text-muted text-sm">no comments yet. break the silence.</p>
+                    <p className="text-muted text-sm">inga kommentarer än. bryt tystnaden.</p>
                 )}
             </div>
 
@@ -246,7 +246,7 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                     )}
                     <div className="form-group">
                         <div className="row-between mb-2">
-                            <label className="form-label mb-0">add comment</label>
+                            <label className="form-label mb-0">lägg till kommentar</label>
                             <AttachmentPicker
                                 spaceId={spaceId}
                                 onUploadSuccess={(url, file) => {
@@ -273,7 +273,7 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                                 ref={inputRef}
                                 name="content"
                                 className="input"
-                                placeholder="thoughts, updates, questions..."
+                                placeholder="tankar, uppdateringar, frågor..."
                                 style={{ minHeight: 80 }}
                                 value={content}
                                 onChange={(e) => handleInputChange(e.target.value)}
@@ -282,9 +282,8 @@ export default function TaskDetail({ spaceId, task, currentUserId, currentUserNa
                         </div>
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button type="submit" className="btn btn-primary" disabled={commenting || (!pendingAttachments.length && !commenting)}>
-                            {/* Keep the button enabled if there's text or attachments - simple check below */}
-                            {commenting ? "posting..." : "post comment"}
+                        <button type="submit" className="btn btn-primary" disabled={commenting}>
+                            {commenting ? "publicerar..." : "skicka kommentar"}
                         </button>
                     </div>
                 </form>

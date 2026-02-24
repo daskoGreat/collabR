@@ -1,9 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Motion Tokens */
+  --motion-instant: 0ms;
+  --motion-xs: 80ms;
+  --motion-sm: 120ms;
+  --motion-md: 180ms;
+  --motion-lg: 240ms;
+  --motion-xl: 320ms;
+
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1);
+  /* Subtle physical feel, no bounce */
+
+  --transition-fast: var(--motion-xs) var(--ease-out);
+  --transition-normal: var(--motion-md) var(--ease-out);
+  --transition-slow: var(--motion-lg) var(--ease-out);
 
   /* Typography */
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
@@ -146,6 +159,15 @@
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -178,7 +200,7 @@ body::after {
 a {
   color: var(--neon-green-dim);
   text-decoration: none;
-  transition: color 0.15s, text-shadow 0.15s;
+  transition: color var(--motion-xs) var(--ease-out), text-shadow var(--motion-xs) var(--ease-out);
 }
 
 a:hover {
@@ -276,7 +298,7 @@ a:hover {
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-base);
-  transition: all 0.15s;
+  transition: all var(--motion-xs) var(--ease-out);
   outline: none;
   caret-color: var(--neon-green);
 }
@@ -629,7 +651,7 @@ textarea.input {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  transition: all 0.1s;
+  transition: all var(--motion-xs) var(--ease-out);
   text-decoration: none;
   border-left: 2px solid transparent;
 }
@@ -1095,7 +1117,7 @@ textarea.input {
   color: var(--text-muted);
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--motion-xs) var(--ease-out);
   background: none;
   border-top: none;
   border-left: none;
@@ -1218,7 +1240,7 @@ tr:hover td {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  animation: fadeIn 0.1s ease;
+  animation: fadeIn var(--motion-sm) var(--ease-out);
 }
 
 @keyframes fadeIn {
@@ -1241,7 +1263,7 @@ tr:hover td {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-neon), var(--shadow-lg);
-  animation: slideUp 0.15s ease;
+  animation: slideUp var(--motion-md) var(--ease-out);
 }
 
 @keyframes slideUp {
@@ -1410,6 +1432,7 @@ tr:hover td {
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
   border-radius: 2px;
+  transition: background var(--motion-xs) var(--ease-out);
 }
 
 ::-webkit-scrollbar-thumb:hover {

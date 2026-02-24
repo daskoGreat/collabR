@@ -41,7 +41,7 @@ export default function MembersList({ members, currentUserId, spaceName }: Props
     return (
         <div className="stack">
             {others.length === 0 && (
-                <p className="text-muted text-sm">no other members yet.</p>
+                <p className="text-muted text-sm">inga andra medlemmar än.</p>
             )}
             {others.map((m) => (
                 <div key={m.id} className="card" style={{ padding: "var(--space-3)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -59,7 +59,7 @@ export default function MembersList({ members, currentUserId, spaceName }: Props
                         onClick={() => startDm(m.id)}
                         disabled={loading === m.id}
                     >
-                        {loading === m.id ? "..." : "✉ message"}
+                        {loading === m.id ? "..." : "✉ meddelande"}
                     </button>
                 </div>
             ))}
