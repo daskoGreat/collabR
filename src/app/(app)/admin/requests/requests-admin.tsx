@@ -19,18 +19,24 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
     const [generatedInvites, setGeneratedInvites] = useState<Record<string, string>>({});
 
     useEffect(() => {
+        console.log("Subscribing to Pusher channel 'admin'...");
         const pusher = getPusherClient();
         const channel = pusher.subscribe("admin");
 
+        channel.bind("pusher:subscription_succeeded", () => {
+            console.log("Pusher subscription to 'admin' succeeded");
+        });
+
         channel.bind("new-join-request", (newRequest: Request) => {
+            console.log("Received new-join-request via Pusher:", newRequest);
             setRequests(prev => {
-                // Check if already exists (prevent duplicates)
                 if (prev.some(r => r.id === newRequest.id)) return prev;
                 return [newRequest, ...prev];
             });
         });
 
         return () => {
+            console.log("Unsubscribing from Pusher channel 'admin'");
             pusher.unsubscribe("admin");
         };
     }, []);

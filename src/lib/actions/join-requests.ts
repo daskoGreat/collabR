@@ -38,7 +38,7 @@ export async function approveRequest(id: string) {
             data: { status: "APPROVED" },
         });
 
-        // 2. Generate a single-use invite link for this email
+        console.log(`Generating invite for: ${request.email}`);
         const invite = await prisma.invite.create({
             data: {
                 createdBy: admin.id,
@@ -49,13 +49,16 @@ export async function approveRequest(id: string) {
         });
 
         const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://collab-nine-gold.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`;
+        console.log(`Invite URL generated: ${inviteUrl}`);
 
         // 3. Send invitation email via Resend
+        console.log("Calling sendInviteEmail...");
         const emailResult = await sendInviteEmail({
             email: request.email,
             name: request.name,
             inviteLink: inviteUrl
         });
+        console.log("sendInviteEmail result:", emailResult);
 
         revalidatePath("/admin/requests");
 

@@ -53,8 +53,14 @@ export async function requestAccess(formData: FormData) {
         });
 
         // Trigger real-time update for admins
-        const pusher = getPusherServer();
-        await pusher.trigger("admin", "new-join-request", request);
+        try {
+            const pusher = getPusherServer();
+            console.log("Triggering Pusher event 'new-join-request' on channel 'admin'");
+            await pusher.trigger("admin", "new-join-request", request);
+            console.log("Pusher trigger successful");
+        } catch (pusherError) {
+            console.error("Failed to trigger Pusher event:", pusherError);
+        }
 
         return { success: true };
     } catch (error) {
