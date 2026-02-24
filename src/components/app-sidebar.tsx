@@ -425,12 +425,12 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                             { targetId: 'nav-kontor', title: 'Dina Kontor', content: 'Dina olika samarbeten är uppdelade i kontor. Varje kontor har sina egna kanaler, uppdrag och filer.' },
                             { targetId: 'nav-direktmeddelanden', title: 'Direktmeddelanden', content: 'Snabb kommunikation ansikte mot ansikte (i textform). Här hittar du både 1-till-1 chatter och mindre grupper.' }
                         ])}
-                        className="sidebar-link mb-4 text-primary hover:bg-primary/5 border border-primary/20"
+                        className="sidebar-link w-full text-left mb-2"
                     >
-                        <span className="sidebar-link-icon text-primary">
-                            <HelpCircle size={16} strokeWidth={1.5} />
+                        <span className="sidebar-link-icon">
+                            <HelpCircle size={18} strokeWidth={1.5} />
                         </span>
-                        starta guidning
+                        <span className="flex-1">starta guidning</span>
                     </button>
                     <div className="sidebar-user" style={{ opacity: 0.7 }}>
                         <div className="sidebar-user-avatar">{initial}</div>
