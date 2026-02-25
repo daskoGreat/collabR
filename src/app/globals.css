@@ -1441,6 +1441,76 @@ button.sidebar-link {
   color: var(--text-muted);
 }
 
+/* ── NAVET INDUSTRIAL RECONSTRUCTION (SACRED GEOMETRY) ── */
+
+.navet-surface {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s var(--ease-premium);
+}
+
+.navet-header {
+  padding: 24px 32px;
+  background: rgba(255, 255, 255, 0.01);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navet-content {
+  padding: 32px;
+}
+
+.navet-card-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6em;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.navet-card-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-bright);
+}
+
+.navet-nav-group {
+  display: flex;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navet-nav-tab {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: lowercase;
+  color: var(--text-muted);
+  transition: all 0.2s var(--ease-premium);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+}
+
+.navet-nav-tab:hover {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.navet-nav-tab.active {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* ── Empty state ─────────────────────────── */
 
 .empty-state {
