@@ -25,10 +25,12 @@ interface Props {
 
 export default function FeedView({ initialPosts, currentUser }: Props) {
     return (
-        <div className="max-w-2xl mx-auto py-8">
-            <div className="mb-10 px-4">
-                <h1 className="text-3xl font-bold text-bright mb-2 italic tracking-tight">insikter</h1>
-                <p className="text-sm text-secondary leading-relaxed">dela tankar, länkar och erfarenheter med dina kollegor i ett samarbetsfokuserat flöde.</p>
+        <div className="max-w-2xl mx-auto py-12 px-6">
+            <div className="mb-14">
+                <h1 className="page-title !text-3xl mb-3">insikter</h1>
+                <p className="text-secondary text-base leading-relaxed max-w-lg opacity-80">
+                    dela tankar, länkar och erfarenheter med dina kollegor i ett samarbetsfokuserat flöde.
+                </p>
             </div>
 
             <FeedComposer user={currentUser} />

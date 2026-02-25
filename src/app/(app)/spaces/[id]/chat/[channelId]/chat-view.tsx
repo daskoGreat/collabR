@@ -30,6 +30,8 @@ interface Message {
     attachments?: Attachment[];
 }
 
+import { MessageSquare, Building2 } from "lucide-react";
+
 interface Props {
     channel: { id: string; name: string; spaceName: string };
     initialMessages: Message[];
@@ -321,10 +323,15 @@ export default function ChatView({
                     <div className="topbar-title">
                         <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
                         <span className="text-muted mx-2">/</span>
-                        <Link href={`/spaces/${spaceId}`} className="text-muted hover:text-primary transition-colors">#{channel.spaceName.toLowerCase()}</Link>
+                        <Link href={`/spaces/${spaceId}`} className="text-muted hover:text-primary transition-colors flex items-center gap-1.5 inline-flex">
+                            <Building2 size={13} strokeWidth={2} />
+                            {channel.spaceName.toLowerCase()}
+                        </Link>
                         <span className="text-muted mx-2">/</span>
-                        <span className="topbar-title-highlight">#</span>
-                        {channel.name.toLowerCase()}
+                        <span className="topbar-title-highlight flex items-center gap-1.5 backdrop-blur-sm bg-primary/20 px-2 py-0.5 rounded border border-subtle/50">
+                            <MessageSquare size={12} strokeWidth={2} />
+                            {channel.name.toLowerCase()}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -339,83 +346,109 @@ export default function ChatView({
                             </div>
                         </div>
                     )}
-                    {messages.map((msg) => {
+                    {messages.map((msg, index) => {
+                        const prevMsg = index > 0 ? messages[index - 1] : null;
+                        const isSameUser = prevMsg?.user.id === msg.user.id;
+                        const timeDiff = prevMsg
+                            ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime()
+                            : Infinity;
+                        const isGrouped = isSameUser && timeDiff < 1000 * 60 * 5; // 5 minutes
+
                         const isMentioned = msg.content.toLowerCase().includes(`@${currentUser.name.toLowerCase()}`);
+
                         return (
-                            <div key={msg.id} className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""}`}>
-                                <div className="chat-message-avatar font-bold">
-                                    {getInitial(msg.user.name)}
-                                </div>
+                            <div
+                                key={msg.id}
+                                className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""} ${isGrouped ? "chat-message-grouped" : ""}`}
+                            >
+                                {!isGrouped ? (
+                                    <div className="chat-message-avatar font-bold">
+                                        {getInitial(msg.user.name)}
+                                    </div>
+                                ) : (
+                                    <div className="chat-message-spacer w-7 shrink-0 flex justify-center items-center">
+                                        <div className="w-[1px] h-full bg-subtle/20 group-hover:bg-subtle/50 transition-colors" />
+                                    </div>
+                                )}
                                 <div className="chat-message-body">
-                                    <div className="chat-message-header">
-                                        <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
-                                        <span className="chat-message-time opacity-50 font-mono">
-                                            {formatTime(msg.createdAt)}
-                                        </span>
-                                        {msg.user.id === currentUser.id && !editingId && (
-                                            <div className="chat-message-actions opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    className="btn-link text-[10px] uppercase tracking-wider"
-                                                    onClick={() => {
-                                                        setEditingId(msg.id);
-                                                        setEditContent(msg.content);
-                                                    }}
-                                                >
-                                                    redigera
-                                                </button>
-                                                <button
-                                                    className="btn-link text-[10px] uppercase tracking-wider text-danger"
-                                                    onClick={() => handleDelete(msg.id)}
-                                                >
-                                                    ta bort
-                                                </button>
+                                    {!isGrouped && (
+                                        <div className="chat-message-header">
+                                            <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
+                                            <span className="chat-message-time opacity-50 font-mono">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="chat-content-container relative">
+                                        {isGrouped && (
+                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-30 transition-opacity text-[9px] font-mono whitespace-nowrap">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        )}
+                                        {editingId === msg.id ? (
+                                            <div className="chat-edit-area mt-2">
+                                                <textarea
+                                                    className="input text-sm min-h-[80px]"
+                                                    value={editContent}
+                                                    onChange={(e) => setEditContent(e.target.value)}
+                                                    autoFocus
+                                                    rows={2}
+                                                />
+                                                <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
+                                                    <button
+                                                        className="btn btn-primary btn-sm px-4 flex items-center gap-2"
+                                                        onClick={() => handleUpdate(msg.id)}
+                                                        disabled={updating || !editContent.trim()}
+                                                    >
+                                                        {updating && <LoadingSpinner size="sm" className="text-current" />}
+                                                        <span>{updating ? "sparar..." : "spara ändringar"}</span>
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm px-4"
+                                                        onClick={() => setEditingId(null)}
+                                                        disabled={updating}
+                                                    >
+                                                        avbryt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="chat-content-vibe">
+                                                <MessageContent content={msg.content} currentUserName={currentUser.name} />
+                                                {msg.attachments && msg.attachments.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <AttachmentList attachments={msg.attachments} readOnly />
+                                                    </div>
+                                                )}
+                                                {msg.user.id === currentUser.id && !editingId && (
+                                                    <div className="chat-message-actions absolute -right-2 top-0 translate-x-full pl-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                                        <button
+                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-50 hover:opacity-100"
+                                                            onClick={() => {
+                                                                setEditingId(msg.id);
+                                                                setEditContent(msg.content);
+                                                            }}
+                                                        >
+                                                            edit
+                                                        </button>
+                                                        <button
+                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-50 hover:opacity-100"
+                                                            onClick={() => handleDelete(msg.id)}
+                                                        >
+                                                            del
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
-                                    {editingId === msg.id ? (
-                                        <div className="chat-edit-area mt-2">
-                                            <textarea
-                                                className="input text-sm min-h-[80px]"
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                autoFocus
-                                                rows={2}
-                                            />
-                                            <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
-                                                <button
-                                                    className="btn btn-primary btn-sm px-4 flex items-center gap-2"
-                                                    onClick={() => handleUpdate(msg.id)}
-                                                    disabled={updating || !editContent.trim()}
-                                                >
-                                                    {updating && <LoadingSpinner size="sm" className="text-current" />}
-                                                    <span>{updating ? "sparar..." : "spara ändringar"}</span>
-                                                </button>
-                                                <button
-                                                    className="btn btn-secondary btn-sm px-4"
-                                                    onClick={() => setEditingId(null)}
-                                                    disabled={updating}
-                                                >
-                                                    avbryt
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="chat-content-vibe">
-                                            <MessageContent content={msg.content} currentUserName={currentUser.name} />
-                                            {msg.attachments && msg.attachments.length > 0 && (
-                                                <div className="mt-3">
-                                                    <AttachmentList attachments={msg.attachments} readOnly />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         );
                     })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area border-t border-subtle bg-secondary/50 backdrop-blur-sm">
+                <div className="chat-input-area border-t border-subtle bg-secondary/80 backdrop-blur-md">
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}
@@ -432,7 +465,7 @@ export default function ChatView({
                             />
                         </div>
                     )}
-                    <form className="chat-input-form items-center" onSubmit={handleSend}>
+                    <form className="chat-input-form items-center p-2" onSubmit={handleSend}>
                         <div className="flex items-center gap-1">
                             <AttachmentPicker
                                 spaceId={spaceId}
@@ -447,13 +480,13 @@ export default function ChatView({
                                 onUploadError={(err) => alert(err)}
                             />
                         </div>
-                        <div className="chat-input-wrapper flex-1 relative flex items-center">
-                            <span className="chat-input-prompt absolute left-3 text-neon-green/30 select-none font-mono">{">"}</span>
+                        <div className="chat-input-wrapper flex-1 relative flex items-center bg-black/40 rounded-full border border-subtle/30 focus-within:border-neon-green/30 transition-colors">
+                            <span className="chat-input-prompt absolute left-4 text-neon-green/20 select-none font-mono text-[10px] tracking-tighter uppercase">msg {">"}</span>
                             <input
                                 ref={inputRef}
                                 type="text"
-                                className="input w-full pl-8"
-                                placeholder={`meddelande till #${channel.name.toLowerCase()}...`}
+                                className="input w-full pl-14 !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
+                                placeholder={`tala till #${channel.name.toLowerCase()}...`}
                                 value={input}
                                 onChange={(e) => handleInputChange(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -463,11 +496,10 @@ export default function ChatView({
                         </div>
                         <button
                             type="submit"
-                            className="btn btn-primary px-6 shadow-glow-sm flex items-center gap-2"
+                            className="btn btn-primary !rounded-full w-10 h-10 !p-0 shadow-glow-sm flex items-center justify-center shrink-0"
                             disabled={sending || (!input.trim() && pendingAttachments.length === 0)}
                         >
-                            {sending && <LoadingSpinner size="sm" className="text-current" />}
-                            <span>{sending ? "skickar..." : "skicka"}</span>
+                            {sending ? <LoadingSpinner size="sm" className="text-current" /> : <span className="text-lg">↵</span>}
                         </button>
                     </form>
                 </div>

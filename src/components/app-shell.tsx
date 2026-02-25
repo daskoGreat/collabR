@@ -27,23 +27,6 @@ export default function AppShell({ user, spaces, dmThreads, children }: Props) {
     return (
         <WalkthroughProvider>
             <div className="app-shell">
-                {/* Desktop & Mobile Header */}
-                <header className="app-header">
-                    <button
-                        className="mobile-menu-btn"
-                        onClick={() => setIsSidebarOpen(true)}
-                        aria-label="Open menu"
-                    >
-                        <span className="mobile-menu-icon">☰</span>
-                    </button>
-                    <div className="sidebar-logo">
-                        <span className="sidebar-logo-prefix">~/</span>collab
-                    </div>
-                    <div className="header-actions">
-                        <UserMenu user={user} />
-                    </div>
-                </header>
-
                 <div className="app-main">
                     <AppSidebar
                         user={user}
@@ -54,6 +37,23 @@ export default function AppShell({ user, spaces, dmThreads, children }: Props) {
                     />
 
                     <div className="main-content">
+                        {/* Unified Topbar - visible only on mobile (desktop sidebar has logo) */}
+                        <header className="app-header lg:hidden">
+                            <button
+                                className="mobile-menu-btn"
+                                onClick={() => setIsSidebarOpen(true)}
+                                aria-label="Open menu"
+                            >
+                                <span className="mobile-menu-icon">☰</span>
+                            </button>
+                            <div className="sidebar-logo">
+                                <span className="sidebar-logo-prefix">~/</span>collab
+                            </div>
+                            <div className="header-actions">
+                                <UserMenu user={user} />
+                            </div>
+                        </header>
+
                         {children}
                     </div>
                 </div>

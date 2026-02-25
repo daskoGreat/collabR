@@ -7,7 +7,7 @@ import { sv } from "date-fns/locale";
 import Link from "next/link";
 import { deleteFeedPost, toggleFeedReaction } from "@/lib/actions/feed";
 import AttachmentList from "./attachment-list";
-import { Spinner } from "./ui/loading-components";
+import { LoadingSpinner } from "./ui/loading-spinner";
 
 interface FeedPost {
     id: string;
@@ -70,13 +70,13 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
 
     return (
         <div className={`feed-card group transition-all duration-300 hover:shadow-glow-sm ${isMentioned ? "chat-message-mentioned" : ""}`}>
-            <div className="feed-header mb-4">
-                <div className="feed-avatar border-none bg-primary/10 text-primary font-bold">
+            <div className="feed-header mb-6">
+                <div className="feed-avatar !w-10 !h-10 !text-[13px]">
                     {post.user.name[0].toUpperCase()}
                 </div>
                 <div className="feed-meta">
-                    <div className="feed-author font-bold text-bright">{post.user.name.toLowerCase()}</div>
-                    <div className="feed-time text-xs opacity-50 font-mono">
+                    <div className="feed-author text-[15px] font-semibold text-bright">{post.user.name.toLowerCase()}</div>
+                    <div className="feed-time text-[10px] uppercase tracking-wider text-muted opacity-60">
                         {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
                     </div>
                 </div>
@@ -84,11 +84,11 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
                 {post.user.id === currentUserId && (
                     <button
                         onClick={handleDelete}
-                        className={`opacity-0 group-hover:opacity-100 p-2 text-muted hover:text-accent-danger transition-all duration-200 -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
+                        className={`opacity-0 group-hover:opacity-40 p-2 text-muted hover:text-accent-danger hover:opacity-100 transition-all duration-200 -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
                         disabled={isDeleting || isPending}
                         title="ta bort inlägg"
                     >
-                        {isDeleting ? <Spinner size="sm" /> : <Trash2 size={16} strokeWidth={1.5} />}
+                        {isDeleting ? <LoadingSpinner size={14} /> : <Trash2 size={14} strokeWidth={1.5} />}
                     </button>
                 )}
             </div>
@@ -103,36 +103,35 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
                 </div>
             )}
 
-            <div className={`feed-actions border-t border-subtle pt-4 flex flex-wrap gap-2 ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`feed-actions border-t border-subtle/30 pt-4 flex flex-wrap gap-1.5 ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
                 <button
                     onClick={() => handleReaction("LIKE")}
-                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("LIKE") ? "active text-accent-primary" : "hover:text-accent-primary"}`}
+                    className={`feed-action-btn transition-colors duration-200 !px-2 !py-1 !rounded-md ${hasReacted("LIKE") ? "active text-accent-primary bg-accent-primary/5" : "hover:text-accent-primary hover:bg-white/5"}`}
                     disabled={isReacting || isPending}
                 >
-                    <ThumbsUp size={16} strokeWidth={hasReacted("LIKE") ? 2 : 1.5} fill={hasReacted("LIKE") ? "currentColor" : "none"} />
-                    <span className="font-mono text-xs">{reactionCount("LIKE") || "gilla"}</span>
+                    <ThumbsUp size={14} strokeWidth={hasReacted("LIKE") ? 2 : 1.5} fill={hasReacted("LIKE") ? "currentColor" : "none"} />
+                    <span className="font-mono text-[11px] font-medium">{reactionCount("LIKE") || "gilla"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("ROCKET")}
-                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("ROCKET") ? "active text-accent-secondary" : "hover:text-accent-secondary"}`}
+                    className={`feed-action-btn transition-colors duration-200 !px-2 !py-1 !rounded-md ${hasReacted("ROCKET") ? "active text-accent-secondary bg-accent-secondary/5" : "hover:text-accent-secondary hover:bg-white/5"}`}
                     disabled={isReacting || isPending}
                 >
-                    <Rocket size={16} strokeWidth={hasReacted("ROCKET") ? 2 : 1.5} fill={hasReacted("ROCKET") ? "currentColor" : "none"} />
-                    <span className="font-mono text-xs">{reactionCount("ROCKET") || "raket"}</span>
+                    <Rocket size={14} strokeWidth={hasReacted("ROCKET") ? 2 : 1.5} fill={hasReacted("ROCKET") ? "currentColor" : "none"} />
+                    <span className="font-mono text-[11px] font-medium">{reactionCount("ROCKET") || "raket"}</span>
                 </button>
                 <button
                     onClick={() => handleReaction("CELEBRATE")}
-                    className={`feed-action-btn transition-colors duration-200 ${hasReacted("CELEBRATE") ? "active text-accent-warning" : "hover:text-accent-warning"}`}
+                    className={`feed-action-btn transition-colors duration-200 !px-2 !py-1 !rounded-md ${hasReacted("CELEBRATE") ? "active text-accent-warning bg-accent-warning/5" : "hover:text-accent-warning hover:bg-white/5"}`}
                     disabled={isReacting || isPending}
                 >
-                    <PartyPopper size={16} strokeWidth={hasReacted("CELEBRATE") ? 2 : 1.5} fill={hasReacted("CELEBRATE") ? "currentColor" : "none"} />
-                    <span className="font-mono text-xs">{reactionCount("CELEBRATE") || "fira"}</span>
+                    <PartyPopper size={14} strokeWidth={hasReacted("CELEBRATE") ? 2 : 1.5} fill={hasReacted("CELEBRATE") ? "currentColor" : "none"} />
+                    <span className="font-mono text-[11px] font-medium">{reactionCount("CELEBRATE") || "fira"}</span>
                 </button>
-
-                <div className="ml-auto flex items-center">
-                    <Link href={`/feed/${post.id}`} className="feed-action-btn hover:text-bright transition-colors duration-200">
-                        <MessageSquare size={16} strokeWidth={1.5} />
-                        <span className="font-mono text-xs">{post._count.comments} kommentarer</span>
+                <div className="ml-auto">
+                    <Link href={`/feed/${post.id}`} className="feed-action-btn !px-2 !py-1 !rounded-md hover:text-bright hover:bg-white/5 transition-all duration-200 flex items-center gap-2">
+                        <MessageSquare size={14} strokeWidth={1.5} className="opacity-50" />
+                        <span className="font-mono text-[11px] font-medium">{post._count.comments} kommentarer</span>
                     </Link>
                 </div>
             </div>

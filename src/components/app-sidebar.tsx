@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useWalkthrough } from "./walkthrough-system";
 import { HelpCircle } from "lucide-react";
+import UserMenu from "./user-menu";
 
 import {
     LayoutDashboard,
@@ -23,7 +24,8 @@ import {
     Plus,
     X,
     Search,
-    Inbox
+    Inbox,
+    Building2
 } from "lucide-react";
 
 interface Channel {
@@ -191,9 +193,11 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
             />
             <nav className={`sidebar ${isOpen ? "open" : ""}`}>
                 <div className="sidebar-header">
-                    <div className="sidebar-logo flex items-center gap-2">
-                        <span className="sidebar-logo-prefix">~/</span>collab
-                        {isRefreshing && <LoadingSpinner size={12} className="opacity-50" />}
+                    <div className="sidebar-logo flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                            <span className="sidebar-logo-prefix">~/</span>collab
+                            {isRefreshing && <LoadingSpinner size={10} className="opacity-30" />}
+                        </div>
                     </div>
                 </div>
 
@@ -242,7 +246,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                     className={`sidebar-link ${isActive(`/spaces/${space.id}`) && !pathname.includes("/chat/") ? "active" : ""}`}
                                 >
                                     <span className="sidebar-link-icon">
-                                        <Hash size={18} strokeWidth={1.5} />
+                                        <Building2 size={18} strokeWidth={1.5} />
                                     </span>
                                     {space.name.toLowerCase()}
                                 </Link>
@@ -255,7 +259,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                                             onClick={onClose}
                                         >
                                             <span className="sidebar-link-icon">
-                                                <Hash size={14} strokeWidth={1.5} />
+                                                <MessageSquare size={14} strokeWidth={1.5} />
                                             </span>
                                             <span className="sidebar-link-text">{ch.name.toLowerCase()}</span>
                                             {ch.hasMention ? (
@@ -425,18 +429,24 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                             { targetId: 'nav-kontor', title: 'Dina Kontor', content: 'Dina olika samarbeten är uppdelade i kontor. Varje kontor har sina egna kanaler, uppdrag och filer.' },
                             { targetId: 'nav-direktmeddelanden', title: 'Direktmeddelanden', content: 'Snabb kommunikation ansikte mot ansikte (i textform). Här hittar du både 1-till-1 chatter och mindre grupper.' }
                         ])}
-                        className="sidebar-link"
+                        className="sidebar-link mb-2 opacity-50 hover:opacity-100 transition-opacity"
                     >
                         <span className="sidebar-link-icon">
-                            <HelpCircle size={18} strokeWidth={1.5} />
+                            <HelpCircle size={16} strokeWidth={1.5} />
                         </span>
-                        <span className="flex-1">starta guidning</span>
+                        <span className="flex-1 text-[11px] uppercase tracking-wider">stöd & guidning</span>
                     </button>
-                    <div className="sidebar-user" style={{ opacity: 0.7 }}>
-                        <div className="sidebar-user-avatar">{initial}</div>
-                        <div className="sidebar-user-info">
-                            <div className="sidebar-user-name">{user.name}</div>
-                            <div className="sidebar-user-role">{user.role.toLowerCase()}</div>
+
+                    <div className="sidebar-user-unified flex items-center justify-between pt-4 border-t border-subtle/50">
+                        <div className="flex items-center gap-3">
+                            <div className="sidebar-user-avatar !w-8 !h-8 !text-[12px]">{initial}</div>
+                            <div className="sidebar-user-info">
+                                <div className="sidebar-user-name text-[13px]">{user.name.toLowerCase()}</div>
+                                <div className="sidebar-user-role !text-[10px]">{user.role.toLowerCase()}</div>
+                            </div>
+                        </div>
+                        <div className="hidden lg:block">
+                            <UserMenu user={user} />
                         </div>
                     </div>
                 </div>

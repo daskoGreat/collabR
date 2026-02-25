@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Suspense } from "react";
+import { Sparkles, Building2 } from "lucide-react";
 import { Skeleton, CardSkeleton } from "@/components/ui/loading-components";
 
 export default async function NavetPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
@@ -61,15 +62,20 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
             </div>
 
             <div className="content-area max-w-[1400px] mx-auto">
-                <div className="helper-banner mb-10 p-6 bg-tertiary/50 border border-subtle rounded-lg flex items-center justify-between">
-                    <div>
-                        <div className="text-xl font-bold text-bright mb-1 lowercase">välkommen till kontoret, {user.name.split(" ")[0]}.</div>
-                        <div className="text-sm text-secondary italic">det här är navet i vårt samarbete. här ser du vad som händer och vem som är här.</div>
+                <div className="mb-14 p-8 bg-gradient-to-br from-tertiary/60 to-transparent border border-subtle/50 rounded-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Sparkles size={120} className="text-primary" />
+                    </div>
+                    <div className="relative z-10">
+                        <h1 className="text-3xl font-bold text-bright mb-3 lowercase tracking-tight">välkommen till navet, {user.name.split(" ")[0].toLowerCase()}.</h1>
+                        <p className="text-[15px] text-secondary max-w-2xl leading-relaxed italic opacity-80">
+                            detta är din centrala nod. här konvergerar händelser, samarbeten och insikter till en sammanhängande bild av verksamheten.
+                        </p>
                     </div>
                 </div>
 
-                <div className="mb-8 overflow-x-auto pb-2">
-                    <div className="tabs">
+                <div className="mb-10">
+                    <div className="tabs tabs-primary mb-4 p-2">
                         <Link href="?view=dashboard" className={`tab ${view === "dashboard" ? "active" : ""}`}>
                             överblick
                         </Link>
@@ -83,6 +89,12 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                             dina kontor
                         </Link>
                     </div>
+                    <div className="px-2 text-xs text-muted italic font-medium">
+                        {view === "dashboard" && "👉 se vad som kräver uppmärksamhet nu"}
+                        {view === "collaborations" && "👉 se aktiva sammanhang och personliga chatter"}
+                        {view === "pulse" && "👉 besvara / granska frågor och gemensam aktivitet"}
+                        {view === "offices" && "👉 navigera och hantera dina olika arbetsytor"}
+                    </div>
                 </div>
 
                 <div className="grid-navet gap-12">
@@ -95,6 +107,7 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                                     spaceIds={spaceIds}
                                     mentions={mentions}
                                     memberships={memberships}
+                                    onlineUsers={onlineUsers}
                                 />
                             )}
                             {view === "collaborations" && (
@@ -160,7 +173,7 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
     );
 }
 
-async function DashboardView({ user, spaceIds, mentions, memberships }: any) {
+async function DashboardView({ user, spaceIds, mentions, memberships, onlineUsers }: any) {
     const latestHelp = await prisma.post.findMany({
         where: { spaceId: { in: spaceIds }, solved: false },
         take: 2,
@@ -175,78 +188,151 @@ async function DashboardView({ user, spaceIds, mentions, memberships }: any) {
     });
 
     return (
-        <div className="space-y-16">
-            {/* Mentions are critical - always on dashboard */}
-            <div className="section">
-                <h2 className="section-title">senaste händelser</h2>
-                <div className="stack gap-3">
-                    {mentions.length === 0 ? (
-                        <div className="p-10 border-dashed border-subtle rounded-lg text-center bg-tertiary/10">
-                            <div className="text-3xl mb-3 opacity-10">✓</div>
-                            <div className="text-xs text-muted font-medium italic">du är helt uppdaterad. inga nya omnämnanden.</div>
+        <div className="space-y-20">
+            {/* THINGS TO ACT ON */}
+            <section>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-glow-sm">
+                        <Sparkles size={18} />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-bright lowercase tracking-tight">prioriterad uppmärksamhet</h2>
+                        <p className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold opacity-60">things to act on</p>
+                    </div>
+                    <span className="h-[1px] flex-1 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent ml-4" />
+                </div>
+
+                <div className="grid-2 gap-8">
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted px-1">senaste händelser & omnämnanden</h3>
+                        <div className="stack gap-3">
+                            {mentions.length === 0 ? (
+                                <div className="empty-state !py-12 bg-white/[0.02] border border-dashed border-subtle/50 rounded-lg">
+                                    <div className="empty-state-icon !text-2xl">⌨</div>
+                                    <div className="empty-state-title !text-sm">allt är läst</div>
+                                    <div className="empty-state-text !text-[10px]">du har inga nya händelser som kräver din uppmärksamhet.</div>
+                                </div>
+                            ) : (
+                                mentions.map((m: any) => (
+                                    <Link key={m.id} href={
+                                        m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
+                                            m.directMessage ? `/dm/${m.directMessage.threadId}` :
+                                                m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
+                                    } className="card card-hover card-compact group !p-4">
+                                        <div className="row-between mb-1">
+                                            <span className="text-[9px] text-muted font-bold uppercase tracking-tight">
+                                                {m.message ? "chat" : m.directMessage ? "dm" : "hjälp"} • {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true, locale: sv })}
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-bright group-hover:text-primary transition-colors">
+                                            {m.message && <span>omnämnande i <strong className="text-primary">#{m.message.channel.name}</strong></span>}
+                                            {m.directMessage && <span>nytt meddelande i en direktchatt</span>}
+                                            {m.post && <span>omnämnande i tråden <strong className="text-primary">{m.post.title}</strong></span>}
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
-                    ) : (
-                        mentions.map((m: any) => (
-                            <Link key={m.id} href={
-                                m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
-                                    m.directMessage ? `/dm/${m.directMessage.threadId}` :
-                                        m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
-                            } className="card card-hover card-compact group">
-                                <div className="row-between mb-2">
-                                    <span className="text-[10px] text-muted font-bold uppercase tracking-[0.1em]">
-                                        {m.message ? "chat" : m.directMessage ? "dm" : "hjälp"} • {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true, locale: sv })}
-                                    </span>
-                                </div>
-                                <div className="text-sm text-bright group-hover:text-primary transition-colors">
-                                    {m.message && <span>omnämnande i <strong className="text-primary">#{m.message.channel.name}</strong></span>}
-                                    {m.directMessage && <span>nytt meddelande i en direktchatt</span>}
-                                    {m.post && <span>omnämnande i tråden <strong className="text-primary">{m.post.title}</strong></span>}
-                                </div>
-                            </Link>
-                        ))
-                    )}
-                </div>
-            </div>
+                    </div>
 
-            <div className="grid-2 gap-8">
-                <div className="section">
-                    <h2 className="section-title">puls: hjälp behövs</h2>
-                    <div className="stack gap-3">
-                        {latestHelp.length === 0 ? (
-                            <div className="card card-compact text-muted text-xs italic p-6 border-dashed border-subtle bg-tertiary/5">inga aktiva förfrågningar.</div>
-                        ) : (
-                            latestHelp.map((post: any) => (
-                                <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover card-compact min-h-[100px] flex flex-col justify-between">
-                                    <div className="font-bold text-bright line-clamp-2 mb-2">{post.title}</div>
-                                    <div className="row-between mt-auto pt-2 border-t border-subtle/30">
-                                        <span className="text-[10px] text-primary font-mono lowercase">#{post.space.name}</span>
-                                        <span className="text-[10px] text-muted">av {post.user.name.split(" ")[0]}</span>
-                                    </div>
-                                </Link>
-                            ))
-                        )}
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted px-1">puls: hjälp behövs</h3>
+                        <div className="stack gap-3">
+                            {latestHelp.length === 0 ? (
+                                <div className="empty-state !py-12 bg-white/[0.02] border border-dashed border-subtle/50 rounded-lg">
+                                    <div className="empty-state-icon !text-2xl">⠿</div>
+                                    <div className="empty-state-title !text-sm">lugnt på puls</div>
+                                    <div className="empty-state-text !text-[10px]">inga aktiva hjälpförfrågningar i dina kontor just nå.</div>
+                                </div>
+                            ) : (
+                                latestHelp.map((post: any) => (
+                                    <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover card-compact min-h-[80px] flex flex-col justify-between !p-4">
+                                        <div className="font-bold text-bright line-clamp-1 mb-2">{post.title}</div>
+                                        <div className="row-between mt-auto pt-2 border-t border-subtle/20">
+                                            <span className="text-[9px] text-primary font-mono lowercase">#{post.space.name}</span>
+                                            <span className="text-[9px] text-muted">av {post.user.name.split(" ")[0]}</span>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div className="section">
-                    <h2 className="section-title">senaste insikter</h2>
-                    <div className="stack gap-3">
-                        {latestFeed.length === 0 ? (
-                            <div className="card card-compact text-muted text-xs italic p-6 border-dashed border-subtle bg-tertiary/5">inga nya insikter.</div>
-                        ) : (
-                            latestFeed.map((post: any) => (
-                                <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover card-compact min-h-[100px] flex flex-col justify-between">
-                                    <div className="text-xs text-secondary line-clamp-3 leading-relaxed">{post.content}</div>
-                                    <div className="row-between mt-auto pt-2 border-t border-subtle/30">
-                                        <span className="text-[10px] font-bold text-primary">{post.user.name.toLowerCase()}</span>
-                                        <span className="text-[10px] text-muted">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+            {/* THINGS TO MONITOR */}
+            <section>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                        <Building2 size={18} />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-bright lowercase tracking-tight">kontextuell medvetenhet</h2>
+                        <p className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold opacity-60">things to monitor</p>
+                    </div>
+                    <span className="h-[1px] flex-1 bg-gradient-to-r from-secondary/20 via-secondary/5 to-transparent ml-4" />
+                </div>
+
+                <div className="grid-2 gap-8">
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-muted/50 px-1">senaste insikter</h3>
+                        <div className="stack gap-3">
+                            {latestFeed.length === 0 ? (
+                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
+                                    <div className="empty-state-icon !text-3xl opacity-20">░</div>
+                                    <div className="empty-state-title !text-sm">inga insikter</div>
+                                    <div className="empty-state-text !text-[10px]">det har inte postats några nya insikter i flödet på ett tag.</div>
+                                </div>
+                            ) : (
+                                latestFeed.map((post: any) => (
+                                    <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover group !p-5 min-h-[100px] flex flex-col justify-between">
+                                        <div className="text-[14px] text-secondary group-hover:text-bright transition-colors line-clamp-2 leading-relaxed italic">{post.content}</div>
+                                        <div className="row-between mt-6 pt-3 border-t border-subtle/20">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[8px] font-bold text-primary">
+                                                    {post.user.name.charAt(0)}
+                                                </div>
+                                                <span className="text-[10px] font-bold text-primary/80 uppercase tracking-wider">{post.user.name.toLowerCase()}</span>
+                                            </div>
+                                            <span className="text-[10px] text-muted font-mono">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-muted/50 px-1">operativ status</h3>
+                        <div className="card !p-6 bg-gradient-to-br from-tertiary/20 to-transparent border-subtle/30 shadow-glass">
+                            <div className="space-y-5">
+                                <div className="flex flex-wrap gap-3">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/5 border border-success/10 shadow-glow-sm">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                                        <span className="text-[10px] text-success font-black uppercase tracking-widest">systemet operativt</span>
                                     </div>
-                                </Link>
-                            ))
-                        )}
+                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
+                                        <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest">närvaro aktiv</span>
+                                    </div>
+                                </div>
+                                <div className="text-[13px] text-secondary leading-relaxed italic font-serif opacity-80">
+                                    "samarbete är inte bara att arbeta tillsammans, det är att tänka tillsammans."
+                                </div>
+                                <div className="pt-4 border-t border-subtle/20 flex items-center justify-between">
+                                    <div className="flex -space-x-2">
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="w-6 h-6 rounded-full border-2 border-bg-primary bg-tertiary flex items-center justify-center text-[8px] font-bold text-muted">
+                                                U{i}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <span className="text-[9px] text-muted uppercase tracking-widest font-bold">aktiva noder {">"} {onlineUsers.length + 1}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     );
 }

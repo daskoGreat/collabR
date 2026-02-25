@@ -9,6 +9,8 @@ import { updatePresence, renameThread, leaveThread } from "@/lib/actions/chat";
 import { useRouter } from "next/navigation";
 import MentionList from "@/components/mention-list";
 import Link from "next/link";
+import { User, Users } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface User {
     id: string;
@@ -290,22 +292,24 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                 <div className="row-between w-full">
                     <div className="row" style={{ gap: "var(--space-4)" }}>
                         <BackButton />
-                        <div className="topbar-title flex flex-col items-start !gap-0">
+                        <div className="topbar-title">
                             <div className="flex items-center gap-2">
                                 <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
-                                <span className="text-muted">/</span>
-                                <span className="topbar-title-highlight">{isGroup ? "⚑" : "@"}</span>
-                                <span>{title.toLowerCase()}</span>
+                                <span className="text-muted mx-1">/</span>
+                                <span className="topbar-title-highlight flex items-center gap-1.5 backdrop-blur-sm bg-primary/20 px-2 py-0.5 rounded border border-subtle/50">
+                                    {isGroup ? <Users size={12} strokeWidth={2} /> : <User size={12} strokeWidth={2} />}
+                                    {title.toLowerCase()}
+                                </span>
                             </div>
                             {!isGroup && otherUser && (
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    <div className={`w-2 h-2 rounded-full ${otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
+                                <div className="flex items-center gap-1.5 mt-0.5 ml-1">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
                                         ? "bg-success shadow-[0_0_8px_var(--success)]"
                                         : "bg-muted"
                                         }`} />
-                                    <span className="text-[10px] text-muted uppercase font-bold tracking-wider">
+                                    <span className="text-[9px] text-muted uppercase font-bold tracking-widest opacity-50">
                                         {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
-                                            ? "aktiv" : "frånvarande"}
+                                            ? "online" : "offline"}
                                     </span>
                                 </div>
                             )}
@@ -365,86 +369,117 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
             <div className="chat-container">
                 <div className="chat-messages">
                     {messages.length === 0 && (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">✉</div>
+                        <div className="empty-state py-20 card border-dashed border-subtle">
+                            <div className="empty-state-icon text-muted/30">✉</div>
                             <div className="empty-state-title">{isGroup ? "denna grupp" : "denna konversation"}</div>
                             <div className="empty-state-text">
-                                {isGroup ? "detta är början på gruppchatten." : `början på din konversation med ${otherUser?.name}.`}
+                                {isGroup ? "detta är början på gruppchatten." : `början på din konversation med ${otherUser?.name.toLowerCase()}.`}
                             </div>
                         </div>
                     )}
-                    {messages.map((msg) => {
+                    {messages.map((msg, index) => {
+                        const prevMsg = index > 0 ? messages[index - 1] : null;
+                        const isSameUser = prevMsg?.user.id === msg.user.id;
+                        const timeDiff = prevMsg
+                            ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime()
+                            : Infinity;
+                        const isGrouped = isSameUser && timeDiff < 1000 * 60 * 5; // 5 minutes
+
                         const isMentioned = msg.content.toLowerCase().includes(`@${currentUser.name.toLowerCase()}`);
+
                         return (
-                            <div key={msg.id} className={`chat-message ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""}`}>
-                                <div className="chat-message-avatar">
-                                    {msg.user.name.charAt(0).toUpperCase()}
-                                </div>
+                            <div
+                                key={msg.id}
+                                className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""} ${isGrouped ? "chat-message-grouped" : ""}`}
+                            >
+                                {!isGrouped ? (
+                                    <div className="chat-message-avatar font-bold">
+                                        {msg.user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                ) : (
+                                    <div className="chat-message-spacer w-7 shrink-0 flex justify-center items-center">
+                                        <div className="w-[1px] h-full bg-subtle/20 group-hover:bg-subtle/50 transition-colors" />
+                                    </div>
+                                )}
                                 <div className="chat-message-body">
-                                    <div className="chat-message-header">
-                                        <span className="chat-message-name">{msg.user.name}</span>
-                                        <span className="chat-message-time">{formatTime(msg.createdAt)}</span>
-                                        {msg.user.id === currentUser.id && !editingId && (
-                                            <div className="chat-message-actions">
-                                                <button
-                                                    className="btn-link text-xs"
-                                                    onClick={() => {
-                                                        setEditingId(msg.id);
-                                                        setEditContent(msg.content);
-                                                    }}
-                                                >
-                                                    redigera
-                                                </button>
-                                                <button
-                                                    className="btn-link text-xs text-danger"
-                                                    onClick={() => handleDelete(msg.id)}
-                                                >
-                                                    ta bort
-                                                </button>
+                                    {!isGrouped && (
+                                        <div className="chat-message-header">
+                                            <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
+                                            <span className="chat-message-time opacity-50 font-mono">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="chat-content-container relative">
+                                        {isGrouped && (
+                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-30 transition-opacity text-[9px] font-mono whitespace-nowrap">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        )}
+                                        {editingId === msg.id ? (
+                                            <div className="chat-edit-area mt-2">
+                                                <textarea
+                                                    className="input text-sm min-h-[80px]"
+                                                    value={editContent}
+                                                    onChange={(e) => setEditContent(e.target.value)}
+                                                    autoFocus
+                                                    rows={2}
+                                                />
+                                                <div className="row mt-3" style={{ gap: "var(--space-3)" }}>
+                                                    <button
+                                                        className="btn btn-primary btn-sm px-4 flex items-center gap-2"
+                                                        onClick={() => handleUpdate(msg.id)}
+                                                        disabled={updating || !editContent.trim()}
+                                                    >
+                                                        {updating && <LoadingSpinner size="sm" className="text-current" />}
+                                                        <span>{updating ? "sparar..." : "spara ändringar"}</span>
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm px-4"
+                                                        onClick={() => setEditingId(null)}
+                                                        disabled={updating}
+                                                    >
+                                                        avbryt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="chat-content-vibe">
+                                                <MessageContent content={msg.content} currentUserName={currentUser.name} />
+                                                {msg.attachments && msg.attachments.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <AttachmentList attachments={msg.attachments} readOnly />
+                                                    </div>
+                                                )}
+                                                {msg.user.id === currentUser.id && !editingId && (
+                                                    <div className="chat-message-actions absolute -right-2 top-0 translate-x-full pl-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                                        <button
+                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-50 hover:opacity-100"
+                                                            onClick={() => {
+                                                                setEditingId(msg.id);
+                                                                setEditContent(msg.content);
+                                                            }}
+                                                        >
+                                                            edit
+                                                        </button>
+                                                        <button
+                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-50 hover:opacity-100"
+                                                            onClick={() => handleDelete(msg.id)}
+                                                        >
+                                                            del
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
-                                    {editingId === msg.id ? (
-                                        <div className="chat-edit-area mt-1">
-                                            <textarea
-                                                className="input text-sm"
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                autoFocus
-                                                rows={2}
-                                            />
-                                            <div className="row mt-2" style={{ gap: "var(--space-2)" }}>
-                                                <button
-                                                    className="btn btn-primary btn-sm"
-                                                    onClick={() => handleUpdate(msg.id)}
-                                                    disabled={updating || !editContent.trim()}
-                                                >
-                                                    spara
-                                                </button>
-                                                <button
-                                                    className="btn btn-ghost btn-sm"
-                                                    onClick={() => setEditingId(null)}
-                                                    disabled={updating}
-                                                >
-                                                    avbryt
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <MessageContent content={msg.content} currentUserName={currentUser.name} />
-                                            {msg.attachments && msg.attachments.length > 0 && (
-                                                <AttachmentList attachments={msg.attachments} readOnly />
-                                            )}
-                                        </>
-                                    )}
                                 </div>
                             </div>
                         );
                     })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area border-t border-subtle bg-secondary/50 backdrop-blur-sm">
+                <div className="chat-input-area border-t border-subtle bg-secondary/80 backdrop-blur-md">
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}
@@ -461,7 +496,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                             />
                         </div>
                     )}
-                    <form className="chat-input-form items-center" onSubmit={handleSend}>
+                    <form className="chat-input-form items-center p-2" onSubmit={handleSend}>
                         <div className="flex items-center gap-1">
                             <AttachmentPicker
                                 spaceId="dm"
@@ -476,13 +511,13 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                 onUploadError={(err) => alert(err)}
                             />
                         </div>
-                        <div className="chat-input-wrapper flex-1 relative flex items-center">
-                            <span className="chat-input-prompt absolute left-3 text-neon-green/30 select-none font-mono">{">"}</span>
+                        <div className="chat-input-wrapper flex-1 relative flex items-center bg-black/40 rounded-full border border-subtle/30 focus-within:border-neon-green/30 transition-colors">
+                            <span className="chat-input-prompt absolute left-4 text-neon-green/20 select-none font-mono text-[10px] tracking-tighter uppercase">dm {">"}</span>
                             <input
                                 ref={inputRef}
                                 type="text"
-                                className="input w-full pl-8"
-                                placeholder={`meddelande till ${title.toLowerCase()}...`}
+                                className="input w-full pl-14 !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
+                                placeholder={`tala till ${title.toLowerCase()}...`}
                                 value={input}
                                 onChange={(e) => handleInputChange(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -492,10 +527,10 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                         </div>
                         <button
                             type="submit"
-                            className="btn btn-primary px-6 shadow-glow-sm flex items-center gap-2"
+                            className="btn btn-primary !rounded-full w-10 h-10 !p-0 shadow-glow-sm flex items-center justify-center shrink-0"
                             disabled={sending || (!input.trim() && pendingAttachments.length === 0)}
                         >
-                            <span>{sending ? "skickar..." : "skicka"}</span>
+                            {sending ? <LoadingSpinner size="sm" className="text-current" /> : <span className="text-lg">↵</span>}
                         </button>
                     </form>
                 </div>
