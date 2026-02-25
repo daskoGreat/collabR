@@ -62,17 +62,18 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
             </div>
 
             <div className="content-area max-w-[1400px] mx-auto">
-                <div className="mb-14 p-8 bg-gradient-to-br from-tertiary/60 to-transparent border border-subtle/50 rounded-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Sparkles size={120} className="text-primary" />
+                <header className="mb-20 px-2 animate-in fade-in slide-in-from-top-4 duration-1000">
+                    <div className="flex items-center gap-3 mb-4 opacity-50">
+                        <div className="w-1 h-1 rounded-full bg-primary" />
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-black text-muted">terminal:navet</span>
                     </div>
-                    <div className="relative z-10">
-                        <h1 className="text-3xl font-medium text-bright mb-3 lowercase tracking-tight opacity-90">välkommen till navet, {user.name.split(" ")[0].toLowerCase()}.</h1>
-                        <p className="text-[14px] text-secondary max-w-2xl leading-relaxed italic opacity-70">
-                            detta är din centrala nod. här konvergerar händelser, samarbeten och insikter till en sammanhängande bild av verksamheten.
-                        </p>
-                    </div>
-                </div>
+                    <h1 className="text-4xl font-light text-bright lowercase tracking-tight mb-4 leading-tight">
+                        välkommen, <span className="font-medium text-primary">{user.name.split(" ")[0].toLowerCase()}</span>.
+                    </h1>
+                    <p className="text-[14px] text-secondary max-w-xl leading-relaxed italic opacity-40 font-serif">
+                        din centrala nod för konvergerande händelser och operativ medvetenhet.
+                    </p>
+                </header>
 
                 <div className="mb-10">
                     <div className="tabs tabs-primary mb-4 p-2">
@@ -124,44 +125,39 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
 
                     {/* Sidebar / Pulse Area */}
                     <div className="sticky top-8 space-y-10 hidden lg:block">
-                        <div className="section">
-                            <h2 className="section-title mb-4">medlemmar online</h2>
-                            <div className="card card-compact bg-success/[0.02] border-success/10 p-5">
-                                <div className="flex flex-wrap gap-x-4 gap-y-3">
+                        <div className="space-y-4 opacity-40 hover:opacity-100 transition-opacity duration-500">
+                            <h2 className="text-[10px] uppercase tracking-[0.3em] font-black text-muted px-2">närvaro</h2>
+                            <div className="card-minimal">
+                                <div className="flex flex-wrap gap-x-6 gap-y-3">
                                     {onlineUsers.length === 0 ? (
-                                        <div className="text-xs text-muted italic">inga kollegor online just nu.</div>
+                                        <div className="text-[11px] text-muted italic">inga aktiva noder.</div>
                                     ) : (
                                         onlineUsers.map(u => (
-                                            <div key={u.id} className="flex items-center gap-2 group transition-opacity hover:opacity-100 opacity-80">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_var(--success)]" />
-                                                <span className="text-xs font-medium text-bright">{u.name.toLowerCase()}</span>
+                                            <div key={u.id} className="flex items-center gap-2 group">
+                                                <div className="w-1 h-1 rounded-full bg-success/40 group-hover:bg-success transition-colors" />
+                                                <span className="text-[11px] text-secondary group-hover:text-bright transition-colors uppercase tracking-widest">{u.name.toLowerCase()}</span>
                                             </div>
                                         ))
                                     )}
                                 </div>
-                                {onlineUsers.length > 0 && (
-                                    <div className="mt-6 pt-4 border-t border-subtle text-[9px] text-muted uppercase tracking-[0.2em] font-bold">
-                                        {onlineUsers.length} kollegor aktiva
-                                    </div>
-                                )}
                             </div>
                         </div>
 
-                        <div className="section">
-                            <h2 className="section-title mb-4">systemstatus</h2>
-                            <div className="card card-compact bg-tertiary/30 border-subtle/30 p-5">
-                                <div className="space-y-3 text-[10px] uppercase tracking-widest font-bold">
+                        <div className="space-y-4 opacity-40 hover:opacity-100 transition-opacity duration-500">
+                            <h2 className="text-[10px] uppercase tracking-[0.3em] font-black text-muted px-2">systemstatus</h2>
+                            <div className="card-minimal">
+                                <div className="space-y-3 text-[9px] uppercase tracking-[0.2em] font-bold">
                                     <div className="row-between">
-                                        <span className="text-muted">anslutning</span>
-                                        <span className="text-success shadow-[0_0_10px_var(--success)]">stabil</span>
+                                        <span className="text-muted/60">anslutning</span>
+                                        <span className="text-success/60">stabil</span>
                                     </div>
                                     <div className="row-between">
-                                        <span className="text-muted">närvaro</span>
-                                        <span className="text-success">aktiv</span>
+                                        <span className="text-muted/60">närvaro</span>
+                                        <span className="text-success/60">aktiv</span>
                                     </div>
                                     <div className="row-between">
-                                        <span className="text-muted">kryptering</span>
-                                        <span className="text-primary opacity-50">aes-256</span>
+                                        <span className="text-muted/60">kryptering</span>
+                                        <span className="text-primary/30 font-mono">aes-256</span>
                                     </div>
                                 </div>
                             </div>
@@ -188,28 +184,24 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-24 pb-12">
-            {/* THINGS TO ACT ON */}
-            <section>
-                <div className="flex items-center gap-4 mb-10">
-                    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary/40 border border-primary/10">
-                        <Sparkles size={18} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-light text-bright lowercase tracking-tight">prioriterad uppmärksamhet</h2>
-                        <p className="text-[9px] text-muted uppercase tracking-[0.3em] font-black opacity-40">things to act on</p>
-                    </div>
-                    <span className="h-[1px] flex-1 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent ml-6" />
+        <div className="space-y-32 pb-24">
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex items-center gap-6 mb-12">
+                    <h2 className="text-3xl font-light text-bright lowercase tracking-tight">prioriterad uppmärksamhet</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent" />
+                    <span className="text-[9px] text-muted uppercase tracking-[0.4em] font-black opacity-30">operative surface</span>
                 </div>
 
-                <div className="grid-2 gap-10">
-                    <div className="space-y-6">
-                        <h3 className="section-title px-1">senaste händelser & omnämnanden</h3>
-                        <div className="stack gap-3">
+                <div className="grid-2 gap-16">
+                    <div className="space-y-8">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-muted/60 flex items-center gap-3">
+                            <span className="w-1.5 h-[1px] bg-primary/40" />
+                            händelser & omnämnanden
+                        </h3>
+                        <div className="stack gap-4">
                             {mentions.length === 0 ? (
-                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
-                                    <div className="empty-state-icon !text-3xl opacity-10">⌨</div>
-                                    <div className="empty-state-title !text-xs opacity-50">allt är läst</div>
+                                <div className="p-12 text-center border border-dashed border-subtle/20 rounded-2xl bg-white/[0.01]">
+                                    <div className="text-[11px] text-muted italic opacity-40">tabula rasa. ingen kräver din uppmärksamhet just nu.</div>
                                 </div>
                             ) : (
                                 mentions.map((m: any) => (
@@ -217,16 +209,19 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                                         m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
                                             m.directMessage ? `/dm/${m.directMessage.threadId}` :
                                                 m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
-                                    } className="card card-hover card-compact group !p-4">
-                                        <div className="row-between mb-1">
-                                            <span className="text-[9px] text-muted font-bold uppercase tracking-tight">
-                                                {m.message ? "chat" : m.directMessage ? "dm" : "hjälp"} • {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true, locale: sv })}
+                                    } className="card card-hover group !p-6 border-l-2 border-l-primary/30 hover:border-l-primary">
+                                        <div className="row-between mb-3">
+                                            <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest">
+                                                {m.message ? "kanalkonversation" : m.directMessage ? "privat meddelande" : "hjälp-tråd"}
+                                            </span>
+                                            <span className="text-[10px] text-muted font-mono opacity-50">
+                                                {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true, locale: sv })}
                                             </span>
                                         </div>
-                                        <div className="text-sm text-bright group-hover:text-primary transition-colors">
-                                            {m.message && <span>omnämnande i <strong className="text-primary">#{m.message.channel.name}</strong></span>}
-                                            {m.directMessage && <span>nytt meddelande i en direktchatt</span>}
-                                            {m.post && <span>omnämnande i tråden <strong className="text-primary">{m.post.title}</strong></span>}
+                                        <div className="text-[15px] text-bright group-hover:text-primary transition-colors leading-relaxed">
+                                            {m.message && <span>omnämnande i <strong className="font-semibold">#{m.message.channel.name}</strong></span>}
+                                            {m.directMessage && <span>nytt svar i din direktchatt</span>}
+                                            {m.post && <span>nytt svar i <strong className="font-semibold">{m.post.title}</strong></span>}
                                         </div>
                                     </Link>
                                 ))
@@ -234,22 +229,22 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="section-title px-1">puls: hjälp behövs</h3>
-                        <div className="stack gap-3">
+                    <div className="space-y-8">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-muted/60 flex items-center gap-3">
+                            <span className="w-1.5 h-[1px] bg-accent-warning/40" />
+                            hjälp behövs
+                        </h3>
+                        <div className="stack gap-4">
                             {latestHelp.length === 0 ? (
-                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
-                                    <div className="empty-state-icon !text-3xl opacity-10">⠿</div>
-                                    <div className="empty-state-title !text-xs opacity-50">lugnt på puls</div>
+                                <div className="p-12 text-center border border-dashed border-subtle/20 rounded-2xl bg-white/[0.01]">
+                                    <div className="text-[11px] text-muted italic opacity-40">systemet i jämvikt. inga öppna förfrågningar.</div>
                                 </div>
                             ) : (
                                 latestHelp.map((post: any) => (
-                                    <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover card-compact min-h-[80px] flex flex-col justify-between !p-4">
-                                        <div className="font-bold text-bright line-clamp-1 mb-2">{post.title}</div>
-                                        <div className="row-between mt-auto pt-2 border-t border-subtle/20">
-                                            <span className="text-[9px] text-primary font-mono lowercase">#{post.space.name}</span>
-                                            <span className="text-[9px] text-muted">av {post.user.name.split(" ")[0]}</span>
-                                        </div>
+                                    <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover group !p-6 border-l-2 border-l-accent-warning/30 hover:border-l-accent-warning">
+                                        <div className="text-[10px] text-accent-warning/60 font-black uppercase tracking-widest mb-3">#{post.space.name}</div>
+                                        <div className="text-lg font-medium text-bright mb-4 group-hover:text-accent-warning transition-colors leading-tight">{post.title.toLowerCase()}</div>
+                                        <div className="text-[10px] text-muted uppercase tracking-widest opacity-40 pt-4 border-t border-subtle/10">av {post.user.name.toLowerCase()}</div>
                                     </Link>
                                 ))
                             )}
@@ -258,41 +253,28 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                 </div>
             </section>
 
-            {/* THINGS TO MONITOR */}
-            <section>
-                <div className="flex items-center gap-4 mb-10">
-                    <div className="w-10 h-10 rounded-full bg-secondary/5 flex items-center justify-center text-secondary/40 border border-secondary/10">
-                        <Building2 size={18} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-light text-bright lowercase tracking-tight">kontextuell medvetenhet</h2>
-                        <p className="text-[9px] text-muted uppercase tracking-[0.3em] font-black opacity-40">things to monitor</p>
-                    </div>
-                    <span className="h-[1px] flex-1 bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent ml-6" />
+            <section className="opacity-60 hover:opacity-100 transition-opacity duration-1000">
+                <div className="flex items-center gap-6 mb-12">
+                    <h2 className="text-2xl font-light text-secondary lowercase tracking-tight">kontextuell medvetenhet</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/20 via-subtle/5 to-transparent" />
+                    <span className="text-[9px] text-muted uppercase tracking-[0.4em] font-black opacity-30">awareness layer</span>
                 </div>
 
-                <div className="grid-2 gap-10">
-                    <div className="space-y-6">
-                        <h3 className="section-title px-1">senaste insikter</h3>
-                        <div className="stack gap-3">
+                <div className="grid-2 gap-16">
+                    <div className="space-y-8">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-muted/40 px-2">senaste insikter</h3>
+                        <div className="stack gap-4">
                             {latestFeed.length === 0 ? (
-                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
-                                    <div className="empty-state-icon !text-3xl opacity-20">░</div>
-                                    <div className="empty-state-title !text-sm">inga insikter</div>
-                                    <div className="empty-state-text !text-[10px]">det har inte postats några nya insikter i flödet på ett tag.</div>
+                                <div className="p-8 text-center border border-dashed border-subtle/10 rounded-xl">
+                                    <div className="text-[10px] text-muted italic opacity-30">inga nya insikter i flödet.</div>
                                 </div>
                             ) : (
                                 latestFeed.map((post: any) => (
-                                    <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover group !p-5 min-h-[100px] flex flex-col justify-between">
-                                        <div className="text-[14px] text-secondary group-hover:text-bright transition-colors line-clamp-2 leading-relaxed italic">{post.content}</div>
-                                        <div className="row-between mt-6 pt-3 border-t border-subtle/20">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[8px] font-bold text-primary">
-                                                    {post.user.name.charAt(0)}
-                                                </div>
-                                                <span className="text-[10px] font-bold text-primary/80 uppercase tracking-wider">{post.user.name.toLowerCase()}</span>
-                                            </div>
-                                            <span className="text-[10px] text-muted font-mono">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                                    <Link key={post.id} href={`/feed/${post.id}`} className="card-minimal group">
+                                        <div className="text-[13px] text-secondary group-hover:text-bright transition-colors line-clamp-2 leading-relaxed italic mb-4">{post.content}</div>
+                                        <div className="flex items-center justify-between opacity-40">
+                                            <span className="text-[9px] font-bold text-primary uppercase tracking-widest">{post.user.name.toLowerCase()}</span>
+                                            <span className="text-[9px] text-muted font-mono">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
                                         </div>
                                     </Link>
                                 ))
@@ -300,31 +282,24 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-muted/50 px-1">operativ status</h3>
-                        <div className="card !p-6 bg-gradient-to-br from-tertiary/20 to-transparent border-subtle/30 shadow-glass">
-                            <div className="space-y-5">
-                                <div className="flex flex-wrap gap-3">
-                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/5 border border-success/10 shadow-glow-sm">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                                        <span className="text-[10px] text-success font-black uppercase tracking-widest">systemet operativt</span>
+                    <div className="space-y-8">
+                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-muted/40 px-2">operativ status</h3>
+                        <div className="card-minimal !bg-white/[0.01]">
+                            <div className="space-y-6">
+                                <div className="flex flex-wrap gap-4">
+                                    <div className="flex items-center gap-2 opacity-50">
+                                        <div className="w-1 h-1 rounded-full bg-success" />
+                                        <span className="text-[9px] text-success font-black uppercase tracking-widest">systemet operativt</span>
                                     </div>
-                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
-                                        <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest">närvaro aktiv</span>
+                                    <div className="flex items-center gap-2 opacity-30">
+                                        <span className="text-[9px] text-primary font-black uppercase tracking-widest">närvaro aktiv</span>
                                     </div>
                                 </div>
-                                <div className="text-[13px] text-secondary leading-relaxed italic font-serif opacity-80">
+                                <div className="text-[12px] text-secondary leading-relaxed italic opacity-40">
                                     "samarbete är inte bara att arbeta tillsammans, det är att tänka tillsammans."
                                 </div>
-                                <div className="pt-4 border-t border-subtle/10 flex items-center justify-between">
-                                    <div className="flex -space-x-2 opacity-50">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="w-5 h-5 rounded-full border border-bg-primary bg-tertiary flex items-center justify-center text-[7px] font-bold text-muted">
-                                                U{i}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <span className="text-[9px] text-muted uppercase tracking-[0.2em] font-black opacity-30">aktiva noder {">"} {onlineUsers.length + 1}</span>
+                                <div className="pt-4 border-t border-subtle/5 flex items-center justify-between opacity-20">
+                                    <span className="text-[9px] text-muted uppercase tracking-[0.2em] font-black">aktiva noder {">"} {onlineUsers.length + 1}</span>
                                 </div>
                             </div>
                         </div>
@@ -350,12 +325,16 @@ async function CollaborationsView({ user }: any) {
     });
 
     return (
-        <div className="section">
-            <h2 className="section-title mb-8">pågående samarbeten</h2>
-            <div className="grid-2 gap-10">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-6 mb-12">
+                <h2 className="text-2xl font-light text-bright lowercase tracking-tight">pågående samarbeten</h2>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/20 via-subtle/5 to-transparent" />
+            </div>
+
+            <div className="grid-2 gap-12">
                 {threads.length === 0 ? (
-                    <div className="col-span-full py-16 text-center bg-tertiary/10 rounded-lg border border-dashed border-subtle">
-                        <div className="text-xs text-muted italic">inga aktiva samarbeten än. starta en konversation i en kanal eller via dm.</div>
+                    <div className="col-span-full py-16 text-center border border-dashed border-subtle/20 rounded-2xl bg-white/[0.01]">
+                        <div className="text-[11px] text-muted italic opacity-40">inga aktiva samarbeten än. starta en konversation i en kanal eller via dm.</div>
                     </div>
                 ) : (
                     threads.map((m: any) => {
@@ -365,12 +344,12 @@ async function CollaborationsView({ user }: any) {
                         const lastMsg = t.messages[0];
 
                         return (
-                            <Link key={t.id} href={`/dm/${t.id}`} className="card card-hover p-6 group">
-                                <div className="row-between mb-3 pb-2 border-b border-subtle/10">
+                            <Link key={t.id} href={`/dm/${t.id}`} className="card card-hover !p-6 group">
+                                <div className="row-between mb-4 pb-3 border-b border-subtle/10">
                                     <span className="font-medium text-bright lowercase tracking-tight group-hover:text-primary transition-colors">{name}</span>
-                                    <span className="text-[10px] text-muted opacity-40 uppercase tracking-tighter">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })}</span>
+                                    <span className="text-[10px] text-muted opacity-30 uppercase tracking-tighter">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })}</span>
                                 </div>
-                                <div className="text-sm text-secondary line-clamp-2 min-h-[3em] leading-relaxed italic opacity-80">
+                                <div className="text-[13px] text-secondary line-clamp-2 min-h-[3em] leading-relaxed italic opacity-80 group-hover:text-bright transition-colors">
                                     {lastMsg ? lastMsg.content : "inga meddelanden än."}
                                 </div>
                             </Link>
@@ -396,31 +375,38 @@ async function PulseView({ spaceIds }: any) {
     });
 
     return (
-        <div className="space-y-24">
-            <div className="section">
-                <h2 className="section-title mb-8">hjälp-puls</h2>
-                <div className="grid-2 gap-10">
+        <div className="space-y-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div>
+                <div className="flex items-center gap-6 mb-12">
+                    <h2 className="text-2xl font-light text-bright lowercase tracking-tight">hjälp-puls</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-accent-warning/20 via-accent-warning/5 to-transparent" />
+                </div>
+                <div className="grid-2 gap-12">
                     {helpPosts.map((post: any) => (
-                        <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover p-6 group">
-                            <div className="text-[9px] text-primary/40 font-black uppercase tracking-[0.2em] mb-3">#{post.space.name}</div>
-                            <div className="font-medium text-lg text-bright mb-4 leading-tight group-hover:text-primary transition-colors">{post.title}</div>
-                            <div className="text-[11px] text-secondary mt-auto italic opacity-70">
-                                postad av <span className="font-bold">{post.user.name.toLowerCase()}</span> • {formatDistanceToNow(new Date(post.createdAt), { locale: sv })}
+                        <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover !p-6 group border-l-2 border-l-accent-warning/20">
+                            <div className="text-[9px] text-accent-warning/40 font-black uppercase tracking-[0.2em] mb-4">#{post.space.name}</div>
+                            <div className="font-medium text-lg text-bright mb-6 leading-tight group-hover:text-accent-warning transition-colors">{post.title.toLowerCase()}</div>
+                            <div className="text-[11px] text-secondary mt-auto italic opacity-50 flex items-center justify-between pt-4 border-t border-subtle/5">
+                                <span>postad av <span className="font-bold">{post.user.name.toLowerCase()}</span></span>
+                                <span className="text-[10px] font-mono opacity-50">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
                             </div>
                         </Link>
                     ))}
                 </div>
             </div>
 
-            <div className="section">
-                <h2 className="section-title mb-8">insikter & händelser</h2>
-                <div className="stack gap-4">
+            <div className="opacity-60 hover:opacity-100 transition-opacity duration-1000">
+                <div className="flex items-center gap-6 mb-12">
+                    <h2 className="text-2xl font-light text-secondary lowercase tracking-tight">insikter & händelser</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/20 via-subtle/5 to-transparent" />
+                </div>
+                <div className="stack gap-6">
                     {feedPosts.map((post: any) => (
-                        <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover !p-5 group">
-                            <div className="text-[14px] text-bright group-hover:text-primary transition-colors mb-3 leading-relaxed italic opacity-90">{post.content}</div>
-                            <div className="row-between pt-3 border-t border-subtle/10">
+                        <Link key={post.id} href={`/feed/${post.id}`} className="card-minimal group group-hover:!bg-white/[0.01]">
+                            <div className="text-[14px] text-secondary group-hover:text-bright transition-colors mb-4 leading-relaxed italic opacity-90">{post.content}</div>
+                            <div className="row-between pt-4 border-t border-subtle/5 opacity-40">
                                 <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">{post.user.name.toLowerCase()}</span>
-                                <span className="text-[10px] text-muted opacity-40">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                                <span className="text-[10px] text-muted/60">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
                             </div>
                         </Link>
                     ))}
@@ -432,25 +418,28 @@ async function PulseView({ spaceIds }: any) {
 
 function OfficesView({ memberships }: any) {
     return (
-        <div className="section">
-            <h2 className="section-title mb-8">dina kontor</h2>
-            <div className="grid-2 gap-10">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-6 mb-12">
+                <h2 className="text-2xl font-light text-bright lowercase tracking-tight">dina kontor</h2>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/20 via-subtle/5 to-transparent" />
+            </div>
+            <div className="grid-2 gap-12">
                 {memberships.map(({ space }: any) => (
-                    <Link key={space.id} href={`/spaces/${space.id}`} className="card card-hover p-6 group">
-                        <div className="row-between mb-8 pb-3 border-b border-subtle/10">
-                            <h3 className="font-medium text-lg text-bright tracking-tight group-hover:text-primary transition-colors">
-                                <span className="text-primary opacity-30 mr-1">#</span>{space.name.toLowerCase()}
+                    <Link key={space.id} href={`/spaces/${space.id}`} className="card card-hover !p-8 group overflow-hidden">
+                        <div className="flex items-center justify-between mb-10">
+                            <h3 className="font-medium text-xl text-bright tracking-tight group-hover:text-primary transition-colors">
+                                <span className="text-secondary opacity-20 mr-1 italic font-serif">#</span>{space.name.toLowerCase()}
                             </h3>
-                            <div className="text-[10px] text-muted font-black opacity-30 tracking-widest">{space._count.members} noder</div>
+                            <div className="text-[9px] text-muted font-black opacity-30 tracking-[0.3em] uppercase">{space._count.members} noder</div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-[9px] text-muted uppercase tracking-[0.2em] font-black">
-                            <div className="bg-tertiary/20 p-3 rounded-lg border border-subtle/5">
-                                <div className="text-secondary mb-1 text-sm font-medium">{space._count.channels}</div>
-                                kanaler
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="bg-white/[0.02] p-4 rounded-xl border border-white/[0.03] group-hover:border-primary/10 transition-colors">
+                                <div className="text-secondary group-hover:text-primary mb-1 text-sm font-medium transition-colors font-mono">{space._count.channels}</div>
+                                <div className="text-[9px] text-muted uppercase tracking-widest font-black opacity-40">kanaler</div>
                             </div>
-                            <div className="bg-tertiary/20 p-3 rounded-lg border border-subtle/5">
-                                <div className="text-secondary mb-1 text-sm font-medium">{space._count.tasks || 0}</div>
-                                uppdrag
+                            <div className="bg-white/[0.02] p-4 rounded-xl border border-white/[0.03] group-hover:border-primary/10 transition-colors">
+                                <div className="text-secondary group-hover:text-primary mb-1 text-sm font-medium transition-colors font-mono">{space._count.tasks || 0}</div>
+                                <div className="text-[9px] text-muted uppercase tracking-widest font-black opacity-40">uppdrag</div>
                             </div>
                         </div>
                     </Link>

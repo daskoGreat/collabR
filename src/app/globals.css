@@ -78,8 +78,8 @@
 
   --text-primary: #d4d4d8;
   --text-secondary: #7a7a88;
-  --text-muted: #44444f;
-  --text-ghost: rgba(212, 212, 216, 0.3);
+  --text-muted: #33333e;
+  --text-ghost: rgba(212, 212, 216, 0.2);
   --text-bright: #e8e8f0;
 
   /* Neon accents */
@@ -469,6 +469,21 @@ textarea.input {
   background: var(--bg-card-hover);
   border-color: var(--border-active);
   box-shadow: var(--shadow-sm), var(--shadow-neon);
+}
+
+.card-minimal {
+  background: transparent;
+  border: none;
+  border-left: 2px solid var(--border-subtle);
+  border-radius: 0;
+  padding: var(--space-4) var(--space-6);
+  box-shadow: none;
+  transition: all var(--transition-normal);
+}
+
+.card-minimal:hover {
+  background: var(--bg-glass);
+  border-left-color: var(--border-active);
 }
 
 .card:active {
