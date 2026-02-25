@@ -55,22 +55,21 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
     });
 
     return (
-        <div className="content-area-focused px-8 pb-32">
-            {/* 🏗️ HEADER CONTAINER (COMPONENT LOCKED) */}
+        <div className="max-w-[1400px] mx-auto px-12 pb-32">
+            {/* 🏗️ HEADER CONTAINER (STRICT BLUEPRINT LOCK) */}
             <div className="mb-48 p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl overflow-hidden">
-                <div className="bg-black/20 rounded-[2.8rem] p-10 flex flex-col md:flex-row md:items-end justify-between gap-12">
+                <div className="bg-black/20 rounded-[2.8rem] p-10 flex flex-col gap-10">
                     <header className="animate-in fade-in slide-in-from-left-4 duration-1000">
                         <div className="flex items-center gap-4 mb-6 opacity-30">
-                            <div className="w-2 h-[1px] bg-primary/60" />
                             <span className="text-[10px] uppercase tracking-[0.8em] font-black text-muted">operativt:navet</span>
                         </div>
-                        <h1 className="text-4xl font-extralight text-bright lowercase tracking-tighter leading-tight">
-                            välkommen, <span className="font-normal text-primary/80">{user.name.split(" ")[0].toLowerCase()}</span>.
+                        <h1 className="text-4xl font-bold text-bright lowercase tracking-tighter leading-tight">
+                            välkommen, <span className="text-primary/80">{user.name.split(" ")[0].toLowerCase()}</span>.
                         </h1>
                     </header>
 
-                    {/* TAB NAVIGATION (ANCHORED & INTERACTIVE) */}
-                    <nav className="tabs tabs-subtle border-white/[0.04] flex items-center gap-4 bg-white/[0.02] p-2 rounded-full border border-white/[0.02]">
+                    {/* TAB NAVIGATION (STACKED AS PER BLUEPRINT) */}
+                    <nav className="relative z-50 tabs tabs-subtle flex flex-wrap items-center gap-4 p-1 rounded-full border border-white/[0.02] bg-white/[0.01] w-fit">
                         <Link href="?view=dashboard" className={`tab-pill ${view === "dashboard" ? "active" : ""}`}>
                             överblick
                         </Link>
@@ -87,10 +86,10 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                 </div>
             </div>
 
-            {/* 🧱 2-ZONE ARCHITECTURE (SACRED) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-32 items-start">
-                {/* ⬅️ LEFT COLUMN: PRIMARY CONTENT FLOW */}
-                <main>
+            {/* 🧱 2-ZONE ARCHITECTURE (STRICT 8-4 BLUEPRINT) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-32 items-start">
+                {/* ⬅️ LEFT COLUMN: PRIMARY CONTENT FLOW (8/12) */}
+                <main className="lg:col-span-8">
                     {view === "dashboard" && (
                         <DashboardView
                             user={user}
@@ -105,9 +104,9 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                     {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
                 </main>
 
-                {/* ➡️ RIGHT COLUMN: SYSTEM ZONE (COMPONENT LOCKED) */}
-                <aside className="space-y-32 order-last lg:order-none lg:sticky lg:top-8 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
-                    {/* NÄRVARO PANEL */}
+                {/* ➡️ RIGHT COLUMN: SYSTEM ZONE (4/12 - COMPONENT LOCKED) */}
+                <aside className="lg:col-span-4 space-y-32 order-last lg:order-none lg:sticky lg:top-8 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
+                    {/* PANEL 1: NÄRVARO */}
                     <section className="p-1 rounded-[2.5rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl overflow-hidden">
                         <div className="bg-black/20 rounded-[2.3rem] overflow-hidden">
                             <div className="p-8 border-b border-white/[0.04] bg-white/[0.01] flex items-center justify-between">
@@ -136,7 +135,30 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                         </div>
                     </section>
 
-                    {/* TELEMETRI PANEL */}
+                    {/* PANEL 2: SYSTEMSTATUS (NEW) */}
+                    <section className="p-1 rounded-[2.5rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-xl overflow-hidden">
+                        <div className="bg-black/20 rounded-[2.3rem] overflow-hidden">
+                            <div className="p-8 border-b border-white/[0.04] bg-white/[0.01] flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <Activity className="w-3 h-3 text-muted" />
+                                    <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">systemstatus</h3>
+                                </div>
+                                <span className="text-[8px] opacity-20 font-mono uppercase tracking-widest">aktiv</span>
+                            </div>
+                            <div className="p-8 grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <div className="text-[16px] font-light text-secondary">99.9%</div>
+                                    <div className="text-[8px] uppercase tracking-[0.2em] text-muted opacity-40">uptime</div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-[16px] font-light text-secondary">12ms</div>
+                                    <div className="text-[8px] uppercase tracking-[0.2em] text-muted opacity-40">latens</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* PANEL 3: TELEMETRI */}
                     <section className="p-1 rounded-[2.5rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-xl overflow-hidden">
                         <div className="bg-black/20 rounded-[2.3rem] overflow-hidden">
                             <div className="p-8 border-b border-white/[0.04] bg-white/[0.01] flex items-center gap-4">
@@ -159,10 +181,6 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                             </div>
                         </div>
                     </section>
-
-                    <div className="p-12 text-[9px] text-muted/5 uppercase tracking-[0.8em] font-black text-center mt-20 italic">
-                        system:active
-                    </div>
                 </aside>
             </div>
         </div>
@@ -184,7 +202,7 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-32 pb-48 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+        <div className="space-y-48 pb-48 animate-in fade-in slide-in-from-bottom-6 duration-1000">
             {/* CARD 1: NUVARANDE FOKUS (PRIMARY OPERATIONAL) */}
             <section className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl overflow-hidden">
                 <div className="bg-black/20 rounded-[2.8rem] overflow-hidden">
