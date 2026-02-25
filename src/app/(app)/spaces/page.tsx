@@ -65,7 +65,7 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                     </h1>
                 </header>
 
-                <nav className="navet-nav-group w-fit">
+                <nav className="relative z-[100] navet-nav-group w-fit">
                     <Link href="?view=dashboard" className={`navet-nav-tab ${view === "dashboard" ? "active" : ""}`}>
                         överblick
                     </Link>
