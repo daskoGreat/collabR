@@ -22,7 +22,8 @@ import {
     Building2
 } from "lucide-react";
 
-export default async function NavetPage({ searchParams }: { searchParams: { view?: string } }) {
+export default async function NavetPage(props: { searchParams: Promise<{ view?: string }> }) {
+    const searchParams = await props.searchParams;
     const session = await auth();
     if (!session?.user) return null;
     const view = searchParams.view || "dashboard";
@@ -66,16 +67,16 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                 </header>
 
                 <nav className="relative z-[100] navet-nav-group w-fit">
-                    <Link href="?view=dashboard" className={`navet-nav-tab ${view === "dashboard" ? "active" : ""}`}>
+                    <Link href="/spaces?view=dashboard" className={`navet-nav-tab ${view === "dashboard" ? "active" : ""}`}>
                         överblick
                     </Link>
-                    <Link href="?view=collaborations" className={`navet-nav-tab ${view === "collaborations" ? "active" : ""}`}>
+                    <Link href="/spaces?view=collaborations" className={`navet-nav-tab ${view === "collaborations" ? "active" : ""}`}>
                         samarbeten
                     </Link>
-                    <Link href="?view=pulse" className={`navet-nav-tab ${view === "pulse" ? "active" : ""}`}>
+                    <Link href="/spaces?view=pulse" className={`navet-nav-tab ${view === "pulse" ? "active" : ""}`}>
                         puls
                     </Link>
-                    <Link href="?view=offices" className={`navet-nav-tab ${view === "offices" ? "active" : ""}`}>
+                    <Link href="/spaces?view=offices" className={`navet-nav-tab ${view === "offices" ? "active" : ""}`}>
                         kontor
                     </Link>
                 </nav>
