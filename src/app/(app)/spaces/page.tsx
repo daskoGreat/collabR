@@ -54,90 +54,112 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
     });
 
     return (
-        <div className="content-area-focused">
-            <header className="mb-48 px-8 animate-in fade-in slide-in-from-top-4 duration-1000">
-                <div className="flex items-center gap-4 mb-12 opacity-30">
+        <div className="content-area-focused px-8 pb-32">
+            {/* HERO ANCHOR (LEFT ALIGNED) */}
+            <header className="mb-32 animate-in fade-in slide-in-from-top-4 duration-1000">
+                <div className="flex items-center gap-4 mb-8 opacity-30">
                     <div className="w-2 h-[1px] bg-primary/60" />
                     <span className="text-[10px] uppercase tracking-[0.8em] font-black text-muted text-glow-subtle">operativt:navet</span>
                 </div>
-                <h1 className="text-6xl font-extralight text-bright lowercase tracking-tighter mb-8 leading-[0.9] max-w-xl">
+                <h1 className="text-5xl font-extralight text-bright lowercase tracking-tighter leading-tight max-w-xl">
                     välkommen, <span className="font-normal text-primary/80">{user.name.split(" ")[0].toLowerCase()}</span>.
                 </h1>
             </header>
 
-            <div className="mb-24 px-4">
-                <div className="tabs tabs-subtle mb-10 border-b border-white/[0.02]">
-                    <Link href="?view=dashboard" className={`tab pb-4 ${view === "dashboard" ? "active" : "opacity-30"}`}>
+            {/* TAB NAVIGATION (ANCHORED) */}
+            <div className="mb-48">
+                <div className="tabs tabs-subtle border-b border-white/[0.04] inline-flex">
+                    <Link href="?view=dashboard" className={`tab pb-4 ${view === "dashboard" ? "active opacity-100" : "opacity-30"}`}>
                         överblick
                     </Link>
-                    <Link href="?view=collaborations" className={`tab pb-4 ${view === "collaborations" ? "active" : "opacity-30"}`}>
+                    <Link href="?view=collaborations" className={`tab pb-4 ${view === "collaborations" ? "active opacity-100" : "opacity-30"}`}>
                         samarbeten
                     </Link>
-                    <Link href="?view=pulse" className={`tab pb-4 ${view === "pulse" ? "active" : "opacity-30"}`}>
+                    <Link href="?view=pulse" className={`tab pb-4 ${view === "pulse" ? "active opacity-100" : "opacity-30"}`}>
                         puls
                     </Link>
-                    <Link href="?view=offices" className={`tab pb-4 ${view === "offices" ? "active" : "opacity-30"}`}>
+                    <Link href="?view=offices" className={`tab pb-4 ${view === "offices" ? "active opacity-100" : "opacity-30"}`}>
                         kontor
                     </Link>
                 </div>
             </div>
 
-            <main className="px-4">
-                {view === "dashboard" && (
-                    <DashboardView
-                        user={user}
-                        spaceIds={spaceIds}
-                        mentions={user.mentions}
-                        memberships={user.spaceMemberships}
-                        onlineUsers={onlineUsers}
-                    />
-                )}
-                {view === "collaborations" && <CollaborationsView user={user} />}
-                {view === "pulse" && <PulseView spaceIds={spaceIds} />}
-                {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
-            </main>
+            {/* 🧱 2-ZONE ARCHITECTURE (SACRED) */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-32 items-start">
+                {/* ⬅️ LEFT COLUMN: PRIMARY CONTENT FLOW */}
+                <main>
+                    {view === "dashboard" && (
+                        <DashboardView
+                            user={user}
+                            spaceIds={spaceIds}
+                            mentions={user.mentions}
+                            memberships={user.spaceMemberships}
+                            onlineUsers={onlineUsers}
+                        />
+                    )}
+                    {view === "collaborations" && <CollaborationsView user={user} />}
+                    {view === "pulse" && <PulseView spaceIds={spaceIds} />}
+                    {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
+                </main>
 
-            {/* 3️⃣ INTEGRATED STATUS FOOTER (TERTIARY) */}
-            <footer className="mt-48 pt-32 border-t border-white/[0.02] opacity-10 hover:opacity-100 transition-opacity duration-1000 px-4 pb-20">
-                <div className="flex flex-col md:flex-row gap-16 md:items-start justify-between">
-                    <div className="space-y-6 flex-1">
-                        <h2 className="text-[9px] uppercase tracking-[0.5em] font-black text-muted">aktiva noder i systemet</h2>
-                        <div className="flex flex-wrap gap-x-12 gap-y-6">
-                            {onlineUsers.length === 0 ? (
-                                <span className="text-[10px] text-muted font-mono italic opacity-40">inga andra aktiva noder identifierade.</span>
-                            ) : (
-                                onlineUsers.map(u => (
-                                    <div key={u.id} className="flex items-center gap-3 group px-4 py-2 rounded-full border border-white/[0.03] bg-white/[0.01]">
-                                        <div className="relative">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                            <div className="absolute inset-0 animate-ping bg-success rounded-full opacity-20" />
-                                        </div>
-                                        <span className="text-[10px] text-muted group-hover:text-bright transition-colors uppercase tracking-[0.2em] font-medium">{u.name.toLowerCase()}</span>
+                {/* ➡️ RIGHT COLUMN: SYSTEM ZONE (RECESSED) */}
+                <aside className="space-y-24 order-last lg:order-none lg:sticky lg:top-8 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
+                    {/* NÄRVARO PANEL */}
+                    <div className="space-y-12">
+                        <div className="flex items-center gap-4 ml-4 opacity-20">
+                            <Users className="w-3 h-3" />
+                            <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">närvaro</h3>
+                        </div>
+                        <div className="p-1 rounded-[2.5rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                            <div className="bg-black/20 rounded-[2.3rem] p-8 space-y-6">
+                                {onlineUsers.length === 0 ? (
+                                    <div className="text-[10px] text-muted font-mono italic opacity-20 py-4 px-2">inga andra aktiva noder identifierade.</div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {onlineUsers.map(u => (
+                                            <div key={u.id} className="flex items-center gap-4 group">
+                                                <div className="relative">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                                    <div className="absolute inset-0 animate-ping bg-success rounded-full opacity-20" />
+                                                </div>
+                                                <span className="text-[10px] text-muted group-hover:text-bright transition-colors uppercase tracking-[0.3em] font-medium">{u.name.toLowerCase()}</span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-6 max-w-xs w-full">
-                        <h2 className="text-[9px] uppercase tracking-[0.5em] font-black text-muted">operativ telemetri</h2>
-                        <div className="space-y-4 text-[9px] uppercase tracking-[0.3em] font-black text-muted/40 font-mono">
-                            <div className="flex justify-between items-center border-b border-white/[0.02] pb-2">
-                                <span className="flex items-center gap-2"><Globe className="w-3 h-3 opacity-20" /> nätverk</span>
-                                <span className="text-success/50">krypterad:v3</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-white/[0.02] pb-2">
-                                <span className="flex items-center gap-2"><ShieldCheck className="w-3 h-3 opacity-20" /> integritet</span>
-                                <span className="text-primary/40 font-black">verified</span>
-                            </div>
-                            <div className="flex justify-between items-center opacity-30">
-                                <span className="flex items-center gap-2"><Cpu className="w-3 h-3 opacity-20" /> synkronisering</span>
-                                <span>realtime:active</span>
+                    {/* TELEMETRI PANEL */}
+                    <div className="space-y-12 pt-12 border-t border-white/[0.02]">
+                        <div className="flex items-center gap-4 ml-4 opacity-20">
+                            <Fingerprint className="w-3 h-3" />
+                            <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">telemetri</h3>
+                        </div>
+                        <div className="p-1 rounded-[2.5rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-xl">
+                            <div className="bg-black/20 rounded-[2.3rem] p-8 space-y-4 text-[9px] uppercase tracking-[0.4em] font-black text-muted/40 font-mono">
+                                <div className="flex justify-between items-center border-b border-white/[0.02] pb-3">
+                                    <span className="flex items-center gap-2"><Globe className="w-3 h-3 opacity-20" /> nätverk</span>
+                                    <span className="text-success/50">kryp:v3</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-white/[0.02] pb-3">
+                                    <span className="flex items-center gap-2"><ShieldCheck className="w-3 h-3 opacity-20" /> status</span>
+                                    <span className="text-primary/40">klar</span>
+                                </div>
+                                <div className="flex justify-between items-center opacity-30 pt-1">
+                                    <span className="flex items-center gap-2"><Cpu className="w-3 h-3 opacity-20" /> synk</span>
+                                    <span>aktiv</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </footer>
+
+                    <div className="p-12 text-[9px] text-muted/10 uppercase tracking-[0.8em] font-black text-center mt-20">
+                        system:active:stable
+                    </div>
+                </aside>
+            </div>
         </div>
     );
 }
@@ -157,7 +179,7 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-48 pb-48 max-w-2xl px-4">
+        <div className="space-y-48 pb-48">
             {/* 1️⃣ PRIMARY OPERATIONAL ZONE (ACT) */}
             <section className="space-y-32 animate-in fade-in slide-in-from-bottom-6 duration-1000">
                 <div className="flex items-center gap-8 mb-4">
@@ -342,7 +364,7 @@ async function PulseView({ spaceIds }: any) {
     });
 
     return (
-        <div className="space-y-64 animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-2xl px-4 pb-48">
+        <div className="space-y-64 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-48">
             <section className="space-y-16">
                 <div className="flex items-center gap-8 mb-4">
                     <h2 className="text-3xl font-extralight text-bright/90 lowercase tracking-tighter">hjälp-puls</h2>
@@ -425,24 +447,22 @@ function OfficesView({ memberships }: any) {
     );
 }
 
-function NavetSkeleton({ view }: { view: string }) {
+function NavetSkeleton() {
     return (
-        <div className="space-y-48 animate-in fade-in duration-500 max-w-2xl">
-            <div className="space-y-12">
-                <Skeleton className="w-64 h-8 mb-16 opacity-10" />
-                <div className="space-y-8">
-                    <Skeleton className="w-full h-32 rounded-3xl opacity-5" />
-                    <Skeleton className="w-full h-32 rounded-3xl opacity-5" />
-                </div>
-            </div>
-            {view === "dashboard" && (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-32 animate-in fade-in duration-500">
+            <div className="space-y-48">
                 <div className="space-y-12">
-                    <Skeleton className="w-64 h-6 mb-16 opacity-10" />
+                    <Skeleton className="w-64 h-8 opacity-10" />
                     <div className="space-y-8">
-                        <Skeleton className="w-full h-24 rounded-3xl opacity-5" />
+                        <Skeleton className="w-full h-48 rounded-[3rem] opacity-5" />
+                        <Skeleton className="w-full h-48 rounded-[3rem] opacity-5" />
                     </div>
                 </div>
-            )}
+            </div>
+            <aside className="space-y-24 opacity-5">
+                <Skeleton className="w-full h-64 rounded-[2.5rem]" />
+                <Skeleton className="w-full h-64 rounded-[2.5rem]" />
+            </aside>
         </div>
     );
 }
