@@ -45,7 +45,11 @@
   --space-16: 6rem;
   --space-20: 8rem;
   --space-24: 12rem;
-  --space-pulse: var(--space-16);
+  --space-32: 16rem;
+  --space-48: 24rem;
+  --space-pulse: var(--space-20);
+  --harmony-gap: var(--space-32);
+  --harmony-line: rgba(255, 255, 255, 0.03);
 
   /* Layout Spacing */
   --space-inner: var(--space-4);
