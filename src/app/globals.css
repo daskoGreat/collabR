@@ -42,6 +42,10 @@
   --space-8: 2.4rem;
   --space-10: 3.2rem;
   --space-12: 4rem;
+  --space-16: 6rem;
+  --space-20: 8rem;
+  --space-24: 12rem;
+  --space-pulse: var(--space-16);
 
   /* Layout Spacing */
   --space-inner: var(--space-4);
@@ -1003,8 +1007,16 @@ button.sidebar-link {
 
 .content-area {
   flex: 1;
-  padding: var(--space-5);
+  padding: var(--space-8);
   overflow-y: auto;
+}
+
+.content-area-focused {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--space-8) var(--space-inner);
+  padding-bottom: var(--space-24);
 }
 
 /* ── Page layouts ────────────────────────── */
