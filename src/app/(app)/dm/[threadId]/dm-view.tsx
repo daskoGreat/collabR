@@ -516,8 +516,9 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                             <input
                                 ref={inputRef}
                                 type="text"
-                                className="input w-full !pl-14 !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
-                                placeholder={`tala till ${title.toLowerCase()}...`}
+                                className="input w-full !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
+                                style={{ paddingLeft: '3.5rem' }}
+                                placeholder={`skicka till ${title.toLowerCase()}...`}
                                 value={input}
                                 onChange={(e) => handleInputChange(e.target.value)}
                                 onKeyDown={handleKeyDown}
