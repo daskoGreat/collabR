@@ -55,13 +55,13 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
 
     return (
         <div className="content-area-focused">
-            <header className="mb-32 px-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-                <div className="flex items-center gap-4 mb-8 opacity-30">
-                    <div className="w-1.5 h-[1px] bg-primary" />
-                    <span className="text-[9px] uppercase tracking-[0.6em] font-black text-muted text-glow-subtle">terminal:navet</span>
+            <header className="mb-48 px-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+                <div className="flex items-center gap-4 mb-12 opacity-30">
+                    <div className="w-2 h-[1px] bg-primary/60" />
+                    <span className="text-[10px] uppercase tracking-[0.8em] font-black text-muted text-glow-subtle">operativt:navet</span>
                 </div>
-                <h1 className="text-5xl font-extralight text-bright lowercase tracking-tighter mb-6 leading-tight">
-                    välkommen, <span className="font-normal text-primary">{user.name.split(" ")[0].toLowerCase()}</span>.
+                <h1 className="text-6xl font-extralight text-bright lowercase tracking-tighter mb-8 leading-[0.9] max-w-xl">
+                    välkommen, <span className="font-normal text-primary/80">{user.name.split(" ")[0].toLowerCase()}</span>.
                 </h1>
             </header>
 
@@ -157,97 +157,112 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-[var(--space-pulse)] pb-32 max-w-2xl">
-            {/* 1️⃣ PRIMARY: OPERATIVE FOCUS (ACT) */}
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="flex items-center gap-6 mb-20">
-                    <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">prioriterad uppmärksamhet</h2>
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
+        <div className="space-y-48 pb-48 max-w-2xl px-4">
+            {/* 1️⃣ PRIMARY OPERATIONAL ZONE (ACT) */}
+            <section className="space-y-32 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <div className="flex items-center gap-8 mb-4">
+                    <h2 className="text-3xl font-extralight text-bright/90 lowercase tracking-tighter">nuvarande fokus</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent" />
                 </div>
 
-                <div className="space-y-24">
+                <div className="space-y-16">
+                    {/* ZONE A: URGENT / ATTENTION */}
                     <div className="space-y-12">
-                        <h3 className="text-[10px] uppercase tracking-[0.5em] font-black text-muted/10 ml-6 mb-8 mt-4">händelser & omnämnanden</h3>
-                        <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                            {mentions.length === 0 ? (
-                                <div className="py-24 text-center">
-                                    <div className="text-[11px] text-muted italic opacity-10 font-serif">systemet vilar. inga nya omnämnanden.</div>
-                                </div>
-                            ) : (
-                                <div className="space-y-1">
-                                    {mentions.map((m: any) => (
-                                        <Link key={m.id} href={
-                                            m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
-                                                m.directMessage ? `/dm/${m.directMessage.threadId}` :
-                                                    m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
-                                        } className="group flex flex-col gap-2 p-6 rounded-[2rem] transition-all hover:bg-white/[0.015]">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all shadow-[0_0_6px_rgba(var(--primary-rgb),0.15)]" />
-                                                <span className="text-[10px] text-primary/30 font-black uppercase tracking-[0.3em] group-hover:text-primary transition-colors">
-                                                    {m.message ? "kanal" : m.directMessage ? "privat" : "hjälp"}
-                                                </span>
-                                                <span className="text-[9px] text-muted font-mono opacity-10 italic ml-auto uppercase tracking-tighter">
-                                                    {formatDistanceToNow(new Date(m.createdAt), { locale: sv })}
-                                                </span>
-                                            </div>
-                                            <div className="text-xl font-light text-secondary group-hover:text-bright transition-colors pl-6 leading-relaxed">
-                                                {m.message && <span>omnämnande i <strong className="font-medium text-bright/80">#{m.message.channel.name}</strong></span>}
-                                                {m.directMessage && <span>nytt svar i din direktchatt</span>}
-                                                {m.post && <span>nytt svar i <strong className="font-medium text-bright/80">{m.post.title.toLowerCase()}</strong></span>}
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
+                        <div className="flex items-center gap-4 ml-2 opacity-20">
+                            <Bell className="w-3 h-3" />
+                            <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">notiser & omnämnanden</h3>
+                        </div>
+                        <div className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                            <div className="bg-black/20 rounded-[2.8rem] overflow-hidden">
+                                {mentions.length === 0 ? (
+                                    <div className="py-24 text-center">
+                                        <div className="text-[11px] text-muted italic opacity-10 font-serif">systemet vilar. inga nya notiser.</div>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-white/[0.02]">
+                                        {mentions.map((m: any) => (
+                                            <Link key={m.id} href={
+                                                m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
+                                                    m.directMessage ? `/dm/${m.directMessage.threadId}` :
+                                                        m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
+                                            } className="group flex flex-col gap-2 p-8 transition-all hover:bg-white/[0.015]">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary transition-all shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)]" />
+                                                    <span className="text-[10px] text-primary/40 font-black uppercase tracking-[0.4em] group-hover:text-primary transition-colors">
+                                                        {m.message ? "kanal" : m.directMessage ? "privat" : "hjälp"}
+                                                    </span>
+                                                    <span className="text-[9px] text-muted font-mono opacity-10 italic ml-auto uppercase tracking-tighter">
+                                                        {formatDistanceToNow(new Date(m.createdAt), { locale: sv })}
+                                                    </span>
+                                                </div>
+                                                <div className="text-2xl font-extralight text-secondary group-hover:text-bright transition-colors pl-7 leading-relaxed tracking-tight">
+                                                    {m.message && <span>omnämnande i <strong className="font-medium text-bright/80">#{m.message.channel.name}</strong></span>}
+                                                    {m.directMessage && <span>nytt svar i din direktchatt</span>}
+                                                    {m.post && <span>nytt svar i <strong className="font-medium text-bright/80">{m.post.title.toLowerCase()}</strong></span>}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
+                    {/* ZONE B: SUPPORT / HELP */}
                     <div className="space-y-12">
-                        <h3 className="text-[10px] uppercase tracking-[0.5em] font-black text-muted/10 ml-6 mb-8">hjälp sökes</h3>
-                        <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                            {latestHelp.length === 0 ? (
-                                <div className="py-24 text-center">
-                                    <div className="text-[10px] text-muted italic opacity-10 uppercase tracking-widest">inga öppna förfrågningar.</div>
-                                </div>
-                            ) : (
-                                <div className="space-y-1">
-                                    {latestHelp.map((post: any) => (
-                                        <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="group flex flex-col gap-3 p-8 rounded-[2rem] transition-all hover:bg-white/[0.015]">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-accent-warning/40 group-hover:bg-accent-warning transition-all shadow-[0_0_6px_rgba(var(--accent-warning-rgb),0.15)]" />
-                                                <span className="text-[10px] text-accent-warning/30 font-black uppercase tracking-[0.3em] group-hover:text-accent-warning transition-colors">#{post.space.name}</span>
-                                            </div>
-                                            <div className="text-2xl font-extralight text-secondary group-hover:text-bright transition-colors pl-6 leading-tight tracking-tight">{post.title.toLowerCase()}</div>
-                                            <div className="text-[10px] text-muted uppercase tracking-[0.3em] opacity-10 pl-6 italic font-mono">postad av <span className="font-bold">{post.user.name.toLowerCase()}</span></div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
+                        <div className="flex items-center gap-4 ml-2 opacity-20">
+                            <HelpCircle className="w-3 h-3" />
+                            <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">begäran om stöd</h3>
+                        </div>
+                        <div className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                            <div className="bg-black/20 rounded-[2.8rem] overflow-hidden">
+                                {latestHelp.length === 0 ? (
+                                    <div className="py-24 text-center">
+                                        <div className="text-[10px] text-muted italic opacity-10 uppercase tracking-widest">inga öppna förfrågningar just nu.</div>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-white/[0.02]">
+                                        {latestHelp.map((post: any) => (
+                                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="group flex flex-col gap-4 p-10 transition-all hover:bg-white/[0.015]">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-2 h-2 rounded-full bg-accent-warning/40 group-hover:bg-accent-warning transition-all shadow-[0_0_8px_rgba(var(--accent-warning-rgb),0.3)]" />
+                                                    <span className="text-[10px] text-accent-warning/40 font-black uppercase tracking-[0.4em] group-hover:text-accent-warning transition-colors">#{post.space.name}</span>
+                                                </div>
+                                                <div className="text-3xl font-extralight text-secondary group-hover:text-bright transition-colors pl-7 leading-[1.1] tracking-tighter">{post.title.toLowerCase()}</div>
+                                                <div className="text-[10px] text-muted uppercase tracking-[0.4em] opacity-10 pl-7 italic font-mono">postad av <span className="font-bold">{post.user.name.toLowerCase()}</span></div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* 2️⃣ SECONDARY: MONITORING LAYER (AWARE) */}
-            <section className="opacity-20 hover:opacity-100 transition-opacity duration-1000">
-                <div className="flex items-center gap-6 mb-20">
-                    <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">kontextuell medvetenhet</h2>
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/5 via-subtle/2 to-transparent" />
+            {/* 2️⃣ SECONDARY AWARENESS ZONE (WATCH) */}
+            <section className="pt-32 border-t border-white/[0.03] animate-in fade-in duration-1000 delay-300">
+                <div className="flex items-center gap-8 mb-24 opacity-40">
+                    <h2 className="text-3xl font-extralight text-bright/60 lowercase tracking-tighter">perifer blick</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/10 via-subtle/5 to-transparent" />
                 </div>
 
                 <div className="space-y-12">
-                    <h3 className="text-[10px] uppercase tracking-[0.5em] font-black text-muted/10 ml-6 mb-8">insikter & händelser</h3>
-                    <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                        <div className="space-y-1">
+                    <div className="flex items-center gap-4 ml-6 opacity-20">
+                        <Activity className="w-3 h-3" />
+                        <h3 className="text-[10px] uppercase tracking-[0.6em] font-black text-muted">systemflöde & insikter</h3>
+                    </div>
+                    <div className="p-1 rounded-[3.5rem] border border-white/[0.02] bg-white/[0.003] opacity-40 hover:opacity-100 transition-all duration-700">
+                        <div className="bg-black/10 rounded-[3.3rem] overflow-hidden divide-y divide-white/[0.01]">
                             {latestFeed.length === 0 ? (
-                                <div className="py-24 text-center text-[11px] text-muted italic opacity-10 font-serif">inga nya insikter i flödet.</div>
+                                <div className="py-24 text-center text-[11px] text-muted italic opacity-10 font-serif">inga nya händelser analyserade.</div>
                             ) : (
                                 latestFeed.map((post: any) => (
-                                    <Link key={post.id} href={`/feed/${post.id}`} className="block p-8 rounded-[2rem] transition-all hover:bg-white/[0.015] group">
-                                        <div className="text-[15px] text-secondary group-hover:text-bright transition-colors leading-relaxed italic mb-4 font-serif opacity-80">{post.content}</div>
-                                        <div className="flex items-center justify-between opacity-10 pl-2">
-                                            <span className="text-[9px] font-black text-secondary uppercase tracking-[0.4em]">{post.user.name.toLowerCase()}</span>
-                                            <span className="text-[9px] text-muted font-mono">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                                    <Link key={post.id} href={`/feed/${post.id}`} className="block p-10 transition-all hover:bg-white/[0.01] group">
+                                        <div className="text-[17px] text-secondary group-hover:text-bright transition-colors leading-[1.6] italic mb-6 font-serif opacity-70 group-hover:opacity-100">{post.content}</div>
+                                        <div className="flex items-center justify-between opacity-20 group-hover:opacity-40 transition-opacity pl-2">
+                                            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.5em]">{post.user.name.toLowerCase()}</span>
+                                            <span className="text-[9px] text-muted font-mono tracking-tighter uppercase">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan</span>
                                         </div>
                                     </Link>
                                 ))
@@ -275,14 +290,14 @@ async function CollaborationsView({ user }: any) {
     });
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl">
-            <div className="flex items-center gap-6 mb-20">
-                <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">pågående samarbeten</h2>
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/5 via-subtle/2 to-transparent" />
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-2xl px-4">
+            <div className="flex items-center gap-8 mb-24">
+                <h2 className="text-3xl font-extralight text-bright/90 lowercase tracking-tighter">pågående samarbeten</h2>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/10 via-subtle/2 to-transparent" />
             </div>
 
-            <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                <div className="space-y-1">
+            <div className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                <div className="bg-black/20 rounded-[2.8rem] overflow-hidden divide-y divide-white/[0.02]">
                     {threads.length === 0 ? (
                         <div className="py-24 text-center">
                             <div className="text-[11px] text-muted italic opacity-10 uppercase tracking-widest">inga aktiva samarbeten identifierade.</div>
@@ -295,12 +310,12 @@ async function CollaborationsView({ user }: any) {
                             const lastMsg = t.messages[0];
 
                             return (
-                                <Link key={t.id} href={`/dm/${t.id}`} className="group flex flex-col gap-4 p-8 rounded-[2rem] transition-all hover:bg-white/[0.015]">
-                                    <div className="flex items-center justify-between pb-4 border-b border-white/[0.02]">
+                                <Link key={t.id} href={`/dm/${t.id}`} className="group flex flex-col gap-4 p-10 transition-all hover:bg-white/[0.015]">
+                                    <div className="flex items-center justify-between pb-4 border-b border-white/[0.01]">
                                         <span className="font-light text-2xl text-secondary group-hover:text-bright lowercase tracking-tight transition-colors">{name}</span>
-                                        <span className="text-[9px] text-muted opacity-10 uppercase tracking-tighter italic font-mono">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })}</span>
+                                        <span className="text-[9px] text-muted opacity-10 uppercase tracking-tighter italic font-mono">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })} sedan</span>
                                     </div>
-                                    <div className="text-[15px] text-muted group-hover:text-secondary line-clamp-2 leading-relaxed italic opacity-60 group-hover:opacity-100 transition-all font-serif">
+                                    <div className="text-[16px] text-muted group-hover:text-secondary line-clamp-2 leading-relaxed italic opacity-70 group-hover:opacity-100 transition-all font-serif pl-2">
                                         {lastMsg ? lastMsg.content : "inga meddelanden än."}
                                     </div>
                                 </Link>
@@ -327,24 +342,24 @@ async function PulseView({ spaceIds }: any) {
     });
 
     return (
-        <div className="space-y-[var(--space-pulse)] animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl">
-            <section className="space-y-12">
-                <div className="flex items-center gap-6 mb-20">
-                    <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">hjälp-puls</h2>
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-accent-warning/10 via-accent-warning/5 to-transparent" />
+        <div className="space-y-64 animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-2xl px-4 pb-48">
+            <section className="space-y-16">
+                <div className="flex items-center gap-8 mb-4">
+                    <h2 className="text-3xl font-extralight text-bright/90 lowercase tracking-tighter">hjälp-puls</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-accent-warning/20 via-accent-warning/5 to-transparent" />
                 </div>
-                <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                    <div className="space-y-1">
+                <div className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                    <div className="bg-black/20 rounded-[2.8rem] overflow-hidden divide-y divide-white/[0.02]">
                         {helpPosts.map((post: any) => (
-                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="group flex flex-col gap-3 p-8 rounded-[2rem] transition-all hover:bg-white/[0.015]">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-accent-warning/40 group-hover:bg-accent-warning transition-all shadow-[0_0_6px_rgba(var(--accent-warning-rgb),0.15)]" />
-                                    <span className="text-[10px] text-accent-warning/30 font-black uppercase tracking-[0.3em] group-hover:text-accent-warning transition-colors">#{post.space.name}</span>
+                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="group flex flex-col gap-4 p-10 transition-all hover:bg-white/[0.015]">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-2 h-2 rounded-full bg-accent-warning/40 group-hover:bg-accent-warning transition-all shadow-[0_0_8px_rgba(var(--accent-warning-rgb),0.3)]" />
+                                    <span className="text-[10px] text-accent-warning/40 font-black uppercase tracking-[0.4em] group-hover:text-accent-warning transition-colors">#{post.space.name}</span>
                                 </div>
-                                <div className="text-2xl font-extralight text-secondary group-hover:text-bright transition-colors pl-6 leading-tight tracking-tight">{post.title.toLowerCase()}</div>
-                                <div className="text-[11px] text-secondary italic opacity-10 flex items-center justify-between pt-6 border-t border-white/[0.01] pl-6 font-mono">
+                                <div className="text-3xl font-extralight text-secondary group-hover:text-bright transition-colors pl-7 leading-[1.1] tracking-tighter">{post.title.toLowerCase()}</div>
+                                <div className="text-[11px] text-secondary italic opacity-20 flex items-center justify-between pt-8 mt-4 border-t border-white/[0.01] pl-7 font-mono">
                                     <span>postad av <span className="font-bold">{post.user.name.toLowerCase()}</span></span>
-                                    <span className="text-[9px] opacity-40">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan</span>
                                 </div>
                             </Link>
                         ))}
@@ -352,19 +367,19 @@ async function PulseView({ spaceIds }: any) {
                 </div>
             </section>
 
-            <section className="opacity-20 hover:opacity-100 transition-opacity duration-1000 pt-32 border-t border-white/[0.02]">
-                <div className="flex items-center gap-6 mb-20">
-                    <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">insikter & händelser</h2>
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/5 via-subtle/2 to-transparent" />
+            <section className="pt-48 border-t border-white/[0.02]">
+                <div className="flex items-center gap-8 mb-24 opacity-40">
+                    <h2 className="text-3xl font-extralight text-bright/60 lowercase tracking-tighter">flöde & insikter</h2>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-subtle/10 via-subtle/2 to-transparent" />
                 </div>
-                <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                    <div className="space-y-1">
+                <div className="p-1 rounded-[3.5rem] border border-white/[0.02] bg-white/[0.003]">
+                    <div className="bg-black/10 rounded-[3.3rem] overflow-hidden divide-y divide-white/[0.01]">
                         {feedPosts.map((post: any) => (
-                            <Link key={post.id} href={`/feed/${post.id}`} className="block p-8 rounded-[2rem] transition-all hover:bg-white/[0.015] group">
-                                <div className="text-[15px] text-secondary group-hover:text-bright transition-all mb-4 leading-relaxed italic opacity-80 font-serif">{post.content}</div>
-                                <div className="flex items-center justify-between opacity-10 pl-2">
-                                    <span className="text-[9px] font-black text-secondary uppercase tracking-[0.4em]">{post.user.name.toLowerCase()}</span>
-                                    <span className="text-[9px] text-muted font-mono">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
+                            <Link key={post.id} href={`/feed/${post.id}`} className="block p-10 transition-all hover:bg-white/[0.01] group">
+                                <div className="text-[17px] text-secondary group-hover:text-bright transition-all mb-6 leading-[1.6] italic opacity-70 group-hover:opacity-100 font-serif">{post.content}</div>
+                                <div className="flex items-center justify-between opacity-20 group-hover:opacity-40 transition-opacity pl-2">
+                                    <span className="text-[10px] font-black text-secondary uppercase tracking-[0.5em]">{post.user.name.toLowerCase()}</span>
+                                    <span className="text-[9px] text-muted font-mono tracking-tighter uppercase">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan</span>
                                 </div>
                             </Link>
                         ))}
@@ -377,29 +392,29 @@ async function PulseView({ spaceIds }: any) {
 
 function OfficesView({ memberships }: any) {
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl">
-            <div className="flex items-center gap-6 mb-20">
-                <h2 className="text-3xl font-extralight text-bright lowercase tracking-tighter">dina kontor</h2>
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-2xl px-4">
+            <div className="flex items-center gap-8 mb-24">
+                <h2 className="text-3xl font-extralight text-bright/90 lowercase tracking-tighter">dina kontor</h2>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent" />
             </div>
-            <div className="p-2 rounded-[2.5rem] border border-white/[0.03] bg-white/[0.005]">
-                <div className="space-y-1">
+            <div className="p-1 rounded-[3rem] border border-white/[0.04] bg-white/[0.008] backdrop-blur-3xl shadow-2xl">
+                <div className="bg-black/20 rounded-[2.8rem] overflow-hidden divide-y divide-white/[0.02]">
                     {memberships.map(({ space }: any) => (
-                        <Link key={space.id} href={`/spaces/${space.id}`} className="group block p-10 rounded-[2rem] transition-all hover:bg-white/[0.015] border border-transparent hover:border-white/[0.03]">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="font-extralight text-2xl text-secondary group-hover:text-bright tracking-tighter transition-colors">
+                        <Link key={space.id} href={`/spaces/${space.id}`} className="group block p-12 transition-all hover:bg-white/[0.015]">
+                            <div className="flex items-center justify-between mb-10">
+                                <h3 className="font-extralight text-3xl text-secondary group-hover:text-bright tracking-tighter transition-colors">
                                     <span className="text-primary/40 mr-2 italic font-serif">#</span>{space.name.toLowerCase()}
                                 </h3>
-                                <div className="text-[9px] text-muted font-black opacity-10 tracking-[0.4em] uppercase">{space._count.members} medlemmar</div>
+                                <div className="text-[10px] text-muted font-black opacity-10 tracking-[0.5em] uppercase">{space._count.members} medlemmar</div>
                             </div>
-                            <div className="flex gap-12 opacity-20 group-hover:opacity-60 transition-opacity font-mono">
-                                <div className="flex items-baseline gap-3">
-                                    <span className="text-lg font-light text-secondary">{space._count.channels}</span>
-                                    <span className="text-[9px] text-muted uppercase tracking-widest font-black opacity-40">kanaler</span>
+                            <div className="flex gap-16 opacity-30 group-hover:opacity-70 transition-opacity font-mono pl-2">
+                                <div className="flex items-baseline gap-4">
+                                    <span className="text-xl font-light text-secondary">{space._count.channels}</span>
+                                    <span className="text-[10px] text-muted uppercase tracking-[0.3em] font-black opacity-40">kanaler</span>
                                 </div>
-                                <div className="flex items-baseline gap-3">
-                                    <span className="text-lg font-light text-secondary">{space._count.tasks || 0}</span>
-                                    <span className="text-[9px] text-muted uppercase tracking-widest font-black opacity-40">uppdrag</span>
+                                <div className="flex items-baseline gap-4">
+                                    <span className="text-xl font-light text-secondary">{space._count.tasks || 0}</span>
+                                    <span className="text-[10px] text-muted uppercase tracking-[0.3em] font-black opacity-40">uppdrag</span>
                                 </div>
                             </div>
                         </Link>
