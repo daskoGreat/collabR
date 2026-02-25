@@ -19,7 +19,11 @@ export async function GET(req: NextRequest) {
     // Verify channel exists and user has access
     const channel = await prisma.channel.findUnique({
         where: { id: channelId },
-        select: { spaceId: true },
+        select: {
+            spaceId: true,
+            isClosed: true,
+            members: { where: { userId: session.user.id } }
+        },
     });
 
     if (!channel) {
@@ -33,6 +37,11 @@ export async function GET(req: NextRequest) {
             where: { userId_spaceId: { userId: session.user.id, spaceId: channel.spaceId } },
         });
         if (!member) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+        // If it's a closed channel, user MUST be a channel member
+        if (channel.isClosed && channel.members.length === 0) {
+            return NextResponse.json({ error: "forbidden" }, { status: 403 });
+        }
     }
 
     // If `after` is provided, fetch only messages newer than that message

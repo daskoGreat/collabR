@@ -1,4 +1,4 @@
-import { requireSpaceMember } from "@/lib/auth-guard";
+import { requireChannelAccess, requireSpaceMember } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ChatView from "./chat-view";
@@ -9,7 +9,7 @@ interface Props {
 
 export default async function ChatPage({ params }: Props) {
     const { id, channelId } = await params;
-    const user = await requireSpaceMember(id);
+    const user = await requireChannelAccess(channelId, id);
 
     const channel = await prisma.channel.findUnique({
         where: { id: channelId, spaceId: id },

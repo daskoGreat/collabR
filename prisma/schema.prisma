@@ -93,6 +93,7 @@ model User {
   feedPosts         FeedPost[]
   feedComments      FeedComment[]
   feedReactions     FeedReaction[]
+  channelMemberships ChannelMember[]
 
   @@index([email])
 }
@@ -158,13 +159,27 @@ model Channel {
   spaceId     String
   name        String
   description String?
+  isClosed    Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   space        Space                @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   messages     Message[]
   readReceipts ChannelReadReceipt[]
+  members      ChannelMember[]
 
   @@index([spaceId])
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
 }
 
 model DirectThread {

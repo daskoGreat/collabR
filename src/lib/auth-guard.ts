@@ -75,3 +75,26 @@ export async function requireSpaceRole(
 
     return user;
 }
+
+export async function requireChannelAccess(
+    channelId: string,
+    spaceId: string
+): Promise<SessionUser> {
+    const user = await requireSpaceMember(spaceId);
+
+    // Global admins bypass all checks
+    if (user.role === "ADMIN") return user;
+
+    const channel = await prisma.channel.findUnique({
+        where: { id: channelId },
+        select: { isClosed: true, members: { where: { userId: user.id } } }
+    });
+
+    if (!channel) redirect(`/spaces/${spaceId}`);
+
+    if (channel.isClosed && channel.members.length === 0) {
+        redirect(`/spaces/${spaceId}`);
+    }
+
+    return user;
+}

@@ -17,6 +17,12 @@ export async function GET() {
             space: {
                 include: {
                     channels: {
+                        where: {
+                            OR: [
+                                { isClosed: false },
+                                { members: { some: { userId } } }
+                            ]
+                        },
                         include: {
                             _count: {
                                 select: {

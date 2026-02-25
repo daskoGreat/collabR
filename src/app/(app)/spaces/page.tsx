@@ -67,8 +67,8 @@ export default async function NavetPage({ searchParams }: { searchParams: Promis
                         <Sparkles size={120} className="text-primary" />
                     </div>
                     <div className="relative z-10">
-                        <h1 className="text-3xl font-bold text-bright mb-3 lowercase tracking-tight">välkommen till navet, {user.name.split(" ")[0].toLowerCase()}.</h1>
-                        <p className="text-[15px] text-secondary max-w-2xl leading-relaxed italic opacity-80">
+                        <h1 className="text-3xl font-medium text-bright mb-3 lowercase tracking-tight opacity-90">välkommen till navet, {user.name.split(" ")[0].toLowerCase()}.</h1>
+                        <p className="text-[14px] text-secondary max-w-2xl leading-relaxed italic opacity-70">
                             detta är din centrala nod. här konvergerar händelser, samarbeten och insikter till en sammanhängande bild av verksamheten.
                         </p>
                     </div>
@@ -188,29 +188,28 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-20">
+        <div className="space-y-24 pb-12">
             {/* THINGS TO ACT ON */}
             <section>
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-glow-sm">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary/40 border border-primary/10">
                         <Sparkles size={18} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-bright lowercase tracking-tight">prioriterad uppmärksamhet</h2>
-                        <p className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold opacity-60">things to act on</p>
+                        <h2 className="text-2xl font-light text-bright lowercase tracking-tight">prioriterad uppmärksamhet</h2>
+                        <p className="text-[9px] text-muted uppercase tracking-[0.3em] font-black opacity-40">things to act on</p>
                     </div>
-                    <span className="h-[1px] flex-1 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent ml-4" />
+                    <span className="h-[1px] flex-1 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent ml-6" />
                 </div>
 
-                <div className="grid-2 gap-8">
+                <div className="grid-2 gap-10">
                     <div className="space-y-6">
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted px-1">senaste händelser & omnämnanden</h3>
+                        <h3 className="section-title px-1">senaste händelser & omnämnanden</h3>
                         <div className="stack gap-3">
                             {mentions.length === 0 ? (
-                                <div className="empty-state !py-12 bg-white/[0.02] border border-dashed border-subtle/50 rounded-lg">
-                                    <div className="empty-state-icon !text-2xl">⌨</div>
-                                    <div className="empty-state-title !text-sm">allt är läst</div>
-                                    <div className="empty-state-text !text-[10px]">du har inga nya händelser som kräver din uppmärksamhet.</div>
+                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
+                                    <div className="empty-state-icon !text-3xl opacity-10">⌨</div>
+                                    <div className="empty-state-title !text-xs opacity-50">allt är läst</div>
                                 </div>
                             ) : (
                                 mentions.map((m: any) => (
@@ -236,13 +235,12 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                     </div>
 
                     <div className="space-y-6">
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-muted px-1">puls: hjälp behövs</h3>
+                        <h3 className="section-title px-1">puls: hjälp behövs</h3>
                         <div className="stack gap-3">
                             {latestHelp.length === 0 ? (
-                                <div className="empty-state !py-12 bg-white/[0.02] border border-dashed border-subtle/50 rounded-lg">
-                                    <div className="empty-state-icon !text-2xl">⠿</div>
-                                    <div className="empty-state-title !text-sm">lugnt på puls</div>
-                                    <div className="empty-state-text !text-[10px]">inga aktiva hjälpförfrågningar i dina kontor just nå.</div>
+                                <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
+                                    <div className="empty-state-icon !text-3xl opacity-10">⠿</div>
+                                    <div className="empty-state-title !text-xs opacity-50">lugnt på puls</div>
                                 </div>
                             ) : (
                                 latestHelp.map((post: any) => (
@@ -262,20 +260,20 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
 
             {/* THINGS TO MONITOR */}
             <section>
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="w-10 h-10 rounded-full bg-secondary/5 flex items-center justify-center text-secondary/40 border border-secondary/10">
                         <Building2 size={18} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-bright lowercase tracking-tight">kontextuell medvetenhet</h2>
-                        <p className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold opacity-60">things to monitor</p>
+                        <h2 className="text-2xl font-light text-bright lowercase tracking-tight">kontextuell medvetenhet</h2>
+                        <p className="text-[9px] text-muted uppercase tracking-[0.3em] font-black opacity-40">things to monitor</p>
                     </div>
-                    <span className="h-[1px] flex-1 bg-gradient-to-r from-secondary/20 via-secondary/5 to-transparent ml-4" />
+                    <span className="h-[1px] flex-1 bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent ml-6" />
                 </div>
 
-                <div className="grid-2 gap-8">
+                <div className="grid-2 gap-10">
                     <div className="space-y-6">
-                        <h3 className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-muted/50 px-1">senaste insikter</h3>
+                        <h3 className="section-title px-1">senaste insikter</h3>
                         <div className="stack gap-3">
                             {latestFeed.length === 0 ? (
                                 <div className="empty-state !py-12 bg-white/[0.01] border border-dashed border-subtle/30 rounded-xl">
@@ -318,15 +316,15 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                                 <div className="text-[13px] text-secondary leading-relaxed italic font-serif opacity-80">
                                     "samarbete är inte bara att arbeta tillsammans, det är att tänka tillsammans."
                                 </div>
-                                <div className="pt-4 border-t border-subtle/20 flex items-center justify-between">
-                                    <div className="flex -space-x-2">
+                                <div className="pt-4 border-t border-subtle/10 flex items-center justify-between">
+                                    <div className="flex -space-x-2 opacity-50">
                                         {[1, 2, 3].map(i => (
-                                            <div key={i} className="w-6 h-6 rounded-full border-2 border-bg-primary bg-tertiary flex items-center justify-center text-[8px] font-bold text-muted">
+                                            <div key={i} className="w-5 h-5 rounded-full border border-bg-primary bg-tertiary flex items-center justify-center text-[7px] font-bold text-muted">
                                                 U{i}
                                             </div>
                                         ))}
                                     </div>
-                                    <span className="text-[9px] text-muted uppercase tracking-widest font-bold">aktiva noder {">"} {onlineUsers.length + 1}</span>
+                                    <span className="text-[9px] text-muted uppercase tracking-[0.2em] font-black opacity-30">aktiva noder {">"} {onlineUsers.length + 1}</span>
                                 </div>
                             </div>
                         </div>
@@ -353,8 +351,8 @@ async function CollaborationsView({ user }: any) {
 
     return (
         <div className="section">
-            <h2 className="section-title">pågående samarbeten</h2>
-            <div className="grid-2 gap-6">
+            <h2 className="section-title mb-8">pågående samarbeten</h2>
+            <div className="grid-2 gap-10">
                 {threads.length === 0 ? (
                     <div className="col-span-full py-16 text-center bg-tertiary/10 rounded-lg border border-dashed border-subtle">
                         <div className="text-xs text-muted italic">inga aktiva samarbeten än. starta en konversation i en kanal eller via dm.</div>
@@ -367,12 +365,12 @@ async function CollaborationsView({ user }: any) {
                         const lastMsg = t.messages[0];
 
                         return (
-                            <Link key={t.id} href={`/dm/${t.id}`} className="card card-hover p-6">
-                                <div className="row-between mb-3 pb-2 border-b border-subtle/30">
-                                    <span className="font-bold text-bright lowercase tracking-wider">{name}</span>
-                                    <span className="text-[10px] text-muted uppercase tracking-tighter">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })}</span>
+                            <Link key={t.id} href={`/dm/${t.id}`} className="card card-hover p-6 group">
+                                <div className="row-between mb-3 pb-2 border-b border-subtle/10">
+                                    <span className="font-medium text-bright lowercase tracking-tight group-hover:text-primary transition-colors">{name}</span>
+                                    <span className="text-[10px] text-muted opacity-40 uppercase tracking-tighter">{formatDistanceToNow(new Date(t.createdAt), { locale: sv })}</span>
                                 </div>
-                                <div className="text-sm text-secondary line-clamp-2 min-h-[3em] leading-relaxed">
+                                <div className="text-sm text-secondary line-clamp-2 min-h-[3em] leading-relaxed italic opacity-80">
                                     {lastMsg ? lastMsg.content : "inga meddelanden än."}
                                 </div>
                             </Link>
@@ -398,16 +396,16 @@ async function PulseView({ spaceIds }: any) {
     });
 
     return (
-        <div className="space-y-16">
+        <div className="space-y-24">
             <div className="section">
-                <h2 className="section-title">hjälp-puls</h2>
-                <div className="grid-2 gap-8">
+                <h2 className="section-title mb-8">hjälp-puls</h2>
+                <div className="grid-2 gap-10">
                     {helpPosts.map((post: any) => (
-                        <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover p-6">
-                            <div className="text-[10px] text-primary font-bold uppercase tracking-widest mb-2 opacity-70">#{post.space.name}</div>
-                            <div className="font-bold text-lg text-bright mb-4 leading-tight">{post.title}</div>
-                            <div className="text-xs text-secondary mt-auto">
-                                postad av <span className="text-primary font-bold">{post.user.name}</span> • {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
+                        <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="card card-hover p-6 group">
+                            <div className="text-[9px] text-primary/40 font-black uppercase tracking-[0.2em] mb-3">#{post.space.name}</div>
+                            <div className="font-medium text-lg text-bright mb-4 leading-tight group-hover:text-primary transition-colors">{post.title}</div>
+                            <div className="text-[11px] text-secondary mt-auto italic opacity-70">
+                                postad av <span className="font-bold">{post.user.name.toLowerCase()}</span> • {formatDistanceToNow(new Date(post.createdAt), { locale: sv })}
                             </div>
                         </Link>
                     ))}
@@ -415,14 +413,14 @@ async function PulseView({ spaceIds }: any) {
             </div>
 
             <div className="section">
-                <h2 className="section-title">insikter & händelser</h2>
+                <h2 className="section-title mb-8">insikter & händelser</h2>
                 <div className="stack gap-4">
                     {feedPosts.map((post: any) => (
-                        <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover card-compact group">
-                            <div className="text-sm text-bright group-hover:text-primary transition-colors mb-3 leading-relaxed">{post.content}</div>
-                            <div className="row-between pt-2 border-t border-subtle/30">
-                                <span className="text-xs font-bold text-secondary uppercase italic">{post.user.name}</span>
-                                <span className="text-[10px] text-muted">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan</span>
+                        <Link key={post.id} href={`/feed/${post.id}`} className="card card-hover !p-5 group">
+                            <div className="text-[14px] text-bright group-hover:text-primary transition-colors mb-3 leading-relaxed italic opacity-90">{post.content}</div>
+                            <div className="row-between pt-3 border-t border-subtle/10">
+                                <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">{post.user.name.toLowerCase()}</span>
+                                <span className="text-[10px] text-muted opacity-40">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
                             </div>
                         </Link>
                     ))}
@@ -435,23 +433,23 @@ async function PulseView({ spaceIds }: any) {
 function OfficesView({ memberships }: any) {
     return (
         <div className="section">
-            <h2 className="section-title">dina kontor</h2>
-            <div className="grid-2 gap-6">
+            <h2 className="section-title mb-8">dina kontor</h2>
+            <div className="grid-2 gap-10">
                 {memberships.map(({ space }: any) => (
-                    <Link key={space.id} href={`/spaces/${space.id}`} className="card card-hover p-6 border-l-2 border-l-primary/30 hover:border-l-primary transition-all">
-                        <div className="row-between mb-6">
-                            <h3 className="font-bold text-lg text-bright tracking-tight">
-                                <span className="text-primary opacity-50 mr-1">#</span>{space.name.toLowerCase()}
+                    <Link key={space.id} href={`/spaces/${space.id}`} className="card card-hover p-6 group">
+                        <div className="row-between mb-8 pb-3 border-b border-subtle/10">
+                            <h3 className="font-medium text-lg text-bright tracking-tight group-hover:text-primary transition-colors">
+                                <span className="text-primary opacity-30 mr-1">#</span>{space.name.toLowerCase()}
                             </h3>
-                            <div className="badge badge-primary opacity-60">{space._count.members}</div>
+                            <div className="text-[10px] text-muted font-black opacity-30 tracking-widest">{space._count.members} noder</div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-[10px] text-muted uppercase tracking-[0.15em] font-bold">
-                            <div className="bg-tertiary/30 p-2 rounded">
-                                <div className="text-secondary mb-1">{space._count.channels}</div>
+                        <div className="grid grid-cols-2 gap-4 text-[9px] text-muted uppercase tracking-[0.2em] font-black">
+                            <div className="bg-tertiary/20 p-3 rounded-lg border border-subtle/5">
+                                <div className="text-secondary mb-1 text-sm font-medium">{space._count.channels}</div>
                                 kanaler
                             </div>
-                            <div className="bg-tertiary/30 p-2 rounded">
-                                <div className="text-secondary mb-1">{space._count.tasks || 0}</div>
+                            <div className="bg-tertiary/20 p-3 rounded-lg border border-subtle/5">
+                                <div className="text-secondary mb-1 text-sm font-medium">{space._count.tasks || 0}</div>
                                 uppdrag
                             </div>
                         </div>
@@ -464,20 +462,20 @@ function OfficesView({ memberships }: any) {
 
 function NavetSkeleton({ view }: { view: string }) {
     return (
-        <div className="space-y-16 animate-in fade-in duration-500">
+        <div className="space-y-24 animate-in fade-in duration-500">
             <div className="section">
-                <Skeleton className="w-48 h-5 mb-8 opacity-20" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <CardSkeleton className="min-h-[140px]" />
-                    <CardSkeleton className="min-h-[140px]" />
+                <Skeleton className="w-48 h-5 mb-10 opacity-10" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <CardSkeleton className="min-h-[140px] opacity-20" />
+                    <CardSkeleton className="min-h-[140px] opacity-20" />
                 </div>
             </div>
             {view === "dashboard" && (
                 <div className="section">
-                    <Skeleton className="w-48 h-5 mb-8 opacity-20" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <CardSkeleton className="min-h-[120px]" />
-                        <CardSkeleton className="min-h-[120px]" />
+                    <Skeleton className="w-48 h-5 mb-10 opacity-10" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <CardSkeleton className="min-h-[120px] opacity-20" />
+                        <CardSkeleton className="min-h-[120px] opacity-20" />
                     </div>
                 </div>
             )}

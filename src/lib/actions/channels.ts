@@ -20,7 +20,7 @@ async function assertCanManageChannel(spaceId: string, userId: string, role: str
     }
 }
 
-export async function createChannel(spaceId: string, name: string) {
+export async function createChannel(spaceId: string, name: string, isClosed: boolean = false, participantIds: string[] = []) {
     const user = await getUser();
     await assertCanManageChannel(spaceId, user.id, user.role);
 
@@ -33,21 +33,69 @@ export async function createChannel(spaceId: string, name: string) {
     if (existing) throw new Error("channel already exists");
 
     const channel = await prisma.channel.create({
-        data: { spaceId, name: trimmed },
+        data: {
+            spaceId,
+            name: trimmed,
+            isClosed,
+            members: isClosed ? {
+                create: [
+                    { userId: user.id },
+                    ...participantIds.map(id => ({ userId: id }))
+                ]
+            } : undefined
+        },
     });
 
     await prisma.auditLog.create({
         data: {
             userId: user.id,
-            action: "channel.create",
+            action: isClosed ? "channel.create_closed" : "channel.create",
             targetType: "channel",
             targetId: channel.id,
-            metadata: { name: trimmed },
+            metadata: { name: trimmed, isClosed },
         },
     });
 
     revalidatePath(`/spaces/${spaceId}`);
     return channel;
+}
+
+export async function addChannelMember(channelId: string, participantIds: string[]) {
+    const user = await getUser();
+
+    const channel = await prisma.channel.findUnique({
+        where: { id: channelId },
+        include: { members: true }
+    });
+
+    if (!channel) throw new Error("not found");
+    if (!channel.isClosed) throw new Error("bad request: channel is not closed");
+
+    // Only current members can invite others
+    const isMember = channel.members.some(m => m.userId === user.id);
+    if (!isMember && user.role !== "ADMIN") throw new Error("forbidden");
+
+    const data = participantIds.map(id => ({
+        channelId,
+        userId: id
+    }));
+
+    await prisma.channelMember.createMany({
+        data,
+        skipDuplicates: true
+    });
+
+    await prisma.auditLog.create({
+        data: {
+            userId: user.id,
+            action: "channel.add_members",
+            targetType: "channel",
+            targetId: channelId,
+            metadata: { count: participantIds.length },
+        },
+    });
+
+    revalidatePath(`/spaces/${channel.spaceId}/chat/${channelId}`);
 }
 
 export async function deleteChannel(channelId: string) {

@@ -17,7 +17,18 @@ export default async function SpaceDetailPage({ params }: Props) {
     const space = await prisma.space.findUnique({
         where: { id },
         include: {
-            channels: { orderBy: { name: "asc" } },
+            channels: {
+                where: {
+                    OR: [
+                        { isClosed: false },
+                        { members: { some: { userId: currentUser.id } } }
+                    ]
+                },
+                orderBy: { name: "asc" }
+            },
+            members: {
+                include: { user: { select: { id: true, name: true } } }
+            },
             _count: { select: { members: true, tasks: true, posts: true, files: true } },
         },
     });
@@ -157,6 +168,7 @@ export default async function SpaceDetailPage({ params }: Props) {
                                         spaceId={id}
                                         channels={space.channels}
                                         canManage={canManage}
+                                        members={space.members.map(m => ({ id: m.user.id, name: m.user.name }))}
                                     />
                                 </div>
                             </section>
