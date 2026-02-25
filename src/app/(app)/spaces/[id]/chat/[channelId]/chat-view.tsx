@@ -485,7 +485,7 @@ export default function ChatView({
                             <input
                                 ref={inputRef}
                                 type="text"
-                                className="input w-full pl-14 !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
+                                className="input w-full !pl-14 !bg-transparent !border-none !ring-0 !shadow-none py-2 text-sm"
                                 placeholder={`tala till #${channel.name.toLowerCase()}...`}
                                 value={input}
                                 onChange={(e) => handleInputChange(e.target.value)}
