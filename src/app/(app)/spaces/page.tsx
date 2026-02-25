@@ -1,12 +1,11 @@
 "use strict";
 
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PresenceIndicator } from "@/components/PresenceIndicator";
 import {
     Terminal,
     Activity,
@@ -30,7 +29,7 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: {
-            memberships: { include: { space: { include: { _count: { select: { channels: true, members: true } } } } } },
+            spaceMemberships: { include: { space: { include: { _count: { select: { channels: true, members: true } } } } } },
             mentions: {
                 take: 5,
                 orderBy: { createdAt: "desc" },
@@ -45,10 +44,13 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
 
     if (!user) return null;
 
-    const spaceIds = user.memberships.map((m: any) => m.spaceId);
+    const spaceIds = user.spaceMemberships.map((m: any) => m.spaceId);
     const onlineUsers = await prisma.user.findMany({
-        where: { isOnline: true, id: { not: user.id } },
-        select: { id: true, name: true, image: true }
+        where: {
+            lastSeenAt: { gte: new Date(Date.now() - 1000 * 60 * 5) },
+            id: { not: user.id }
+        },
+        select: { id: true, name: true }
     });
 
     return (
@@ -86,13 +88,13 @@ export default async function NavetPage({ searchParams }: { searchParams: { view
                         user={user}
                         spaceIds={spaceIds}
                         mentions={user.mentions}
-                        memberships={user.memberships}
+                        memberships={user.spaceMemberships}
                         onlineUsers={onlineUsers}
                     />
                 )}
                 {view === "collaborations" && <CollaborationsView user={user} />}
                 {view === "pulse" && <PulseView spaceIds={spaceIds} />}
-                {view === "offices" && <OfficesView memberships={user.memberships} />}
+                {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
             </main>
 
             {/* 3️⃣ INTEGRATED STATUS FOOTER (TERTIARY) */}
