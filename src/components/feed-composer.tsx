@@ -141,8 +141,8 @@ export default function FeedComposer({ user }: Props) {
 
     if (!isExpanded) {
         return (
-            <div className="feed-card mb-10 p-5">
-                <div className="flex items-center gap-4">
+            <div className="feed-card mb-[var(--space-10)] p-[var(--space-5)]">
+                <div className="flex items-center gap-[var(--space-4)]">
                     <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
                         {user.name[0].toUpperCase()}
                     </div>
@@ -158,10 +158,10 @@ export default function FeedComposer({ user }: Props) {
     }
 
     return (
-        <div className="feed-card mb-10 transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm relative">
+        <div className="feed-card mb-[var(--space-10)] transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm relative">
             <form onSubmit={handleSubmit}>
-                <div className="p-5">
-                    <div className="flex items-center gap-3 mb-5">
+                <div className="p-[var(--space-5)]">
+                    <div className="flex items-center gap-[var(--space-3)] mb-[var(--space-5)]">
                         <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
                             {user.name[0].toUpperCase()}
                         </div>
@@ -192,9 +192,9 @@ export default function FeedComposer({ user }: Props) {
                     </div>
                 </div>
 
-                <div className="px-5 pb-5">
+                <div className="px-[var(--space-5)] pb-[var(--space-5)]">
                     {pendingAttachments.length > 0 && (
-                        <div className="mb-4 bg-black/20 rounded p-3 border border-white/5">
+                        <div className="mb-[var(--space-4)] bg-black/20 rounded p-[var(--space-3)] border border-white/5">
                             <AttachmentList
                                 attachments={pendingAttachments}
                                 onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
@@ -209,7 +209,7 @@ export default function FeedComposer({ user }: Props) {
                             spaceId="feed"
                         />
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-[var(--space-3)]">
                             <button
                                 type="button"
                                 className="btn btn-ghost btn-sm text-muted hover:text-bright"

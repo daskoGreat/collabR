@@ -89,7 +89,7 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
         setContent(val);
         const cursorPosition = inputRef.current?.selectionStart || 0;
         const textBeforeCursor = val.slice(0, cursorPosition);
-        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+        const mentionMatch = textBeforeCursor.match(/@([\wåäöÅÄÖ]*)$/);
 
         if (mentionMatch) {
             setMentionQuery(mentionMatch[1]);
@@ -158,10 +158,10 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
 
     return (
         <div className="content-area">
-            <div className="page-header">
+            <div className="page-header !mb-[var(--space-8)]">
                 <div>
                     <h1 className="page-title">jobb & möjligheter</h1>
-                    <p className="page-subtitle">hitta ditt nästa äventyr eller dela en öppning</p>
+                    <p className="page-subtitle text-secondary">hitta ditt nästa äventyr eller dela en öppning</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
                     <PlusSquare size={18} strokeWidth={1.5} className="mr-2" />
@@ -170,7 +170,7 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
             </div>
 
             {showCreate && (
-                <div className="card mb-8">
+                <div className="card mb-[var(--space-8)]">
                     <div className="modal-title">ny post</div>
                     <form className="auth-form" onSubmit={handleCreate}>
                         <div className="form-group">
@@ -276,50 +276,57 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
                 </div>
             )}
 
-            <div className="mb-6 flex flex-col gap-4">
-                <div className="relative">
-                    <input
-                        type="text"
-                        className="input w-full pr-10"
-                        placeholder="sök bland jobb, LIA och uppdrag..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    {search && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 animate-pulse text-[10px] font-mono pointer-events-none">
-                            SÖKER...
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex flex-wrap gap-6 items-center">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted uppercase font-bold">Typ:</span>
-                        <div className="tabs tabs-sm">
-                            {["ALL", "JOBB", "LIA", "UPPDRAG"].map((t) => (
-                                <button
-                                    key={t}
-                                    className={`tab ${typeFilter === t ? "active" : ""}`}
-                                    onClick={() => setTypeFilter(t)}
-                                >
-                                    {t.toLowerCase()}
-                                </button>
-                            ))}
-                        </div>
+            <div className="card mb-[var(--space-6)] !p-[var(--space-5)] border-subtle/30 shadow-sm !h-auto">
+                <div className="flex flex-col gap-[var(--space-4)]">
+                    <div className="relative">
+                        <Zap className="absolute left-[var(--space-4)] top-1/2 -translate-y-1/2 text-muted opacity-30" size={16} />
+                        <input
+                            type="text"
+                            placeholder="sök bland jobb, LIA och uppdrag..."
+                            className="input w-full !pl-[var(--space-10)] !py-[var(--space-3)] !text-xs !bg-transparent border-subtle/20"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {search && (
+                            <div className="absolute right-[var(--space-4)] top-1/2 -translate-y-1/2 opacity-50 animate-pulse text-[9px] font-mono pointer-events-none text-primary">
+                                SÖKER...
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted uppercase font-bold">Plats:</span>
-                        <div className="tabs tabs-sm">
-                            {["ALL", "REMOTE", "HYBRID", "ONSITE"].map((l) => (
-                                <button
-                                    key={l}
-                                    className={`tab ${locationFilter === l ? "active" : ""}`}
-                                    onClick={() => setLocationFilter(l)}
-                                >
-                                    {l.toLowerCase()}
-                                </button>
-                            ))}
+                    <div className="flex flex-wrap gap-x-10 gap-y-4 items-center border-t border-subtle/10 pt-5">
+                        <div className="inline-flex items-center">
+                            <div className="flex items-center h-6" style={{ marginRight: '12px' }}>
+                                <span className="text-[10px] text-secondary uppercase font-bold tracking-widest opacity-40 leading-none" style={{ transform: 'translateY(-5.5px)' }}>Typ:</span>
+                            </div>
+                            <div className="tabs tabs-sm">
+                                {["ALL", "JOBB", "LIA", "UPPDRAG"].map((t) => (
+                                    <button
+                                        key={t}
+                                        className={`tab ${typeFilter === t ? "active" : ""}`}
+                                        onClick={() => setTypeFilter(t)}
+                                    >
+                                        {t.toLowerCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="inline-flex items-center">
+                            <div className="flex items-center h-6" style={{ marginRight: '12px' }}>
+                                <span className="text-[10px] text-secondary uppercase font-bold tracking-widest opacity-40 leading-none" style={{ transform: 'translateY(-5.5px)' }}>Plats:</span>
+                            </div>
+                            <div className="tabs tabs-sm">
+                                {["ALL", "REMOTE", "HYBRID", "ONSITE"].map((l) => (
+                                    <button
+                                        key={l}
+                                        className={`tab ${locationFilter === l ? "active" : ""}`}
+                                        onClick={() => setLocationFilter(l)}
+                                    >
+                                        {l.toLowerCase()}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -336,7 +343,7 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
                     </div>
                 </div>
             ) : (
-                <div className="opportunities-grid">
+                <div className="opportunities-grid !gap-[var(--space-6)]">
                     {filtered.map((opportunity) => (
                         <OpportunityCard key={opportunity.id} opportunity={opportunity} currentUserName={currentUserName} />
                     ))}

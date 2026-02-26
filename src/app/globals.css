@@ -32,40 +32,40 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
 
-  /* Spacing */
-  --space-1: 0.2rem;
-  --space-2: 0.4rem;
-  --space-3: 0.6rem;
-  --space-4: 0.8rem;
-  --space-5: 1.2rem;
-  --space-6: 1.6rem;
-  --space-8: 2.4rem;
-  --space-10: 3.2rem;
-  --space-12: 4rem;
-  --space-16: 6rem;
-  --space-20: 8rem;
-  --space-24: 12rem;
-  --space-32: 16rem;
-  --space-48: 24rem;
-  --space-pulse: var(--space-20);
-  --harmony-gap: var(--space-32);
-  --harmony-line: rgba(255, 255, 255, 0.03);
+  /* Spacing (8px Grid) */
+  --space-1: 0.25rem;
+  /* 4px */
+  --space-2: 0.5rem;
+  /* 8px */
+  --space-3: 0.75rem;
+  /* 12px */
+  --space-4: 1rem;
+  /* 16px */
+  --space-5: 1.5rem;
+  /* 24px */
+  --space-6: 2rem;
+  /* 32px */
+  --space-8: 3rem;
+  /* 48px */
+  --space-10: 4rem;
+  /* 64px */
+  --space-12: 5rem;
+  /* 80px */
+  --space-16: 8rem;
+  /* 128px */
 
-  /* Layout Spacing */
-  --space-inner: var(--space-4);
-  --space-outer: var(--space-8);
-  --space-section: var(--space-12);
+  /* Layout Constrains */
+  --inner-max-width: 1200px;
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
+  --container-padding: var(--space-6);
 
   /* Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
-
-  /* Layout */
-  --sidebar-width: 240px;
-  --topbar-height: 56px;
 }
 
 [data-theme='dark'],
@@ -84,11 +84,11 @@
   --border-active: rgba(0, 255, 136, 0.25);
   --border-subtle: rgba(255, 255, 255, 0.05);
 
-  --text-primary: #d4d4d8;
-  --text-secondary: #7a7a88;
-  --text-muted: #33333e;
-  --text-ghost: rgba(212, 212, 216, 0.2);
-  --text-bright: #e8e8f0;
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-ghost: rgba(212, 212, 216, 0.15);
+  --text-bright: #ffffff;
 
   /* Neon accents */
   --neon-green: #00ff88;
@@ -292,7 +292,8 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  height: 36px;
+  padding: 0 var(--space-4);
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -355,12 +356,14 @@ a:hover {
 }
 
 .btn-sm {
-  padding: var(--space-1) var(--space-3);
+  height: 28px;
+  padding: 0 var(--space-3);
   font-size: var(--font-size-xs);
 }
 
 .btn-lg {
-  padding: var(--space-3) var(--space-6);
+  height: 44px;
+  padding: 0 var(--space-6);
   font-size: var(--font-size-md);
 }
 
@@ -368,7 +371,8 @@ a:hover {
 
 .input {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  height: 36px;
+  padding: 0 var(--space-4);
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
@@ -393,6 +397,8 @@ a:hover {
 textarea.input {
   resize: vertical;
   min-height: 100px;
+  height: auto;
+  padding: var(--space-3) var(--space-4);
 }
 
 .form-group {
@@ -465,18 +471,23 @@ textarea.input {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--space-6);
   position: relative;
-  transition: all 0.4s var(--ease-premium);
+  transition: transform 0.2s var(--ease-premium), background-color 0.2s var(--ease-premium), border-color 0.2s var(--ease-premium), box-shadow 0.2s var(--ease-premium);
   box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  height: auto;
+  min-height: min-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-hover:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   background: var(--bg-card-hover);
   border-color: var(--border-active);
-  box-shadow: var(--shadow-sm), var(--shadow-neon);
+  box-shadow: var(--shadow-md), var(--shadow-neon);
 }
 
 .card-minimal {
@@ -504,7 +515,9 @@ textarea.input {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 1px var(--space-2);
+  justify-content: center;
+  height: 24px;
+  padding: 0 var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -562,7 +575,11 @@ textarea.input {
 }
 
 .tab {
-  padding: var(--space-2) var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 var(--space-4);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -597,8 +614,9 @@ textarea.input {
 }
 
 .tabs-primary .tab {
+  height: 36px;
   font-size: var(--font-size-sm);
-  padding: var(--space-2) var(--space-6);
+  padding: 0 var(--space-6);
 }
 
 .tabs-primary .tab.active {
@@ -645,7 +663,8 @@ textarea.input {
 }
 
 .tabs-sm .tab {
-  padding: var(--space-1) var(--space-3);
+  height: 24px;
+  padding: 0 var(--space-3);
   font-size: 10px;
 }
 
@@ -763,10 +782,11 @@ textarea.input {
 
 .sidebar-section-title {
   font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 800;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
+  opacity: 0.8;
 }
 
 .sidebar-section-title::before {
@@ -798,7 +818,8 @@ textarea.input {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  height: 36px;
+  padding: 0 var(--space-3);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
@@ -821,7 +842,8 @@ button.sidebar-link {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  padding: var(--space-2) var(--space-3);
+  height: 36px;
+  padding: 0 var(--space-3);
   color: inherit;
 }
 
@@ -845,7 +867,7 @@ button.sidebar-link {
 .sidebar-link-sub {
   padding-left: var(--space-8);
   font-size: var(--font-size-xs);
-  opacity: 0.8;
+  color: var(--text-muted);
 }
 
 .sidebar-link-sub:hover {
@@ -901,9 +923,11 @@ button.sidebar-link {
 }
 
 .sidebar-link-icon {
-  font-size: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
-  text-align: center;
+  height: 18px;
   opacity: 0.7;
 }
 
@@ -1011,8 +1035,14 @@ button.sidebar-link {
 
 .content-area {
   flex: 1;
+  width: 100%;
+  max-width: var(--inner-max-width);
+  margin: 0 auto;
   padding: var(--space-8);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .content-area-focused {
@@ -1029,13 +1059,16 @@ button.sidebar-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
+  padding-bottom: 0;
 }
 
 .page-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
   color: var(--text-bright);
+  letter-spacing: -0.02em;
+  margin-bottom: 0;
 }
 
 .page-title::before {
@@ -1444,12 +1477,12 @@ button.sidebar-link {
 /* ── NAVET INDUSTRIAL RECONSTRUCTION (SACRED GEOMETRY) ── */
 
 .navet-surface {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
-  transition: border-color 0.3s var(--ease-premium);
+  box-shadow: var(--shadow-glass);
+  transition: all 0.3s var(--ease-premium);
 }
 
 .navet-header {
@@ -1466,9 +1499,9 @@ button.sidebar-link {
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.6em;
+  letter-spacing: 0.15em;
   color: var(--text-muted);
-  opacity: 0.4;
+  opacity: 0.8;
 }
 
 .navet-card-title {
@@ -1494,7 +1527,7 @@ button.sidebar-link {
   font-size: 11px;
   font-weight: 700;
   text-transform: lowercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   transition: all 0.2s var(--ease-premium);
   background: transparent;
   border: none;
@@ -1541,6 +1574,45 @@ button.sidebar-link {
   line-height: 1.6;
 }
 
+/* ── Layout Utilities ───────────────────── */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.row-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
 /* ── Table ───────────────────────────────── */
 
 .table-wrapper {
@@ -1556,11 +1628,11 @@ th {
   text-align: left;
   padding: var(--space-3) var(--space-4);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
-  text-transform: lowercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--border-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 2px solid var(--border-subtle);
 }
 
 td {
@@ -1604,6 +1676,7 @@ tr:hover td {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 500px;
+  padding: var(--space-6);
   position: relative;
   z-index: calc(var(--z-modal) + 1);
   box-shadow: var(--shadow-2xl), 0 0 50px rgba(0, 0, 0, 0.5);
@@ -2187,8 +2260,9 @@ tr:hover td {
 .landing-content {
   position: relative;
   z-index: 2;
+  width: 100%;
   max-width: 720px;
-  padding: var(--space-8);
+  padding: var(--space-6);
   text-align: center;
   animation: contentReveal 1s ease forwards;
 }
@@ -2728,13 +2802,13 @@ tr:hover td {
 /* ── Feed Specific ────────────────────────── */
 
 .feed-card {
-  background: linear-gradient(180deg, rgba(20, 20, 20, 0.8) 0%, rgba(15, 15, 15, 0.9) 100%);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-glass);
 }
 
 .feed-card:hover {

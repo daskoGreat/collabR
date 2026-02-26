@@ -96,8 +96,8 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
+        <div className="space-y-[var(--space-6)]">
+            <div className="flex justify-between items-center mb-[var(--space-6)]">
                 <h2 className="text-xl font-bold section-title mb-0">Join Requests</h2>
                 <div className={`text-[10px] uppercase tracking-widest flex items-center gap-2 ${pusherConnected ? 'text-success' : 'text-muted'}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${pusherConnected ? 'bg-success animate-pulse' : 'bg-muted'}`} />
@@ -106,20 +106,20 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
             </div>
 
             {requests.length === 0 ? (
-                <div className="card p-8 text-center text-muted">
+                <div className="card p-[var(--space-8)] text-center text-muted">
                     <p>Inga väntande ansökningar just nu.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-[var(--space-4)]">
                     {requests.map(request => (
-                        <div key={request.id} className="card p-6 border-l-2 border-l-primary/30 flex flex-col md:flex-row gap-6 md:items-center">
+                        <div key={request.id} className="card p-[var(--space-6)] border-l-2 border-l-primary/30 flex flex-col md:flex-row gap-[var(--space-6)] md:items-center">
                             <div className="flex-1">
                                 <h3 className="text-lg font-bold mb-1">{request.name}</h3>
                                 <a href={`mailto:${request.email}`} className="text-sm text-cyan hover:underline">{request.email}</a>
 
                                 {request.message && (
-                                    <div className="mt-4 p-4 bg-dark/30 rounded border border-border-subtle text-sm text-muted">
-                                        <strong className="block mb-2 text-xs text-secondary uppercase tracking-wider">Message</strong>
+                                    <div className="mt-[var(--space-4)] p-[var(--space-4)] bg-dark/30 rounded border border-border-subtle text-sm text-muted">
+                                        <strong className="block mb-[var(--space-2)] text-xs text-secondary uppercase tracking-wider">Message</strong>
                                         {request.message}
                                     </div>
                                 )}
@@ -129,7 +129,7 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-2 min-w-[200px]">
+                            <div className="flex flex-col gap-[var(--space-2)] min-w-[200px]">
                                 {request.status === "PENDING" && !generatedInvites[request.id] ? (
                                     <>
                                         <button
@@ -148,7 +148,7 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
                                         </button>
                                     </>
                                 ) : (
-                                    <div className="bg-success/10 border border-success/30 p-4 rounded text-center">
+                                    <div className="bg-success/10 border border-success/30 p-[var(--space-4)] rounded text-center">
                                         <div className="text-success text-sm font-bold mb-2">Approved!</div>
                                         <button
                                             className="btn btn-sm btn-outline w-full text-xs"

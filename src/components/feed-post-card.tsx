@@ -70,7 +70,7 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
 
     return (
         <div className={`feed-card group transition-all duration-300 hover:shadow-glow-sm ${isMentioned ? "chat-message-mentioned" : ""}`}>
-            <div className="feed-header mb-6">
+            <div className="feed-header mb-[var(--space-6)]">
                 <div className="feed-avatar !w-10 !h-10 !text-[13px]">
                     {post.user.name[0].toUpperCase()}
                 </div>
@@ -93,17 +93,17 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
                 )}
             </div>
 
-            <div className="feed-content mb-6">
+            <div className="feed-content mb-[var(--space-6)]">
                 <MessageContent content={post.content} currentUserName={currentUserName} />
             </div>
 
             {post.attachments.length > 0 && (
-                <div className="feed-media mb-6">
+                <div className="feed-media mb-[var(--space-6)]">
                     <AttachmentList attachments={post.attachments} />
                 </div>
             )}
 
-            <div className={`feed-actions border-t border-subtle/30 pt-4 flex flex-wrap gap-1.5 ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`feed-actions border-t border-subtle/30 pt-[var(--space-4)] flex flex-wrap gap-[var(--space-1)] ${(isReacting || (isPending && !isDeleting)) ? "opacity-50 pointer-events-none" : ""}`}>
                 <button
                     onClick={() => handleReaction("LIKE")}
                     className={`feed-action-btn transition-colors duration-200 !px-2 !py-1 !rounded-md ${hasReacted("LIKE") ? "active text-accent-primary bg-accent-primary/5" : "hover:text-accent-primary hover:bg-white/5"}`}

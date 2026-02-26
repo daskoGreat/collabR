@@ -13,15 +13,15 @@ export default async function ProfilePage() {
 
     return (
         <div className="content-area">
-            <div className="mb-6">
+            <div className="mb-[var(--space-6)]">
                 <BackButton />
             </div>
 
             <div className="max-w-2xl mx-auto">
-                <h1 className="page-title mb-8">din profil</h1>
+                <h1 className="page-title mb-[var(--space-8)]">din profil</h1>
 
                 <div className="card">
-                    <div className="flex items-center gap-6 mb-8 pb-8 border-b border-subtle">
+                    <div className="flex items-center gap-[var(--space-6)] mb-[var(--space-8)] pb-[var(--space-8)] border-b border-subtle">
                         <div
                             className="sidebar-user-avatar"
                             style={{ width: "80px", height: "80px", fontSize: "2rem" }}
@@ -56,7 +56,7 @@ export default async function ProfilePage() {
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-subtle">
+                    <div className="mt-[var(--space-8)] pt-[var(--space-6)] border-t border-subtle">
                         <p className="text-sm text-muted italic">
                             Profilredigering är låst av din organisation. Kontakta en administratör vid ändringar.
                         </p>

@@ -64,7 +64,7 @@ export default function InvitesAdmin({ invites }: Props) {
             </div>
 
             {newToken && (
-                <div className="success-text mb-4" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div className="success-text mb-[var(--space-4)] row-between">
                     <span>invite created! link: {getInviteUrl(newToken)}</span>
                     <button className="btn btn-ghost btn-sm" onClick={() => copyLink(newToken)}>
                         copy
@@ -73,7 +73,7 @@ export default function InvitesAdmin({ invites }: Props) {
             )}
 
             {showCreate && (
-                <div className="card mb-4">
+                <div className="card mb-[var(--space-6)]">
                     <div className="modal-title">create invite</div>
                     <form className="auth-form" action={handleCreate}>
                         <div className="row" style={{ gap: "var(--space-4)" }}>
@@ -86,7 +86,7 @@ export default function InvitesAdmin({ invites }: Props) {
                                 <input type="number" name="expiresInDays" className="input" defaultValue={7} min={0} />
                             </div>
                         </div>
-                        <div className="form-group mb-4">
+                        <div className="form-group mb-[var(--space-4)]">
                             <label className="form-label">recipient email (optional)</label>
                             <input type="email" name="email" className="input" placeholder="user@example.com" />
                         </div>

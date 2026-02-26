@@ -182,7 +182,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
         setInput(val);
         const cursorPosition = inputRef.current?.selectionStart || 0;
         const textBeforeCursor = val.slice(0, cursorPosition);
-        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+        const mentionMatch = textBeforeCursor.match(/@([\wåäöÅÄÖ]*)$/);
 
         if (mentionMatch) {
             setMentionQuery(mentionMatch[1]);
@@ -293,10 +293,10 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                     <div className="row" style={{ gap: "var(--space-4)" }}>
                         <BackButton />
                         <div className="topbar-title">
-                            <div className="flex items-center gap-2">
-                                <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
-                                <span className="text-muted mx-1">/</span>
-                                <span className="topbar-title-highlight flex items-center gap-1.5 backdrop-blur-sm bg-primary/20 px-2 py-0.5 rounded border border-subtle/50">
+                            <div className="flex items-center gap-[var(--space-2)]">
+                                <Link href="/spaces" className="text-secondary hover:text-bright transition-colors">navet</Link>
+                                <span className="text-muted/30">/</span>
+                                <span className="topbar-title-highlight flex items-center gap-[var(--space-2)] backdrop-blur-sm bg-tertiary/20 px-[var(--space-2)] py-[var(--space-1)] rounded-[var(--radius-sm)] border border-subtle">
                                     {isGroup ? <Users size={12} strokeWidth={2} /> : <User size={12} strokeWidth={2} />}
                                     {title.toLowerCase()}
                                 </span>
@@ -307,7 +307,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                         ? "bg-success shadow-[0_0_8px_var(--success)]"
                                         : "bg-muted"
                                         }`} />
-                                    <span className="text-[9px] text-muted uppercase font-bold tracking-widest opacity-50">
+                                    <span className="text-[9px] text-muted uppercase font-bold tracking-widest opacity-80">
                                         {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
                                             ? "online" : "offline"}
                                     </span>
@@ -367,7 +367,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                 </div>
             )}
             <div className="chat-container">
-                <div className="chat-messages">
+                <div className="chat-messages px-[var(--space-8)] py-[var(--space-6)]">
                     {messages.length === 0 && (
                         <div className="empty-state py-20 card border-dashed border-subtle">
                             <div className="empty-state-icon text-muted/30">✉</div>
@@ -405,14 +405,14 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                     {!isGrouped && (
                                         <div className="chat-message-header">
                                             <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
-                                            <span className="chat-message-time opacity-50 font-mono">
+                                            <span className="chat-message-time opacity-70 font-mono">
                                                 {formatTime(msg.createdAt)}
                                             </span>
                                         </div>
                                     )}
                                     <div className="chat-content-container relative">
                                         {isGrouped && (
-                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-30 transition-opacity text-[9px] font-mono whitespace-nowrap">
+                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-40 transition-opacity text-[9px] font-mono whitespace-nowrap">
                                                 {formatTime(msg.createdAt)}
                                             </span>
                                         )}
@@ -454,7 +454,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                                 {msg.user.id === currentUser.id && !editingId && (
                                                     <div className="chat-message-actions absolute -right-2 top-0 translate-x-full pl-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                                         <button
-                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-50 hover:opacity-100"
+                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-70 hover:opacity-100"
                                                             onClick={() => {
                                                                 setEditingId(msg.id);
                                                                 setEditContent(msg.content);
@@ -463,7 +463,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                                             edit
                                                         </button>
                                                         <button
-                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-50 hover:opacity-100"
+                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-70 hover:opacity-100"
                                                             onClick={() => handleDelete(msg.id)}
                                                         >
                                                             del
@@ -479,7 +479,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                     })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area border-t border-subtle bg-secondary/80 backdrop-blur-md">
+                <div className="chat-input-area px-[var(--space-6)] py-[var(--space-4)] border-t border-subtle bg-secondary/80 backdrop-blur-md">
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}

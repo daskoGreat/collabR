@@ -17,7 +17,7 @@ export default async function AdminAuditPage() {
                 <div className="row" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
                     <div className="topbar-title">
-                        <span className="text-muted">admin /</span>{" "}
+                        <span className="text-muted opacity-50">admin /</span>{" "}
                         <span className="topbar-title-highlight">◎</span> händelselogg
                     </div>
                 </div>

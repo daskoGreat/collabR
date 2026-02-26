@@ -203,7 +203,7 @@ export default function ChatView({
         setInput(val);
         const cursorPosition = inputRef.current?.selectionStart || 0;
         const textBeforeCursor = val.slice(0, cursorPosition);
-        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+        const mentionMatch = textBeforeCursor.match(/@([\wåäöÅÄÖ]*)$/);
 
         if (mentionMatch) {
             setMentionQuery(mentionMatch[1]);
@@ -318,16 +318,16 @@ export default function ChatView({
     return (
         <>
             <div className="topbar">
-                <div className="row" style={{ gap: "var(--space-4)" }}>
+                <div className="row h-full items-center px-6" style={{ gap: "var(--space-4)" }}>
                     <BackButton />
-                    <div className="topbar-title">
-                        <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
-                        <span className="text-muted mx-2">/</span>
-                        <Link href={`/spaces/${spaceId}`} className="text-muted hover:text-primary transition-colors flex items-center gap-1.5 inline-flex">
+                    <div className="topbar-title flex items-center gap-2">
+                        <Link href="/spaces" className="text-secondary hover:text-bright transition-colors">navet</Link>
+                        <span className="text-muted/30">/</span>
+                        <Link href={`/spaces/${spaceId}`} className="text-secondary hover:text-bright transition-colors flex items-center gap-1.5 inline-flex">
                             <Building2 size={13} strokeWidth={2} />
                             {channel.spaceName.toLowerCase()}
                         </Link>
-                        <span className="text-muted mx-2">/</span>
+                        <span className="text-muted/30">/</span>
                         <span className="topbar-title-highlight flex items-center gap-1.5 backdrop-blur-sm bg-primary/20 px-2 py-0.5 rounded border border-subtle/50">
                             <MessageSquare size={12} strokeWidth={2} />
                             {channel.name.toLowerCase()}

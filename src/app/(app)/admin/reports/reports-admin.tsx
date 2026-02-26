@@ -39,8 +39,8 @@ export default function ReportsAdmin({ reports }: Props) {
             ) : (
                 <div className="stack">
                     {reports.map((report) => (
-                        <div key={report.id} className="card card-compact">
-                            <div className="row-between mb-2">
+                        <div key={report.id} className="card !p-[var(--space-4)] mb-[var(--space-4)]">
+                            <div className="row-between mb-[var(--space-2)]">
                                 <div className="row">
                                     <span className="badge badge-muted">{report.targetType}</span>
                                     <span className="text-sm font-semibold">
@@ -49,16 +49,16 @@ export default function ReportsAdmin({ reports }: Props) {
                                 </div>
                                 <span
                                     className={`badge ${report.status === "PENDING"
-                                            ? "badge-yellow"
-                                            : report.status === "RESOLVED"
-                                                ? "badge-green"
-                                                : "badge-muted"
+                                        ? "badge-yellow"
+                                        : report.status === "RESOLVED"
+                                            ? "badge-green"
+                                            : "badge-muted"
                                         }`}
                                 >
                                     {report.status.toLowerCase()}
                                 </span>
                             </div>
-                            <p className="text-sm text-secondary mb-2">{report.reason}</p>
+                            <p className="text-sm text-secondary mb-[var(--space-2)]">{report.reason}</p>
                             <div className="row-between">
                                 <span className="text-xs text-muted">
                                     {new Date(report.createdAt).toLocaleString("sv-SE")}

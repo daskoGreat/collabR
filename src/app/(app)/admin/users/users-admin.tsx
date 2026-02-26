@@ -145,7 +145,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                 className="select"
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                style={{ padding: "1px 8px" }}
+                                                style={{ padding: "var(--space-1) var(--space-2)" }}
                                             >
                                                 <option value="MEMBER">medlem</option>
                                                 <option value="MODERATOR">moderator</option>
@@ -179,7 +179,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                 <button
                                                     className="btn btn-ghost btn-sm"
                                                     onClick={() => setMenuOpen(menuOpen === user.id ? null : user.id)}
-                                                    style={{ fontSize: "1.2rem", padding: "0 8px" }}
+                                                    style={{ fontSize: "1.2rem", padding: "0 var(--space-2)" }}
                                                 >
                                                     ⋮
                                                 </button>
@@ -244,12 +244,12 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
 
                         {newToken ? (
                             <div style={{ textAlign: "center" }}>
-                                <div className="success-text mb-6">
-                                    <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>✓</div>
+                                <div className="success-text mb-[var(--space-6)]">
+                                    <div style={{ fontSize: "2.5rem", marginBottom: "var(--space-2)" }}>✓</div>
                                     den säkra länken har skapats
                                 </div>
-                                <div className="helper-banner mb-6 text-left">
-                                    <div className="text-xs text-muted mb-2">// skicka länk till användare</div>
+                                <div className="helper-banner mb-[var(--space-6)] text-left">
+                                    <div className="text-xs text-muted mb-[var(--space-2)]">// skicka länk till användare</div>
                                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                                         <code className="bg-black/50 p-3 rounded block w-full text-left truncate text-neon border border-white/5">
                                             {window.location.origin}/invite/{newToken}
@@ -265,15 +265,15 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                             </div>
                         ) : (
                             <form action={handleInvite}>
-                                <div className="form-group mb-5">
+                                <div className="form-group mb-[var(--space-5)]">
                                     <label className="form-label">fullständigt namn</label>
                                     <input name="name" className="input" placeholder="fullständigt namn" required />
                                 </div>
-                                <div className="form-group mb-5">
+                                <div className="form-group mb-[var(--space-5)]">
                                     <label className="form-label">e-postadress</label>
                                     <input type="email" name="email" className="input" placeholder="användare@exempel.se" required />
                                 </div>
-                                <div className="form-group mb-6">
+                                <div className="form-group mb-[var(--space-6)]">
                                     <label className="form-label">global roll</label>
                                     <select name="role" className="select w-full">
                                         <option value="MEMBER">medlem</option>
@@ -306,7 +306,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                         <div className="modal-title">inaktivera medlemsåtkomst</div>
                         <form action={handleBan}>
                             <input type="hidden" name="userId" value={banModal} />
-                            <div className="form-group mb-5">
+                            <div className="form-group mb-[var(--space-5)]">
                                 <label className="form-label">anledning till inaktivering</label>
                                 <textarea
                                     name="reason"
@@ -315,7 +315,7 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                     required
                                 />
                             </div>
-                            <div className="form-group mb-6">
+                            <div className="form-group mb-[var(--space-6)]">
                                 <label className="form-label">begränsningsnivå</label>
                                 <select name="type" className="select w-full">
                                     <option value="SOFT">mjuk begränsning (reversibel)</option>
@@ -344,10 +344,10 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                 <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()} style={{ borderColor: "var(--accent-danger)" }}>
                         <div className="modal-title" style={{ color: "var(--accent-danger)" }}>permanent borttagning: ta bort medlem</div>
-                        <div className="helper-banner mb-6" style={{ background: "var(--accent-danger-bg)", borderColor: "var(--accent-danger)" }}>
+                        <div className="helper-banner mb-[var(--space-6)]" style={{ background: "var(--accent-danger-bg)", borderColor: "var(--accent-danger)" }}>
                             <strong style={{ color: "var(--accent-danger)" }}>VARNING:</strong> Denna åtgärd är permanent. Att ta bort denna användare upphäver omedelbart all åtkomst och tar bort profilen från systemet.
                         </div>
-                        <p className="text-sm text-secondary mb-6">
+                        <p className="text-sm text-secondary mb-[var(--space-6)]">
                             Är du helt säker på att du vill ta bort <span className="font-bold text-bright">{users.find(u => u.id === deleteModal)?.name}</span>?
                         </p>
                         <div className="modal-actions">

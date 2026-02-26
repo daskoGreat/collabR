@@ -46,9 +46,7 @@ export default function AppShell({ user, spaces, dmThreads, children }: Props) {
                             >
                                 <span className="mobile-menu-icon">☰</span>
                             </button>
-                            <div className="sidebar-logo">
-                                <span className="sidebar-logo-prefix">~/</span>collab
-                            </div>
+                            <div className="flex-1" />
                             <div className="header-actions">
                                 <UserMenu user={user} />
                             </div>

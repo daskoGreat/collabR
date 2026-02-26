@@ -56,11 +56,11 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
     });
 
     return (
-        <div className="max-w-[1400px] mx-auto px-12 pb-32 animate-in fade-in duration-1000">
+        <div className="max-w-[var(--inner-max-width)] mx-auto px-[var(--container-padding)] pb-[var(--space-12)] animate-in fade-in duration-1000">
             {/* 🏗️ HEADER BLOCK (STRICT CONTAINMENT) */}
-            <div className="navet-surface mb-48 p-12">
-                <header className="mb-12">
-                    <div className="navet-card-label mb-4">operativt:navet</div>
+            <div className="navet-surface mb-[var(--space-10)] p-[var(--space-8)]">
+                <header className="mb-[var(--space-6)]">
+                    <div className="navet-card-label mb-[var(--space-2)]">operativt:navet</div>
                     <h1 className="text-4xl font-black text-bright tracking-tighter">
                         välkommen, <span className="text-primary/60">{user.name.split(" ")[0].toLowerCase()}</span>.
                     </h1>
@@ -83,7 +83,7 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
             </div>
 
             {/* 🧱 2-COLUMN DASHBOARD GEOMETRY */}
-            <div className="grid grid-cols-12 gap-48 items-start">
+            <div className="grid grid-cols-12 gap-[var(--space-8)] items-start">
                 {/* ⬅️ PRIMARY CONTENT (8/12) */}
                 <main className="col-span-12 lg:col-span-8">
                     {view === "dashboard" && (
@@ -100,7 +100,7 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
                 </main>
 
                 {/* ➡️ SYSTEM COLUMN (4/12) */}
-                <aside className="col-span-12 lg:col-span-4 space-y-48 lg:sticky lg:top-8">
+                <aside className="col-span-12 lg:col-span-4 space-y-[var(--space-8)] lg:sticky lg:top-[var(--space-4)]">
                     {/* PANEL 1: NÄRVARO */}
                     <section className="navet-surface">
                         <div className="navet-header flex items-center justify-between">
@@ -109,7 +109,7 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
                         </div>
                         <div className="navet-content">
                             {onlineUsers.length === 0 ? (
-                                <div className="navet-card-label opacity-10">inga noder aktiva</div>
+                                <div className="navet-card-label opacity-30">inga noder aktiva</div>
                             ) : (
                                 <div className="space-y-4">
                                     {onlineUsers.map(u => (
@@ -128,7 +128,7 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
                         <div className="navet-header">
                             <h3 className="navet-card-title">systemstatus</h3>
                         </div>
-                        <div className="navet-content grid grid-cols-2 gap-8">
+                        <div className="navet-content grid grid-cols-2 gap-[var(--space-4)]">
                             <div>
                                 <div className="text-2xl font-black text-bright tracking-tighter">99.9%</div>
                                 <div className="navet-card-label mt-2">uptime</div>
@@ -148,15 +148,15 @@ export default async function NavetPage(props: { searchParams: Promise<{ view?: 
                         <div className="navet-content">
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                    <span className="navet-card-label opacity-40">nätverk</span>
+                                    <span className="navet-card-label opacity-60">nätverk</span>
                                     <span className="text-[10px] font-black text-success/60 uppercase">kryp:v3</span>
                                 </div>
                                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                    <span className="navet-card-label opacity-40">status</span>
+                                    <span className="navet-card-label opacity-60">status</span>
                                     <span className="text-[10px] font-black text-primary/60 uppercase">klar</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="navet-card-label opacity-40">synk</span>
+                                    <span className="navet-card-label opacity-60">synk</span>
                                     <span className="text-[10px] font-black text-muted uppercase">aktiv</span>
                                 </div>
                             </div>
@@ -183,17 +183,17 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
     });
 
     return (
-        <div className="space-y-64 pb-64">
+        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
             {/* CARD 1: NUVARANDE FOKUS */}
             <section className="navet-surface">
                 <div className="navet-header">
                     <h2 className="navet-card-title">nuvarande fokus</h2>
                 </div>
                 <div className="navet-content">
-                    <div className="navet-card-label mb-12">notiser & omnämnanden</div>
-                    <div className="bg-white/[0.02] rounded-2xl overflow-hidden border border-white/[0.05]">
+                    <div className="navet-card-label mb-[var(--space-4)]">notiser & omnämnanden</div>
+                    <div className="bg-tertiary/20 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
                         {mentions.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-20">inga nya notiseringar analyserade.</div>
+                            <div className="p-16 text-center text-[11px] text-muted italic opacity-40">inga nya notiseringar analyserade.</div>
                         ) : (
                             <div className="divide-y divide-white/[0.05]">
                                 {mentions.map((m: any) => (
@@ -206,7 +206,7 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                                             <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
                                                 {m.message ? "kanal" : m.directMessage ? "privat" : "hjälp"}
                                             </span>
-                                            <span className="text-[9px] text-muted opacity-20 uppercase tracking-tighter">
+                                            <span className="text-[9px] text-muted opacity-40 uppercase tracking-tighter">
                                                 {formatDistanceToNow(new Date(m.createdAt), { locale: sv })}
                                             </span>
                                         </div>
@@ -229,10 +229,10 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                     <h2 className="navet-card-title">operativ puls</h2>
                 </div>
                 <div className="navet-content">
-                    <div className="navet-card-label mb-12">begäran om stöd</div>
-                    <div className="bg-white/[0.02] rounded-2xl overflow-hidden border border-white/[0.05]">
+                    <div className="navet-card-label mb-[var(--space-4)]">begäran om stöd</div>
+                    <div className="bg-tertiary/20 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
                         {latestHelp.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-20">inga aktiva hjälp-förfrågningar.</div>
+                            <div className="p-16 text-center text-[11px] text-muted italic opacity-40">inga aktiva hjälp-förfrågningar.</div>
                         ) : (
                             <div className="divide-y divide-white/[0.05]">
                                 {latestHelp.map((post: any) => (
@@ -242,7 +242,7 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                                             <span className="text-[10px] font-black text-accent-warning/60 uppercase tracking-[0.4em]">#{post.space.name}</span>
                                         </div>
                                         <div className="text-2xl font-light text-secondary group-hover:text-bright transition-colors tracking-tighter leading-none mb-6">{post.title.toLowerCase()}</div>
-                                        <div className="navet-card-label opacity-20 italic">postad av {post.user.name.toLowerCase()}</div>
+                                        <div className="navet-card-label opacity-40 italic">postad av {post.user.name.toLowerCase()}</div>
                                     </Link>
                                 ))}
                             </div>
@@ -257,16 +257,16 @@ async function DashboardView({ user, spaceIds, mentions, memberships, onlineUser
                     <h2 className="navet-card-title">kontextuell medvetenhet</h2>
                 </div>
                 <div className="navet-content">
-                    <div className="navet-card-label mb-12">flöde & insikter</div>
-                    <div className="bg-white/[0.01] rounded-2xl overflow-hidden border border-white/[0.03]">
+                    <div className="navet-card-label mb-[var(--space-4)]">flöde & insikter</div>
+                    <div className="bg-tertiary/10 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
                         {latestFeed.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-10">inga händelser loggade.</div>
+                            <div className="p-16 text-center text-[11px] text-muted italic opacity-30">inga händelser loggade.</div>
                         ) : (
                             <div className="divide-y divide-white/[0.03]">
                                 {latestFeed.map((post: any) => (
                                     <Link key={post.id} href={`/feed/${post.id}`} className="block p-10 transition-colors hover:bg-white/[0.01] group">
                                         <div className="text-[15px] text-secondary group-hover:text-bright leading-relaxed italic mb-4 font-serif">{post.content}</div>
-                                        <div className="flex items-center justify-between opacity-20">
+                                        <div className="flex items-center justify-between opacity-40">
                                             <span className="text-[9px] font-black uppercase tracking-[0.4em]">{post.user.name.toLowerCase()}</span>
                                             <span className="text-[8px] uppercase">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
                                         </div>
@@ -288,7 +288,7 @@ async function CollaborationsView({ user }: { user: any }) {
     });
 
     return (
-        <div className="space-y-64 pb-64">
+        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
             <section className="navet-surface">
                 <div className="navet-header">
                     <h2 className="navet-card-title">aktiva samarbeten</h2>
@@ -296,8 +296,8 @@ async function CollaborationsView({ user }: { user: any }) {
                 <div className="navet-content">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {collaborations.map(space => (
-                            <Link key={space.id} href={`/spaces/${space.id}`} className="group block bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 hover:bg-white/[0.04] transition-colors">
-                                <div className="navet-card-label mb-4 opacity-20">{space.channels.length} kanaler</div>
+                            <Link key={space.id} href={`/spaces/${space.id}`} className="group block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-8 hover:bg-tertiary/30 transition-colors">
+                                <div className="navet-card-label mb-4 opacity-40">{space.channels.length} kanaler</div>
                                 <div className="text-xl font-bold text-secondary group-hover:text-bright transition-colors mb-6">{space.name.toLowerCase()}</div>
                                 <div className="flex -space-x-4">
                                     {space.members.slice(0, 5).map(m => (
@@ -324,23 +324,23 @@ async function PulseView({ spaceIds }: { spaceIds: string[] }) {
     });
 
     return (
-        <div className="space-y-64 pb-64">
+        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
             <section className="navet-surface">
                 <div className="navet-header">
                     <h2 className="navet-card-title">operativ puls (hjälp-flöde)</h2>
                 </div>
                 <div className="navet-content">
-                    <div className="space-y-8">
+                    <div className="space-y-[var(--space-4)]">
                         {activeHelp.map(post => (
-                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="block bg-white/[0.02] border border-white/[0.05] rounded-2xl p-10 hover:bg-white/[0.04] transition-colors group">
+                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-10 hover:bg-tertiary/30 transition-colors group">
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="navet-card-label opacity-40">#{post.space.name}</span>
-                                    <span className="text-[9px] text-muted opacity-10 uppercase tracking-tighter">
+                                    <span className="text-[9px] text-muted opacity-40 uppercase tracking-tighter">
                                         {formatDistanceToNow(new Date(post.createdAt), { locale: sv })}
                                     </span>
                                 </div>
                                 <div className="text-2xl font-light text-secondary group-hover:text-bright tracking-tighter leading-none mb-4">{post.title.toLowerCase()}</div>
-                                <div className="navet-card-label opacity-10">av {post.user.name.toLowerCase()}</div>
+                                <div className="navet-card-label opacity-40">av {post.user.name.toLowerCase()}</div>
                             </Link>
                         ))}
                     </div>
@@ -352,18 +352,18 @@ async function PulseView({ spaceIds }: { spaceIds: string[] }) {
 
 async function OfficesView({ memberships }: { memberships: any[] }) {
     return (
-        <div className="space-y-64 pb-64">
+        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
             <section className="navet-surface">
                 <div className="navet-header">
                     <h2 className="navet-card-title">virtuella kontor</h2>
                 </div>
                 <div className="navet-content">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-4)]">
                         {memberships.map((m: any) => (
-                            <Link key={m.space.id} href={`/spaces/${m.space.id}`} className="group block bg-white/[0.02] border border-white/[0.05] rounded-2xl p-10 hover:bg-white/[0.04] transition-colors">
-                                <div className="navet-card-label mb-4 opacity-20">autonomt kontor</div>
+                            <Link key={m.space.id} href={`/spaces/${m.space.id}`} className="group block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-10 hover:bg-tertiary/30 transition-colors">
+                                <div className="navet-card-label mb-4 opacity-40">autonomt kontor</div>
                                 <div className="text-2xl font-black text-secondary group-hover:text-bright tracking-tighter mb-4">{m.space.name.toLowerCase()}</div>
-                                <div className="text-[10px] text-muted opacity-10 font-mono uppercase tracking-[0.4em]">status:aktiv</div>
+                                <div className="text-[10px] text-muted opacity-40 font-mono uppercase tracking-[0.4em]">status:aktiv</div>
                             </Link>
                         ))}
                     </div>

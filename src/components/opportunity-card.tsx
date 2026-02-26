@@ -37,39 +37,39 @@ export default function OpportunityCard({ opportunity, currentUserName }: Props)
     const isMentioned = currentUserName && opportunity.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
 
     return (
-        <Link href={`/opportunities/${opportunity.id}`} className={`card card-hover opportunity-card no-underline group transition-all duration-300 ${isMentioned ? "chat-message-mentioned" : ""}`}>
-            <div className="row-between mb-4">
-                <span className={`badge badge-type status-${typeLabel} font-mono uppercase tracking-tighter`}>
+        <Link href={`/opportunities/${opportunity.id}`} className={`card card-hover opportunity-card no-underline group transition-all duration-300 !p-[var(--space-6)] ${isMentioned ? "chat-message-mentioned" : ""}`}>
+            <div className="row-between mb-[var(--space-5)]">
+                <span className={`badge badge-type status-${typeLabel} font-mono uppercase tracking-tighter !py-0.5 !px-2`}>
                     {typeLabel}
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-muted font-mono uppercase tracking-wider">
-                    <MapPin size={12} strokeWidth={1.5} className="opacity-50" />
+                <span className="flex items-center gap-[var(--space-1)] text-[10px] text-secondary font-mono uppercase tracking-wider opacity-60">
+                    <MapPin size={12} strokeWidth={2} />
                     {locationLabel}
                 </span>
             </div>
 
-            <h3 className="text-xl font-bold text-bright mb-3 line-clamp-1 group-hover:text-primary transition-colors">
+            <h3 className="text-xl font-bold text-bright mb-[var(--space-2)] line-clamp-1 group-hover:text-primary transition-colors">
                 {opportunity.title}
             </h3>
 
-            <div className="text-sm text-secondary mb-6 leading-relaxed">
+            <div className="text-sm text-secondary mb-[var(--space-8)] leading-relaxed opacity-80">
                 <MessageContent content={truncatedContent} currentUserName={currentUserName} />
             </div>
 
             <div className="mt-auto">
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                <div className="flex flex-wrap gap-[var(--space-2)] mb-[var(--space-5)]">
                     {opportunity.tags.map((tag) => (
-                        <span key={tag} className="tag tag-sm bg-primary/5 text-primary/80 border-primary/20">
+                        <span key={tag} className="tag tag-sm !py-0.5 !px-2 bg-primary/5 text-primary/80 border-primary/20">
                             {tag}
                         </span>
                     ))}
                 </div>
 
-                <div className="row-between text-[10px] text-muted pt-3 border-t border-subtle font-mono uppercase tracking-widest">
+                <div className="row-between text-[10px] text-secondary pt-[var(--space-4)] border-t border-subtle/30 font-mono uppercase tracking-widest">
                     <span className="opacity-70">av {opportunity.user.name.toLowerCase()}</span>
                     {opportunity.deadline && (
-                        <span className="flex items-center gap-1.5 opacity-70">
-                            <Clock size={12} strokeWidth={1.5} />
+                        <span className="flex items-center gap-[var(--space-2)] opacity-70">
+                            <Clock size={12} strokeWidth={2} />
                             {format(new Date(opportunity.deadline), "MMM d", { locale: sv })}
                         </span>
                     )}
