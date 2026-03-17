@@ -86,7 +86,14 @@ export async function GET() {
                 include: {
                     members: {
                         include: {
-                            user: { select: { id: true, name: true, lastSeenAt: true } }
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    lastSeenAt: true,
+                                    avatarConfig: { select: { avatarId: true } }
+                                }
+                            }
                         }
                     }
                 }
@@ -130,10 +137,15 @@ export async function GET() {
         } else {
             // Find the other user in 1:1
             const otherMember = t.members.find(m => m.userId !== userId);
-            const otherUser = otherMember?.user || { id: "unknown", name: "Borttagen användare", lastSeenAt: null };
+            const otherUserRaw = otherMember?.user || { id: "unknown", name: "Borttagen användare", lastSeenAt: null, avatarConfig: null } as any;
+            const otherUser = {
+                id: otherUserRaw.id,
+                name: otherUserRaw.name,
+                avatarId: otherUserRaw.avatarConfig?.avatarId
+            };
 
-            const isOnline = otherUser.lastSeenAt &&
-                (now.getTime() - new Date(otherUser.lastSeenAt).getTime() < ONLINE_THRESHOLD_MS);
+            const isOnline = otherUserRaw.lastSeenAt &&
+                (now.getTime() - new Date(otherUserRaw.lastSeenAt).getTime() < ONLINE_THRESHOLD_MS);
 
             return {
                 id: t.id,

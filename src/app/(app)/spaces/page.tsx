@@ -1,394 +1,410 @@
-"use strict";
+"use client";
 
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Terminal,
     Activity,
-    Fingerprint,
-    ShieldCheck,
-    Cpu,
     Globe,
     Bell,
-    HelpCircle,
-    Hash,
     MessageSquare,
     Users,
     Layout,
-    Building2
+    Building2,
+    ShieldCheck,
+    Cpu,
+    MessageCircle,
+    ArrowRight
 } from "lucide-react";
+import { Container } from "@/components/layout/Container";
+import { Grid, GridItem } from "@/components/layout/Grid";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
+import { Box } from "@/components/layout/Box";
+import { getDashboardData } from "@/lib/actions/dashboard";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default async function NavetPage(props: { searchParams: Promise<{ view?: string }> }) {
-    const searchParams = await props.searchParams;
-    const session = await auth();
-    if (!session?.user) return null;
-    const view = searchParams.view || "dashboard";
+export default function NetworkOverviewPage() {
+    const { data: session, status } = useSession();
+    const [initializing, setInitializing] = useState(true);
+    const [data, setData] = useState<any>(null);
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const view = searchParams.get("view") || "dashboard";
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            spaceMemberships: { include: { space: { include: { _count: { select: { channels: true, members: true } } } } } },
-            mentions: {
-                take: 5,
-                orderBy: { createdAt: "desc" },
-                include: {
-                    message: { include: { channel: { select: { name: true, spaceId: true } } } },
-                    directMessage: { select: { threadId: true } },
-                    post: { select: { id: true, title: true, spaceId: true } }
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const res = await getDashboardData();
+                if (res && 'success' in res) {
+                    setData(res);
                 }
+            } catch (err) {
+                console.error("Dashboard failed to load:", err);
+            } finally {
+                // Architectural pattern: consistent loading time
+                setTimeout(() => setInitializing(false), 800);
             }
         }
-    });
+        if (status === "authenticated") {
+            fetchData();
+        } else if (status === "unauthenticated") {
+            router.push("/login");
+        }
+    }, [status, router]);
 
-    if (!user) return null;
+    if (status === "loading" || initializing) {
+        return <DashboardSkeleton />;
+    }
 
-    const spaceIds = user.spaceMemberships.map((m: any) => m.spaceId);
-    const onlineUsers = await prisma.user.findMany({
-        where: {
-            lastSeenAt: { gte: new Date(Date.now() - 1000 * 60 * 5) },
-            id: { not: user.id }
-        },
-        select: { id: true, name: true }
-    });
+    if (!data?.user) return null;
+
+    const { user, spaceIds, onlineUsers, latestHelp, collaborations } = data;
 
     return (
-        <div className="max-w-[var(--inner-max-width)] mx-auto px-[var(--container-padding)] pb-[var(--space-12)] animate-in fade-in duration-1000">
-            {/* 🏗️ HEADER BLOCK (STRICT CONTAINMENT) */}
-            <div className="navet-surface mb-[var(--space-10)] p-[var(--space-8)]">
-                <header className="mb-[var(--space-6)]">
-                    <div className="navet-card-label mb-[var(--space-2)]">operativt:navet</div>
-                    <h1 className="text-4xl font-black text-bright tracking-tighter">
-                        välkommen, <span className="text-primary/60">{user.name.split(" ")[0].toLowerCase()}</span>.
-                    </h1>
-                </header>
+        <Container style={{ paddingBottom: '4rem', paddingTop: '2rem' }}>
+            <Stack direction="vertical" gap={48}>
+                {/* 🏗️ HEADER BLOCK */}
+                <Box>
+                    <Stack direction="vertical" gap={16}>
+                        <Stack direction="vertical" gap={4}>
+                            <Typography style={{ color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em" }}>
+                                Your Support Network
+                            </Typography>
+                            <Typography style={{ fontSize: "min(3rem, 8vw)", fontWeight: 700, fontFamily: "var(--font-outfit)", lineHeight: 1.1 }}>
+                                Hello {user.name.split(" ")[0]}, we are glad you are here.
+                            </Typography>
+                        </Stack>
 
-                <nav className="relative z-[100] navet-nav-group w-fit">
-                    <Link href="/spaces?view=dashboard" className={`navet-nav-tab ${view === "dashboard" ? "active" : ""}`}>
-                        överblick
-                    </Link>
-                    <Link href="/spaces?view=collaborations" className={`navet-nav-tab ${view === "collaborations" ? "active" : ""}`}>
-                        samarbeten
-                    </Link>
-                    <Link href="/spaces?view=pulse" className={`navet-nav-tab ${view === "pulse" ? "active" : ""}`}>
-                        puls
-                    </Link>
-                    <Link href="/spaces?view=offices" className={`navet-nav-tab ${view === "offices" ? "active" : ""}`}>
-                        kontor
-                    </Link>
-                </nav>
-            </div>
+                        <Stack direction="horizontal" gap={24} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "2px" }}>
+                            <Link href="/spaces?view=dashboard" className="nav-link" style={{
+                                padding: "8px 0",
+                                textDecoration: "none",
+                                borderBottom: view === "dashboard" ? "2px solid var(--neon-green)" : "2px solid transparent",
+                                transition: "all 0.2s"
+                            }}>
+                                <Typography style={{ fontSize: "0.9rem", fontWeight: 600, color: view === "dashboard" ? "white" : "rgba(255,255,255,0.4)" }}>Overview</Typography>
+                            </Link>
+                            <Link href="/spaces?view=collaborations" className="nav-link" style={{
+                                padding: "8px 0",
+                                textDecoration: "none",
+                                borderBottom: view === "collaborations" ? "2px solid var(--neon-green)" : "2px solid transparent",
+                                transition: "all 0.2s"
+                            }}>
+                                <Typography style={{ fontSize: "0.9rem", fontWeight: 600, color: view === "collaborations" ? "white" : "rgba(255,255,255,0.4)" }}>Collaborations</Typography>
+                            </Link>
+                            <Link href="/spaces?view=pulse" className="nav-link" style={{
+                                padding: "8px 0",
+                                textDecoration: "none",
+                                borderBottom: view === "pulse" ? "2px solid var(--neon-green)" : "2px solid transparent",
+                                transition: "all 0.2s"
+                            }}>
+                                <Typography style={{ fontSize: "0.9rem", fontWeight: 600, color: view === "pulse" ? "white" : "rgba(255,255,255,0.4)" }}>Pulse</Typography>
+                            </Link>
+                            <Link href="/spaces?view=offices" className="nav-link" style={{
+                                padding: "8px 0",
+                                textDecoration: "none",
+                                borderBottom: view === "offices" ? "2px solid var(--neon-green)" : "2px solid transparent",
+                                transition: "all 0.2s"
+                            }}>
+                                <Typography style={{ fontSize: "0.9rem", fontWeight: 600, color: view === "offices" ? "white" : "rgba(255,255,255,0.4)" }}>Offices</Typography>
+                            </Link>
+                        </Stack>
+                    </Stack>
+                </Box>
 
-            {/* 🧱 2-COLUMN DASHBOARD GEOMETRY */}
-            <div className="grid grid-cols-12 gap-[var(--space-8)] items-start">
-                {/* ⬅️ PRIMARY CONTENT (8/12) */}
-                <main className="col-span-12 lg:col-span-8">
-                    {view === "dashboard" && (
-                        <DashboardView
-                            user={user}
-                            spaceIds={spaceIds}
-                            mentions={user.mentions}
-                            memberships={user.spaceMemberships}
-                        />
+                {/* 🧱 12-COLUMN DASHBOARD GEOMETRY */}
+                <Box style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "2rem" }}>
+                    {/* ⬅️ PRIMARY CONTENT (8/12) */}
+                    <Box style={{ gridColumn: "span 8" }}>
+                        {view === "dashboard" && (
+                            <DashboardView
+                                user={user}
+                                mentions={user.mentions}
+                                latestHelp={latestHelp}
+                            />
+                        )}
+                        {view === "collaborations" && <CollaborationsView collaborations={collaborations} />}
+                        {view === "pulse" && <PulseView latestHelp={latestHelp} />}
+                        {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
+                    </Box>
+
+                    {/* ➡️ SYSTEM COLUMN (4/12) */}
+                    <Box style={{ gridColumn: "span 4" }}>
+                        <Stack direction="vertical" gap={24}>
+                            {/* PANEL 1: PRESENCE */}
+                            <Card style={{ padding: "1.5rem", borderRadius: "24px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                <Stack direction="vertical" gap={16}>
+                                    <Stack direction="horizontal" justify="between" align="center">
+                                        <Typography style={{ fontWeight: 700, fontSize: "1.1rem" }}>Presence</Typography>
+                                        <Box style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--neon-green)', boxShadow: '0 0 12px var(--neon-green)' }} />
+                                    </Stack>
+
+                                    <Stack direction="vertical" gap={8}>
+                                        {onlineUsers.length === 0 ? (
+                                            <Typography style={{ color: "rgba(255,255,255,0.3)", fontStyle: "italic", fontSize: "0.9rem" }}>No active nodes</Typography>
+                                        ) : (
+                                            onlineUsers.map((u: any) => (
+                                                <Stack key={u.id} direction="horizontal" gap={12} align="center">
+                                                    <Box style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--neon-green)', opacity: 0.4 }} />
+                                                    <Typography style={{ fontSize: "0.85rem", fontWeight: 600, color: "white" }}>{u.name}</Typography>
+                                                </Stack>
+                                            ))
+                                        )}
+                                    </Stack>
+                                </Stack>
+                            </Card>
+
+                            {/* PANEL 2: NETWORK STATUS */}
+                            <Card style={{ padding: "1.5rem", borderRadius: "24px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                <Stack direction="vertical" gap={12}>
+                                    <Typography style={{ fontWeight: 700, fontSize: "1.1rem" }}>Network Status</Typography>
+                                    <Typography style={{ fontSize: '0.9rem', color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                                        The network is active and stable. People are helping each other move forward.
+                                    </Typography>
+                                </Stack>
+                            </Card>
+
+                            {/* PANEL 3: QUOTE/INSIGHT */}
+                            <Card style={{ padding: "1.5rem", borderRadius: "24px", background: "rgba(0, 230, 118, 0.05)", border: "1px solid rgba(0, 230, 118, 0.1)" }}>
+                                <Stack gap={16}>
+                                    <Box style={{ opacity: 0.8 }}>
+                                        <img src="/heart.png" alt="Heart" style={{ width: '32px', height: 'auto' }} />
+                                    </Box>
+                                    <Typography style={{ fontStyle: 'italic', fontSize: '0.95rem', fontWeight: 500, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
+                                        "A place where people help each other move forward."
+                                    </Typography>
+                                </Stack>
+                            </Card>
+                        </Stack>
+                    </Box>
+                </Box>
+            </Stack>
+            <style jsx global>{`
+                .nav-link:hover Typography { color: white !important; }
+                .item-card:hover { transform: translateX(8px); background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.1) !important; }
+            `}</style>
+        </Container>
+    );
+}
+
+function DashboardView({ mentions, latestHelp }: any) {
+    return (
+        <Stack direction="vertical" gap={32}>
+            {/* CARD 1: CURRENT FOCUS */}
+            <Card style={{ borderRadius: "24px", overflow: "hidden", background: "#16181c", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <Box style={{ padding: "1.5rem 2rem", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                    <Typography style={{ fontWeight: 700, fontSize: "1.25rem" }}>Current Focus</Typography>
+                    <Typography style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)" }}>Notifications & mentions</Typography>
+                </Box>
+
+                <Box>
+                    {mentions.length === 0 ? (
+                        <Box style={{ padding: '3rem', textAlign: 'center' }}>
+                            <Typography style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>No new activity analyzed.</Typography>
+                        </Box>
+                    ) : (
+                        <Stack gap={0}>
+                            {mentions.map((m: any, i: number) => (
+                                <Link key={m.id} href={
+                                    m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
+                                        m.directMessage ? `/messages/${m.directMessage.threadId}` :
+                                            m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
+                                }
+                                    style={{ textDecoration: "none", color: "inherit" }}
+                                >
+                                    <Box style={{ padding: '1.25rem 2rem', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.03)' : 'none', transition: 'all 0.2s' }} className="item-card">
+                                        <Stack gap={8}>
+                                            <Stack direction="horizontal" justify="between" align="center">
+                                                <Typography style={{ color: 'var(--neon-green)', fontWeight: 800, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                                                    {m.message ? "channel" : m.directMessage ? "dm" : "help"}
+                                                </Typography>
+                                                <Typography style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>
+                                                    {formatDistanceToNow(new Date(m.createdAt), { locale: sv })}
+                                                </Typography>
+                                            </Stack>
+                                            <Typography style={{ fontWeight: 500, color: "white" }}>
+                                                {m.message && <span>Mention in <strong style={{ color: 'white' }}>#{m.message.channel.name}</strong></span>}
+                                                {m.directMessage && <span>New reply in direct chat</span>}
+                                                {m.post && <span>New reply in {m.post.title.toLowerCase()}</span>}
+                                            </Typography>
+                                        </Stack>
+                                    </Box>
+                                </Link>
+                            ))}
+                        </Stack>
                     )}
-                    {view === "collaborations" && <CollaborationsView user={user} />}
-                    {view === "pulse" && <PulseView spaceIds={spaceIds} />}
-                    {view === "offices" && <OfficesView memberships={user.spaceMemberships} />}
-                </main>
+                </Box>
+            </Card>
 
-                {/* ➡️ SYSTEM COLUMN (4/12) */}
-                <aside className="col-span-12 lg:col-span-4 space-y-[var(--space-8)] lg:sticky lg:top-[var(--space-4)]">
-                    {/* PANEL 1: NÄRVARO */}
-                    <section className="navet-surface">
-                        <div className="navet-header flex items-center justify-between">
-                            <h3 className="navet-card-title">närvaro</h3>
-                            <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                        </div>
-                        <div className="navet-content">
-                            {onlineUsers.length === 0 ? (
-                                <div className="navet-card-label opacity-30">inga noder aktiva</div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {onlineUsers.map(u => (
-                                        <div key={u.id} className="flex items-center gap-4">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-success/20" />
-                                            <span className="text-[11px] font-bold text-muted uppercase tracking-widest">{u.name.toLowerCase()}</span>
-                                        </div>
+            {/* CARD 2: NETWORK PULSE */}
+            <Card style={{ borderRadius: "24px", overflow: "hidden", background: "#16181c", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <Box style={{ padding: "1.5rem 2rem", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                    <Typography style={{ fontWeight: 700, fontSize: "1.25rem" }}>Network Pulse</Typography>
+                    <Typography style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)" }}>Requests for support</Typography>
+                </Box>
+
+                <Box>
+                    {latestHelp.length === 0 ? (
+                        <Box style={{ padding: '3rem', textAlign: 'center' }}>
+                            <Typography style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>No active requests.</Typography>
+                        </Box>
+                    ) : (
+                        <Stack gap={0}>
+                            {latestHelp.slice(0, 3).map((post: any, i: number) => (
+                                <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                                    <Box style={{ padding: '1.25rem 2rem', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.03)' : 'none', transition: 'all 0.2s' }} className="item-card">
+                                        <Stack gap={8}>
+                                            <Stack direction="horizontal" gap={8} align="center">
+                                                <Box style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff9800' }} />
+                                                <Typography style={{ color: '#ff9800', fontWeight: 800, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>#{post.space.name}</Typography>
+                                            </Stack>
+                                            <Typography style={{ fontWeight: 600, fontSize: "1.1rem", color: "white" }}>{post.title}</Typography>
+                                            <Typography style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Posted by {post.user.name}</Typography>
+                                        </Stack>
+                                    </Box>
+                                </Link>
+                            ))}
+                        </Stack>
+                    )}
+                </Box>
+            </Card>
+        </Stack>
+    );
+}
+
+function CollaborationsView({ collaborations }: any) {
+    return (
+        <Stack direction="vertical" gap={24}>
+            <Typography style={{ fontWeight: 700, fontSize: "1.5rem" }}>Active Collaborations</Typography>
+            <Box style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
+                {collaborations.map((space: any) => (
+                    <Link key={space.id} href={`/spaces/${space.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Card style={{
+                            padding: "2rem",
+                            borderRadius: "24px",
+                            background: "rgba(255,255,255,0.02)",
+                            border: "1px solid rgba(255,255,255,0.05)",
+                            height: "100%",
+                            transition: "all 0.2s"
+                        }} className="hover:border-white/10 hover:bg-white/[0.04]">
+                            <Stack direction="vertical" gap={12}>
+                                <Typography style={{ fontSize: "0.75rem", fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>{space.channels.length} channels</Typography>
+                                <Typography style={{ fontWeight: 700, fontSize: "1.4rem", color: "white" }}>{space.name}</Typography>
+                                <Stack direction="horizontal" gap={0} style={{ marginTop: "1rem" }}>
+                                    {space.members.map((m: any, i: number) => (
+                                        <Box key={m.userId} style={{
+                                            marginLeft: i > 0 ? '-10px' : '0',
+                                            zIndex: 5 - i,
+                                            borderRadius: '50%',
+                                            border: '2px solid #000',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <AvatarPreview
+                                                avatarId={m.user.avatarId}
+                                                name={m.user.name}
+                                                size="xs"
+                                            />
+                                        </Box>
                                     ))}
-                                </div>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* PANEL 2: SYSTEMSTATUS */}
-                    <section className="navet-surface">
-                        <div className="navet-header">
-                            <h3 className="navet-card-title">systemstatus</h3>
-                        </div>
-                        <div className="navet-content grid grid-cols-2 gap-[var(--space-4)]">
-                            <div>
-                                <div className="text-2xl font-black text-bright tracking-tighter">99.9%</div>
-                                <div className="navet-card-label mt-2">uptime</div>
-                            </div>
-                            <div>
-                                <div className="text-2xl font-black text-bright tracking-tighter">12ms</div>
-                                <div className="navet-card-label mt-2">latens</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* PANEL 3: TELEMETRI */}
-                    <section className="navet-surface">
-                        <div className="navet-header">
-                            <h3 className="navet-card-title">telemetri</h3>
-                        </div>
-                        <div className="navet-content">
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                    <span className="navet-card-label opacity-60">nätverk</span>
-                                    <span className="text-[10px] font-black text-success/60 uppercase">kryp:v3</span>
-                                </div>
-                                <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                    <span className="navet-card-label opacity-60">status</span>
-                                    <span className="text-[10px] font-black text-primary/60 uppercase">klar</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="navet-card-label opacity-60">synk</span>
-                                    <span className="text-[10px] font-black text-muted uppercase">aktiv</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </aside>
-            </div>
-        </div>
+                                </Stack>
+                            </Stack>
+                        </Card>
+                    </Link>
+                ))}
+            </Box>
+        </Stack>
     );
 }
 
-async function DashboardView({ user, spaceIds, mentions, memberships, onlineUsers }: any) {
-    const latestHelp = await prisma.post.findMany({
-        where: { spaceId: { in: spaceIds }, solved: false },
-        take: 3,
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true } }, space: { select: { name: true } } }
-    });
-
-    const latestFeed = await prisma.feedPost.findMany({
-        take: 3,
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true } } }
-    });
-
+function PulseView({ latestHelp }: any) {
     return (
-        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
-            {/* CARD 1: NUVARANDE FOKUS */}
-            <section className="navet-surface">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">nuvarande fokus</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="navet-card-label mb-[var(--space-4)]">notiser & omnämnanden</div>
-                    <div className="bg-tertiary/20 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
-                        {mentions.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-40">inga nya notiseringar analyserade.</div>
-                        ) : (
-                            <div className="divide-y divide-white/[0.05]">
-                                {mentions.map((m: any) => (
-                                    <Link key={m.id} href={
-                                        m.message ? `/spaces/${m.message.channel.spaceId}/chat/${m.message.channelId}` :
-                                            m.directMessage ? `/dm/${m.directMessage.threadId}` :
-                                                m.post ? `/spaces/${m.post.spaceId}/help/${m.post.id}` : "#"
-                                    } className="group block p-8 transition-colors hover:bg-white/[0.02]">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
-                                                {m.message ? "kanal" : m.directMessage ? "privat" : "hjälp"}
-                                            </span>
-                                            <span className="text-[9px] text-muted opacity-40 uppercase tracking-tighter">
-                                                {formatDistanceToNow(new Date(m.createdAt), { locale: sv })}
-                                            </span>
-                                        </div>
-                                        <div className="text-xl font-light text-secondary group-hover:text-bright transition-colors leading-relaxed">
-                                            {m.message && <span>omnämnande i <strong className="font-bold text-bright/80">#{m.message.channel.name}</strong></span>}
-                                            {m.directMessage && <span>nytt svar i din direktchatt</span>}
-                                            {m.post && <span>nytt svar i {m.post.title.toLowerCase()}</span>}
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* CARD 2: OPERATIV PULS */}
-            <section className="navet-surface">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">operativ puls</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="navet-card-label mb-[var(--space-4)]">begäran om stöd</div>
-                    <div className="bg-tertiary/20 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
-                        {latestHelp.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-40">inga aktiva hjälp-förfrågningar.</div>
-                        ) : (
-                            <div className="divide-y divide-white/[0.05]">
-                                {latestHelp.map((post: any) => (
-                                    <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="group block p-10 transition-colors hover:bg-white/[0.02]">
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-accent-warning" />
-                                            <span className="text-[10px] font-black text-accent-warning/60 uppercase tracking-[0.4em]">#{post.space.name}</span>
-                                        </div>
-                                        <div className="text-2xl font-light text-secondary group-hover:text-bright transition-colors tracking-tighter leading-none mb-6">{post.title.toLowerCase()}</div>
-                                        <div className="navet-card-label opacity-40 italic">postad av {post.user.name.toLowerCase()}</div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* CARD 3: KONTEXTUELL MEDVETENHET */}
-            <section className="navet-surface opacity-80 hover:opacity-100 transition-opacity">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">kontextuell medvetenhet</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="navet-card-label mb-[var(--space-4)]">flöde & insikter</div>
-                    <div className="bg-tertiary/10 rounded-[var(--radius-lg)] overflow-hidden border border-subtle">
-                        {latestFeed.length === 0 ? (
-                            <div className="p-16 text-center text-[11px] text-muted italic opacity-30">inga händelser loggade.</div>
-                        ) : (
-                            <div className="divide-y divide-white/[0.03]">
-                                {latestFeed.map((post: any) => (
-                                    <Link key={post.id} href={`/feed/${post.id}`} className="block p-10 transition-colors hover:bg-white/[0.01] group">
-                                        <div className="text-[15px] text-secondary group-hover:text-bright leading-relaxed italic mb-4 font-serif">{post.content}</div>
-                                        <div className="flex items-center justify-between opacity-40">
-                                            <span className="text-[9px] font-black uppercase tracking-[0.4em]">{post.user.name.toLowerCase()}</span>
-                                            <span className="text-[8px] uppercase">{formatDistanceToNow(new Date(post.createdAt), { locale: sv })}</span>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-        </div>
-    );
-}
-
-async function CollaborationsView({ user }: { user: any }) {
-    const collaborations = await prisma.space.findMany({
-        where: { members: { some: { userId: user.id } } },
-        include: { channels: true, members: { include: { user: true } } },
-    });
-
-    return (
-        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
-            <section className="navet-surface">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">aktiva samarbeten</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {collaborations.map(space => (
-                            <Link key={space.id} href={`/spaces/${space.id}`} className="group block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-8 hover:bg-tertiary/30 transition-colors">
-                                <div className="navet-card-label mb-4 opacity-40">{space.channels.length} kanaler</div>
-                                <div className="text-xl font-bold text-secondary group-hover:text-bright transition-colors mb-6">{space.name.toLowerCase()}</div>
-                                <div className="flex -space-x-4">
-                                    {space.members.slice(0, 5).map(m => (
-                                        <div key={m.userId} title={m.user.name} className="w-6 h-6 rounded-full border border-black bg-white/10 flex items-center justify-center text-[8px] font-black uppercase">
-                                            {m.user.name[0]}
-                                        </div>
-                                    ))}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        </div>
-    );
-}
-
-async function PulseView({ spaceIds }: { spaceIds: string[] }) {
-    const activeHelp = await prisma.post.findMany({
-        where: { spaceId: { in: spaceIds }, solved: false },
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: { user: true, space: true }
-    });
-
-    return (
-        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
-            <section className="navet-surface">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">operativ puls (hjälp-flöde)</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="space-y-[var(--space-4)]">
-                        {activeHelp.map(post => (
-                            <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} className="block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-10 hover:bg-tertiary/30 transition-colors group">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="navet-card-label opacity-40">#{post.space.name}</span>
-                                    <span className="text-[9px] text-muted opacity-40 uppercase tracking-tighter">
+        <Stack direction="vertical" gap={24}>
+            <Typography style={{ fontWeight: 700, fontSize: "1.5rem" }}>Network Pulse (Support Feed)</Typography>
+            <Stack gap={16}>
+                {latestHelp.map((post: any) => (
+                    <Link key={post.id} href={`/spaces/${post.spaceId}/help/${post.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Card style={{
+                            padding: "2rem",
+                            borderRadius: "24px",
+                            background: "rgba(255,255,255,0.02)",
+                            border: "1px solid rgba(255,255,255,0.05)",
+                            transition: "all 0.2s"
+                        }} className="hover:border-white/10 hover:bg-white/[0.04]">
+                            <Stack gap={12}>
+                                <Stack direction="horizontal" justify="between">
+                                    <Typography style={{ color: '#ff9800', fontWeight: 800, fontSize: "0.65rem", textTransform: "uppercase" }}>#{post.space.name}</Typography>
+                                    <Typography style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>
                                         {formatDistanceToNow(new Date(post.createdAt), { locale: sv })}
-                                    </span>
-                                </div>
-                                <div className="text-2xl font-light text-secondary group-hover:text-bright tracking-tighter leading-none mb-4">{post.title.toLowerCase()}</div>
-                                <div className="navet-card-label opacity-40">av {post.user.name.toLowerCase()}</div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        </div>
+                                    </Typography>
+                                </Stack>
+                                <Typography style={{ fontWeight: 700, fontSize: "1.3rem", color: "white" }}>{post.title}</Typography>
+                                <Typography style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)" }}>by {post.user.name}</Typography>
+                            </Stack>
+                        </Card>
+                    </Link>
+                ))}
+            </Stack>
+        </Stack>
     );
 }
 
-async function OfficesView({ memberships }: { memberships: any[] }) {
+function OfficesView({ memberships }: any) {
     return (
-        <div className="space-y-[var(--space-10)] pb-[var(--space-10)]">
-            <section className="navet-surface">
-                <div className="navet-header">
-                    <h2 className="navet-card-title">virtuella kontor</h2>
-                </div>
-                <div className="navet-content">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-4)]">
-                        {memberships.map((m: any) => (
-                            <Link key={m.space.id} href={`/spaces/${m.space.id}`} className="group block bg-tertiary/20 border border-subtle rounded-[var(--radius-lg)] p-10 hover:bg-tertiary/30 transition-colors">
-                                <div className="navet-card-label mb-4 opacity-40">autonomt kontor</div>
-                                <div className="text-2xl font-black text-secondary group-hover:text-bright tracking-tighter mb-4">{m.space.name.toLowerCase()}</div>
-                                <div className="text-[10px] text-muted opacity-40 font-mono uppercase tracking-[0.4em]">status:aktiv</div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        </div>
+        <Stack direction="vertical" gap={24}>
+            <Typography style={{ fontWeight: 700, fontSize: "1.5rem" }}>Offices</Typography>
+            <Box style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
+                {memberships.map((m: any) => (
+                    <Link key={m.space.id} href={`/spaces/${m.space.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Card style={{
+                            padding: "2rem",
+                            borderRadius: "24px",
+                            background: "rgba(255,255,255,0.02)",
+                            border: "1px solid rgba(255,255,255,0.05)",
+                            height: "100%",
+                            transition: "all 0.2s"
+                        }} className="hover:border-white/10 hover:bg-white/[0.04]">
+                            <Stack gap={12}>
+                                <Typography style={{ fontSize: "0.75rem", fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>Virtual Office</Typography>
+                                <Typography style={{ fontWeight: 700, fontSize: "1.3rem", color: "white" }}>{m.space.name}</Typography>
+                                <Typography style={{ color: 'var(--neon-green)', fontWeight: 800, fontSize: "0.65rem", marginTop: "auto", textTransform: "uppercase" }}>Status: Active</Typography>
+                            </Stack>
+                        </Card>
+                    </Link>
+                ))}
+            </Box>
+        </Stack>
     );
 }
 
-function NavetSkeleton() {
+function DashboardSkeleton() {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-32 animate-in fade-in duration-500">
-            <div className="space-y-48">
-                <div className="space-y-12">
-                    <Skeleton className="w-64 h-8 opacity-10" />
-                    <div className="space-y-8">
-                        <Skeleton className="w-full h-48 rounded-[3rem] opacity-5" />
-                        <Skeleton className="w-full h-48 rounded-[3rem] opacity-5" />
-                    </div>
-                </div>
-            </div>
-            <aside className="space-y-24 opacity-5">
-                <Skeleton className="w-full h-64 rounded-[2.5rem]" />
-                <Skeleton className="w-full h-64 rounded-[2.5rem]" />
-            </aside>
-        </div>
+        <Container style={{ paddingBottom: '4rem', paddingTop: '2rem' }}>
+            <Stack gap={48}>
+                <Box>
+                    <Skeleton width="200px" height="16px" style={{ marginBottom: "12px" }} />
+                    <Skeleton width="500px" height="48px" />
+                </Box>
+                <Box style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "2rem" }}>
+                    <Box style={{ gridColumn: "span 8" }}>
+                        <Stack gap={32}>
+                            <Skeleton height="300px" borderRadius="24px" />
+                            <Skeleton height="300px" borderRadius="24px" />
+                        </Stack>
+                    </Box>
+                    <Box style={{ gridColumn: "span 4" }}>
+                        <Stack gap={24}>
+                            <Skeleton height="150px" borderRadius="24px" />
+                            <Skeleton height="150px" borderRadius="24px" />
+                        </Stack>
+                    </Box>
+                </Box>
+            </Stack>
+        </Container>
     );
 }

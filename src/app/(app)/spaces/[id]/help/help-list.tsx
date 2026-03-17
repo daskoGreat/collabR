@@ -7,10 +7,13 @@ import AttachmentPicker from "@/components/attachment-picker";
 import AttachmentList from "@/components/attachment-list";
 import MentionList from "@/components/mention-list";
 import MessageContent from "@/components/message-content";
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
+import { Stack } from "@/components/layout/Stack";
 
 interface User {
     id: string;
     name: string;
+    avatarId?: string | null;
 }
 
 interface Attachment {
@@ -26,7 +29,7 @@ interface Post {
     content: string;
     tags: string[];
     solved: boolean;
-    user: { id: string; name: string };
+    user: { id: string; name: string; avatarId?: string | null };
     answerCount: number;
     createdAt: string;
 }
@@ -272,7 +275,10 @@ export default function HelpList({ spaceId, posts, currentUserName }: Props) {
                                         <MessageContent content={post.content} currentUserName={currentUserName} />
                                     </div>
                                     <div className="row mt-2" style={{ gap: "var(--space-4)" }}>
-                                        <span className="text-xs text-muted">av {post.user.name}</span>
+                                        <Stack direction="horizontal" gap={4} align="center">
+                                            <AvatarPreview avatarId={post.user.avatarId || undefined} name={post.user.name} size={16} />
+                                            <span className="text-xs text-muted">av {post.user.name}</span>
+                                        </Stack>
                                         <span className="text-xs text-muted">{post.answerCount} svar</span>
                                         {post.tags.length > 0 && (
                                             <div className="tags-list">

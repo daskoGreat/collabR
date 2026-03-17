@@ -6,6 +6,505 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  username            String?              @unique
+  passwordHash        String?
+  role                GlobalRole           @default(MEMBER)
+  banned              Boolean              @default(false)
+  bannedReason        String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  lastSeenAt          DateTime?
+  auditLogs           AuditLog[]
+  bansIssued          Ban[]                @relation("BanIssuer")
+  bansReceived        Ban[]                @relation("BannedUser")
+  channelMemberships  ChannelMember[]
+  sentDMs             DirectMessage[]      @relation("DMSender")
+  dmThreadsAsUser1    DirectThread[]       @relation("DirectThreadUser1")
+  dmThreadsAsUser2    DirectThread[]       @relation("DirectThreadUser2")
+  feedComments        FeedComment[]
+  feedPosts           FeedPost[]
+  feedReactions       FeedReaction[]
+  files               File[]
+  invitesCreated      Invite[]             @relation("InviteCreator")
+  invites             Invite[]
+  mentions            Mention[]            @relation("MentionedUser")
+  messages            Message[]
+  opportunities       Opportunity[]
+  opportunityComments OpportunityComment[]
+  posts               Post[]
+  postAnswers         PostAnswer[]
+  reportsFiled        Report[]             @relation("Reporter")
+  reportsResolved     Report[]             @relation("ReportResolver")
+  spaceMemberships    SpaceMember[]
+  tasksAssigned       Task[]               @relation("TaskAssignee")
+  tasksCreated        Task[]               @relation("TaskCreator")
+  taskComments        TaskComment[]
+  threadMemberships   ThreadMember[]
+
+  profile             Profile?
+  avatarConfig        AvatarConfig?
+
+  @@index([email])
+  @@index([username])
+}
+
+model Profile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  bio                String?
+  pronouns           String?
+  location           String?
+  supportPreferences String?
+  interests          String[]
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AvatarConfig {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  avatarId        String?  @default("default")
+  head            String   @default("default")
+  eyes            String   @default("default")
+  brows           String   @default("default")
+  mouth           String   @default("default")
+  hair            String   @default("default")
+  accessories     String[]
+  mood            String   @default("neutral")
+  background      String   @default("circle")
+  backgroundColor String   @default("#ffffff")
+  accentColor     String   @default("#000000")
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invite {
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid())
+  createdBy String
+  maxUses   Int       @default(1)
+  uses      Int       @default(0)
+  singleUse Boolean   @default(true)
+  expiresAt DateTime?
+  revoked   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  email     String?
+  userId    String?
+  creator   User      @relation("InviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([email])
+  @@index([userId])
+}
+
+model Space {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  isDefault   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  channels    Channel[]
+  files       File[]
+  posts       Post[]
+  members     SpaceMember[]
+  tasks       Task[]
+}
+
+model SpaceMember {
+  id       String    @id @default(cuid())
+  userId   String
+  spaceId  String
+  role     SpaceRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  space    Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spaceId])
+  @@index([spaceId])
+}
+
+model Channel {
+  id           String               @id @default(cuid())
+  spaceId      String
+  name         String
+  description  String?
+  createdAt    DateTime             @default(now())
+  isClosed     Boolean              @default(false)
+  space        Space                @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  members      ChannelMember[]
+  readReceipts ChannelReadReceipt[]
+  messages     Message[]
+
+  @@index([spaceId])
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  joinedAt  DateTime @default(now())
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+}
+
+model DirectThread {
+  id              String          @id @default(cuid())
+  user1Id         String?
+  user2Id         String?
+  createdAt       DateTime        @default(now())
+  lastReadUser1At DateTime        @default(now())
+  lastReadUser2At DateTime        @default(now())
+  avatar          String?
+  isGroup         Boolean         @default(false)
+  name            String?
+  messages        DirectMessage[]
+  user1           User?           @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2           User?           @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  members         ThreadMember[]
+
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model ThreadMember {
+  id       String       @id @default(cuid())
+  threadId String
+  userId   String
+  role     ThreadRole   @default(MEMBER)
+  joinedAt DateTime     @default(now())
+  thread   DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+}
+
+model DirectMessage {
+  id          String       @id @default(cuid())
+  threadId    String
+  userId      String
+  content     String
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
+  thread      DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user        User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
+  mentions    Mention[]
+
+  @@index([threadId, createdAt])
+}
+
+model ChannelReadReceipt {
+  id         String   @id @default(cuid())
+  channelId  String
+  userId     String
+  lastReadAt DateTime @default(now())
+  channel    Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channelId])
+  @@index([channelId])
+}
+
+model Message {
+  id          String       @id @default(cuid())
+  channelId   String
+  userId      String
+  content     String
+  deletedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
+  mentions    Mention[]
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, createdAt])
+}
+
+model File {
+  id         String   @id @default(cuid())
+  spaceId    String
+  userId     String
+  name       String
+  size       Int
+  mimeType   String
+  storageKey String
+  url        String
+  createdAt  DateTime @default(now())
+  space      Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([spaceId])
+}
+
+model Task {
+  id          String        @id @default(cuid())
+  spaceId     String
+  title       String
+  description String?
+  status      TaskStatus    @default(OPEN)
+  tags        String[]
+  assigneeId  String?
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  mentions    Mention[]
+  assignee    User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User          @relation("TaskCreator", fields: [createdBy], references: [id])
+  space       Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  comments    TaskComment[]
+
+  @@index([spaceId, status])
+}
+
+model TaskComment {
+  id          String       @id @default(cuid())
+  taskId      String
+  userId      String
+  content     String
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
+  mentions    Mention[]
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          String       @id @default(cuid())
+  spaceId     String
+  userId      String
+  title       String
+  content     String
+  tags        String[]
+  solved      Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attachments Attachment[]
+  mentions    Mention[]
+  space       Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers     PostAnswer[]
+
+  @@index([spaceId])
+}
+
+model PostAnswer {
+  id          String       @id @default(cuid())
+  postId      String
+  userId      String
+  content     String
+  accepted    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
+  mentions    Mention[]
+  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  status     ReportStatus @default(PENDING)
+  resolvedBy String?
+  resolvedAt DateTime?
+  createdAt  DateTime     @default(now())
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver   User?        @relation("ReportResolver", fields: [resolvedBy], references: [id])
+
+  @@index([status])
+}
+
+model Ban {
+  id        String   @id @default(cuid())
+  userId    String
+  reason    String
+  bannedBy  String
+  type      BanType  @default(SOFT)
+  createdAt DateTime @default(now())
+  issuer    User     @relation("BanIssuer", fields: [bannedBy], references: [id], onDelete: Cascade)
+  user      User     @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([action])
+}
+
+model Attachment {
+  id                   String              @id @default(cuid())
+  name                 String
+  size                 Int
+  mimeType             String
+  url                  String
+  storageKey           String
+  createdAt            DateTime            @default(now())
+  messageId            String?
+  directMessageId      String?
+  taskCommentId        String?
+  postId               String?
+  postAnswerId         String?
+  opportunityCommentId String?
+  opportunityId        String?
+  feedCommentId        String?
+  feedPostId           String?
+  directMessage        DirectMessage?      @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  feedComment          FeedComment?        @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
+  feedPost             FeedPost?           @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  message              Message?            @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  opportunityComment   OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
+  opportunity          Opportunity?        @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  postAnswer           PostAnswer?         @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
+  post                 Post?               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  taskComment          TaskComment?        @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([directMessageId])
+  @@index([taskCommentId])
+}
+
+model Mention {
+  id                   String              @id @default(cuid())
+  userId               String
+  messageId            String?
+  directMessageId      String?
+  taskCommentId        String?
+  postId               String?
+  postAnswerId         String?
+  taskId               String?
+  readAt               DateTime?
+  createdAt            DateTime            @default(now())
+  opportunityCommentId String?
+  opportunityId        String?
+  feedCommentId        String?
+  feedPostId           String?
+  directMessage        DirectMessage?      @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  feedComment          FeedComment?        @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
+  feedPost             FeedPost?           @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  message              Message?            @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  opportunityComment   OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
+  opportunity          Opportunity?        @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  postAnswer           PostAnswer?         @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
+  post                 Post?               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  taskComment          TaskComment?        @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
+  task                 Task?               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user                 User                @relation("MentionedUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([messageId])
+  @@index([directMessageId])
+}
+
+model Opportunity {
+  id          String               @id @default(cuid())
+  userId      String
+  title       String
+  content     String
+  type        OpportunityType
+  location    WorkLocation
+  tags        String[]
+  link        String?
+  contactInfo String?
+  deadline    DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  attachments Attachment[]
+  mentions    Mention[]
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments    OpportunityComment[]
+
+  @@index([type])
+  @@index([location])
+  @@index([createdAt])
+}
+
+model OpportunityComment {
+  id            String       @id @default(cuid())
+  opportunityId String
+  userId        String
+  content       String
+  createdAt     DateTime     @default(now())
+  attachments   Attachment[]
+  mentions      Mention[]
+  opportunity   Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId])
+}
+
+model FeedPost {
+  id          String         @id @default(cuid())
+  userId      String
+  content     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  attachments Attachment[]
+  comments    FeedComment[]
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions   FeedReaction[]
+  mentions    Mention[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model FeedComment {
+  id          String       @id @default(cuid())
+  feedPostId  String
+  userId      String
+  content     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attachments Attachment[]
+  post        FeedPost     @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentions    Mention[]
+
+  @@index([feedPostId])
+}
+
+model FeedReaction {
+  id         String   @id @default(cuid())
+  feedPostId String
+  userId     String
+  type       String
+  createdAt  DateTime @default(now())
+  post       FeedPost @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedPostId, userId, type])
+}
+
+model JoinRequest {
+  id        String            @id @default(cuid())
+  name      String
+  email     String
+  message   String?
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
+
 enum GlobalRole {
   ADMIN
   MODERATOR
@@ -53,530 +552,7 @@ enum WorkLocation {
   ONSITE
 }
 
-// ─── USERS ───────────────────────────────────────────────
-
-model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String?
-  role         GlobalRole @default(MEMBER)
-  banned       Boolean    @default(false)
-  bannedReason String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  lastSeenAt   DateTime?
-
-  // Relations
-  invitesCreated   Invite[]        @relation("InviteCreator")
-  spaceMemberships SpaceMember[]
-  messages         Message[]
-  sentDMs          DirectMessage[] @relation("DMSender")
-  dmThreadsAsUser1 DirectThread[]  @relation("DirectThreadUser1")
-  dmThreadsAsUser2 DirectThread[]  @relation("DirectThreadUser2")
-  files            File[]
-  tasksCreated     Task[]          @relation("TaskCreator")
-  tasksAssigned    Task[]          @relation("TaskAssignee")
-  taskComments     TaskComment[]
-  posts            Post[]
-  postAnswers      PostAnswer[]
-  reportsFiled     Report[]        @relation("Reporter")
-  reportsResolved  Report[]        @relation("ReportResolver")
-  bansReceived     Ban[]           @relation("BannedUser")
-  bansIssued       Ban[]           @relation("BanIssuer")
-  auditLogs        AuditLog[]
-  mentions         Mention[]       @relation("MentionedUser")
-  opportunities    Opportunity[]
-  opportunityComments OpportunityComment[]
-  threadMemberships ThreadMember[]
-  invites           Invite[]
-  feedPosts         FeedPost[]
-  feedComments      FeedComment[]
-  feedReactions     FeedReaction[]
-  channelMemberships ChannelMember[]
-
-  @@index([email])
-}
-
-// ─── INVITES ─────────────────────────────────────────────
-
-model Invite {
-  id        String    @id @default(cuid())
-  token     String    @unique @default(cuid())
-  email     String?
-  createdBy String
-  creator   User      @relation("InviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  maxUses   Int       @default(1)
-  uses      Int       @default(0)
-  singleUse Boolean   @default(true)
-  expiresAt DateTime?
-  userId    String?
-  revoked   Boolean   @default(false)
-  createdAt DateTime  @default(now())
-
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
-  @@index([email])
-  @@index([userId])
-}
-
-// ─── SPACES ──────────────────────────────────────────────
-
-model Space {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  members  SpaceMember[]
-  channels Channel[]
-  files    File[]
-  tasks    Task[]
-  posts    Post[]
-}
-
-model SpaceMember {
-  id       String    @id @default(cuid())
-  userId   String
-  spaceId  String
-  role     SpaceRole @default(MEMBER)
-  joinedAt DateTime  @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, spaceId])
-  @@index([spaceId])
-}
-
-// ─── CHANNELS & MESSAGES ─────────────────────────────────
-
-model Channel {
-  id          String   @id @default(cuid())
-  spaceId     String
-  name        String
-  description String?
-  isClosed    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  space        Space                @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  messages     Message[]
-  readReceipts ChannelReadReceipt[]
-  members      ChannelMember[]
-
-  @@index([spaceId])
-}
-
-model ChannelMember {
-  id        String   @id @default(cuid())
-  channelId String
-  userId    String
-  joinedAt  DateTime @default(now())
-
-  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([channelId, userId])
-}
-
-model DirectThread {
-  id        String   @id @default(cuid())
-  user1Id   String?
-  user2Id   String?
-  name      String?
-  avatar    String?
-  isGroup   Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user1    User?           @relation("DirectThreadUser1", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2    User?           @relation("DirectThreadUser2", fields: [user2Id], references: [id], onDelete: Cascade)
-  messages DirectMessage[]
-  members  ThreadMember[]
-
-  lastReadUser1At DateTime @default(now())
-  lastReadUser2At DateTime @default(now())
-
-  @@index([user1Id])
-  @@index([user2Id])
-}
-
-model ThreadMember {
-  id        String     @id @default(cuid())
-  threadId  String
-  userId    String
-  role      ThreadRole @default(MEMBER)
-  joinedAt  DateTime   @default(now())
-
-  thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([threadId, userId])
-}
-
 enum ThreadRole {
   OWNER
   MEMBER
-}
-
-model DirectMessage {
-  id        String   @id @default(cuid())
-  threadId  String
-  userId    String
-  content   String
-  createdAt DateTime @default(now())
-
-  thread DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user   User         @relation("DMSender", fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([threadId, createdAt])
-}
-
-model ChannelReadReceipt {
-  id         String   @id @default(cuid())
-  channelId  String
-  userId     String
-  lastReadAt DateTime @default(now())
-
-  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, channelId])
-  @@index([channelId])
-}
-
-model Message {
-  id        String    @id @default(cuid())
-  channelId String
-  userId    String
-  content   String
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-
-  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([channelId, createdAt])
-}
-
-// ─── FILES ───────────────────────────────────────────────
-
-model File {
-  id         String   @id @default(cuid())
-  spaceId    String
-  userId     String
-  name       String
-  size       Int
-  mimeType   String
-  storageKey String
-  url        String
-  createdAt  DateTime @default(now())
-
-  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([spaceId])
-}
-
-// ─── TASKS (UPPDRAG) ────────────────────────────────────
-
-model Task {
-  id          String     @id @default(cuid())
-  spaceId     String
-  title       String
-  description String?
-  status      TaskStatus @default(OPEN)
-  tags        String[]
-  assigneeId  String?
-  createdBy   String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  space    Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  assignee User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator  User          @relation("TaskCreator", fields: [createdBy], references: [id])
-  comments TaskComment[]
-  mentions Mention[]
-
-  @@index([spaceId, status])
-}
-
-model TaskComment {
-  id        String   @id @default(cuid())
-  taskId    String
-  userId    String
-  content   String
-  createdAt DateTime @default(now())
-
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-}
-
-// ─── POSTS (FRÅGA & HJÄLP) ─────────────────────────────
-
-model Post {
-  id        String   @id @default(cuid())
-  spaceId   String
-  userId    String
-  title     String
-  content   String
-  tags      String[]
-  solved    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  space   Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  answers PostAnswer[]
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([spaceId])
-}
-
-model PostAnswer {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  content   String
-  accepted  Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-}
-
-// ─── MODERATION ──────────────────────────────────────────
-
-model Report {
-  id         String       @id @default(cuid())
-  reporterId String
-  targetType String // "message", "post", "postAnswer", "task"
-  targetId   String
-  reason     String
-  status     ReportStatus @default(PENDING)
-  resolvedBy String?
-  resolvedAt DateTime?
-  createdAt  DateTime     @default(now())
-
-  reporter User  @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  resolver User? @relation("ReportResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
-
-  @@index([status])
-}
-
-model Ban {
-  id        String   @id @default(cuid())
-  userId    String
-  reason    String
-  bannedBy  String
-  type      BanType  @default(SOFT)
-  createdAt DateTime @default(now())
-
-  user   User @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
-  issuer User @relation("BanIssuer", fields: [bannedBy], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// ─── AUDIT LOG ───────────────────────────────────────────
-
-model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String
-  action     String // e.g. "invite.create", "user.ban", "message.delete"
-  targetType String?
-  targetId   String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([createdAt])
-  @@index([action])
-}
-// ─── ATTACHMENTS ─────────────────────────────────────────
-
-model Attachment {
-  id         String   @id @default(cuid())
-  name       String
-  size       Int
-  mimeType   String
-  url        String
-  storageKey String
-  createdAt  DateTime @default(now())
-
-  // Optional relations - an attachment belongs to one of these
-  messageId       String?
-  message         Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  directMessageId String?
-  directMessage   DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
-  taskCommentId   String?
-  taskComment     TaskComment?   @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
-  postId          String?
-  post            Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postAnswerId    String?
-  postAnswer      PostAnswer?    @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
-  opportunityId   String?
-  opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  opportunityCommentId String?
-  opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
-  feedPostId      String?
-  feedPost        FeedPost?      @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
-  feedCommentId   String?
-  feedComment     FeedComment?   @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
-
-  @@index([messageId])
-  @@index([directMessageId])
-  @@index([taskCommentId])
-}
-
-// ─── MENTIONS ────────────────────────────────────────────
-
-model Mention {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation("MentionedUser", fields: [userId], references: [id], onDelete: Cascade)
-
-  // Potential targets
-  messageId       String?
-  message         Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  directMessageId String?
-  directMessage   DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
-  taskCommentId   String?
-  taskComment     TaskComment?   @relation(fields: [taskCommentId], references: [id], onDelete: Cascade)
-  postId          String?
-  post            Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postAnswerId    String?
-  postAnswer      PostAnswer?    @relation(fields: [postAnswerId], references: [id], onDelete: Cascade)
-  taskId          String?
-  task            Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  opportunityId   String?
-  opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  opportunityCommentId String?
-  opportunityComment OpportunityComment? @relation(fields: [opportunityCommentId], references: [id], onDelete: Cascade)
-  feedPostId      String?
-  feedPost        FeedPost?      @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
-  feedCommentId   String?
-  feedComment     FeedComment?   @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
-
-  readAt    DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([userId, readAt])
-  @@index([messageId])
-  @@index([directMessageId])
-}
-
-// ─── OPPORTUNITIES ───────────────────────────────────────
-
-model Opportunity {
-  id          String          @id @default(cuid())
-  userId      String
-  title       String
-  content     String
-  type        OpportunityType
-  location    WorkLocation
-  tags        String[]
-  link        String?
-  contactInfo String?
-  deadline    DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments    OpportunityComment[]
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([type])
-  @@index([location])
-  @@index([createdAt])
-}
-
-model OpportunityComment {
-  id            String      @id @default(cuid())
-  opportunityId String
-  userId        String
-  content       String
-  createdAt     DateTime    @default(now())
-
-  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([opportunityId])
-}
-
-// ─── FEED ────────────────────────────────────────────────
-
-model FeedPost {
-  id        String   @id @default(cuid())
-  userId    String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments    FeedComment[]
-  reactions   FeedReaction[]
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model FeedComment {
-  id         String   @id @default(cuid())
-  feedPostId String
-  userId     String
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  post        FeedPost     @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  mentions    Mention[]
-
-  @@index([feedPostId])
-}
-
-model FeedReaction {
-  id         String   @id @default(cuid())
-  feedPostId String
-  userId     String
-  type       String // e.g., "LIKE", "ROCKET", "CELEBRATE"
-  createdAt  DateTime @default(now())
-
-  post FeedPost @relation(fields: [feedPostId], references: [id], onDelete: Cascade)
-  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([feedPostId, userId, type])
-}
-
-// ─── JOIN REQUESTS ───────────────────────────────────────
-
-model JoinRequest {
-  id        String            @id @default(cuid())
-  name      String
-  email     String
-  message   String?
-  status    JoinRequestStatus @default(PENDING)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  @@index([status])
-  @@index([email])
 }

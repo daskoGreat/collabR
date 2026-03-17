@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { registerWithInvite } from "@/lib/actions/invites";
+import { Stack } from "@/components/layout/Stack";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
 
 export default function InviteForm({
     token,
@@ -26,55 +30,52 @@ export default function InviteForm({
     }
 
     return (
-        <form className="auth-form" action={handleSubmit}>
-            <div className="form-group">
-                <label className="form-label">name</label>
-                <input
-                    type="text"
+        <form action={handleSubmit}>
+            <Stack direction="vertical" gap="md">
+                <Input
+                    label="Name"
                     name="name"
-                    className="input"
-                    placeholder="what should we call you?"
+                    placeholder="What should we call you?"
                     defaultValue={prefill?.name || ""}
                     readOnly={!!prefill?.name}
                     required
                     autoFocus={!prefill?.name}
                 />
-            </div>
 
-            <div className="form-group">
-                <label className="form-label">email</label>
-                <input
+                <Input
+                    label="Email"
                     type="email"
                     name="email"
-                    className="input"
                     placeholder="you@example.com"
                     defaultValue={prefill?.email || ""}
                     readOnly={!!prefill?.email}
                     required
                 />
-            </div>
 
-            <div className="form-group">
-                <label className="form-label">password</label>
-                <input
+                <Input
+                    label="Password"
                     type="password"
                     name="password"
-                    className="input"
-                    placeholder="min 8 characters"
+                    placeholder="Min 8 characters"
                     minLength={8}
                     required
                 />
-            </div>
 
-            {error && <div className="error-text">{error}</div>}
+                {error && (
+                    <Typography variant="caption" style={{ color: 'var(--accent-danger)', textAlign: 'center' }}>
+                        {error}
+                    </Typography>
+                )}
 
-            <button
-                type="submit"
-                className="btn btn-primary btn-lg w-full"
-                disabled={loading}
-            >
-                {loading ? "creating account..." : "join workspace →"}
-            </button>
+                <Button
+                    type="submit"
+                    disabled={loading}
+                    size="lg"
+                    style={{ marginTop: 'var(--space-md)' }}
+                >
+                    {loading ? "Creating account..." : "Join network →"}
+                </Button>
+            </Stack>
         </form>
     );
 }

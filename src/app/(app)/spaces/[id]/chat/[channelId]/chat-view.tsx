@@ -8,10 +8,12 @@ import MessageContent from "@/components/message-content";
 import MentionList from "@/components/mention-list";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
 
 interface User {
     id: string;
     name: string;
+    avatarId?: string;
 }
 
 interface Attachment {
@@ -26,16 +28,20 @@ interface Message {
     id: string;
     content: string;
     createdAt: string;
-    user: { id: string; name: string };
+    user: { id: string; name: string; avatarId?: string };
     attachments?: Attachment[];
 }
 
-import { MessageSquare, Building2 } from "lucide-react";
+import { MessageSquare, Building2, ChevronRight, Hash } from "lucide-react";
+import { Stack } from "@/components/layout/Stack";
+import { Box } from "@/components/layout/Box";
+import { Typography } from "@/components/ui/typography";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Props {
     channel: { id: string; name: string; spaceName: string };
     initialMessages: Message[];
-    currentUser: { id: string; name: string };
+    currentUser: { id: string; name: string; avatarId?: string };
     spaceId: string;
 }
 
@@ -295,7 +301,7 @@ export default function ChatView({
     }
 
     async function handleDelete(messageId: string) {
-        if (!confirm("Are you sure you want to delete this message?")) return;
+        if (!confirm("Är du säker på att du vill ta bort meddelandet?")) return;
         try {
             const res = await fetch(`/api/chat/message?id=${messageId}`, { method: "DELETE" });
             if (res.ok) {
@@ -311,40 +317,57 @@ export default function ChatView({
         return d.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
     }
 
-    function getInitial(name: string) {
-        return name.charAt(0).toUpperCase();
-    }
-
     return (
-        <>
-            <div className="topbar">
-                <div className="row h-full items-center px-6" style={{ gap: "var(--space-4)" }}>
+        <Stack style={{ height: '100dvh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+            <Box style={{
+                padding: '0.75rem 1.5rem',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                background: 'rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(20px)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                flexShrink: 0
+            }}>
+                <Stack direction="horizontal" gap={16} align="center">
                     <BackButton />
-                    <div className="topbar-title flex items-center gap-2">
-                        <Link href="/spaces" className="text-secondary hover:text-bright transition-colors">navet</Link>
-                        <span className="text-muted/30">/</span>
-                        <Link href={`/spaces/${spaceId}`} className="text-secondary hover:text-bright transition-colors flex items-center gap-1.5 inline-flex">
-                            <Building2 size={13} strokeWidth={2} />
-                            {channel.spaceName.toLowerCase()}
+                    <Stack direction="horizontal" gap={8} align="center">
+                        <Link href="/spaces">
+                            <Typography style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>navet</Typography>
                         </Link>
-                        <span className="text-muted/30">/</span>
-                        <span className="topbar-title-highlight flex items-center gap-1.5 backdrop-blur-sm bg-primary/20 px-2 py-0.5 rounded border border-subtle/50">
-                            <MessageSquare size={12} strokeWidth={2} />
-                            {channel.name.toLowerCase()}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div className="chat-container">
-                <div className="chat-messages scrollbar-thin">
+                        <ChevronRight size={14} style={{ opacity: 0.2 }} />
+                        <Link href={`/spaces/${spaceId}`}>
+                            <Stack direction="horizontal" gap={6} align="center">
+                                <Building2 size={14} style={{ opacity: 0.4 }} />
+                                <Typography style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                                    {channel.spaceName.toLowerCase()}
+                                </Typography>
+                            </Stack>
+                        </Link>
+                        <ChevronRight size={14} style={{ opacity: 0.2 }} />
+                        <Stack direction="horizontal" gap={6} align="center" style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                            <Hash size={14} style={{ color: 'var(--neon-green)', opacity: 0.8 }} />
+                            <Typography style={{ fontSize: '0.9rem', color: 'white', fontWeight: 800 }}>
+                                {channel.name.toLowerCase()}
+                            </Typography>
+                        </Stack>
+                    </Stack>
+                </Stack>
+            </Box>
+
+            <Stack style={{ flex: 1, overflow: 'hidden' }}>
+                <div className="chat-messages px-[var(--space-8)] py-[var(--space-6)]" style={{ flex: 1, overflowY: 'auto' }}>
                     {messages.length === 0 && (
-                        <div className="empty-state py-20 card border-dashed border-subtle">
-                            <div className="empty-state-icon text-muted/30">░</div>
-                            <div className="empty-state-title">tyst i kanalen</div>
-                            <div className="empty-state-text">
-                                bli den första att bryta tystnaden. alla insikter börjar med ett hej.
-                            </div>
-                        </div>
+                        <EmptyState
+                            icon={MessageSquare}
+                            title="Tyst i kanalen"
+                            description="Bli den första att bryta tystnaden. Alla insikter börjar med ett hej."
+                        />
                     )}
                     {messages.map((msg, index) => {
                         const prevMsg = index > 0 ? messages[index - 1] : null;
@@ -362,9 +385,13 @@ export default function ChatView({
                                 className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""} ${isGrouped ? "chat-message-grouped" : ""}`}
                             >
                                 {!isGrouped ? (
-                                    <div className="chat-message-avatar font-bold">
-                                        {getInitial(msg.user.name)}
-                                    </div>
+                                    <Box className="chat-message-avatar">
+                                        <AvatarPreview
+                                            avatarId={msg.user.avatarId}
+                                            name={msg.user.name}
+                                            size={32}
+                                        />
+                                    </Box>
                                 ) : (
                                     <div className="chat-message-spacer w-7 shrink-0 flex justify-center items-center">
                                         <div className="w-[1px] h-full bg-subtle/20 group-hover:bg-subtle/50 transition-colors" />
@@ -374,14 +401,14 @@ export default function ChatView({
                                     {!isGrouped && (
                                         <div className="chat-message-header">
                                             <span className="chat-message-name font-bold text-bright">{msg.user.name.toLowerCase()}</span>
-                                            <span className="chat-message-time opacity-50 font-mono">
+                                            <span className="chat-message-time opacity-70 font-mono">
                                                 {formatTime(msg.createdAt)}
                                             </span>
                                         </div>
                                     )}
                                     <div className="chat-content-container relative">
                                         {isGrouped && (
-                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-30 transition-opacity text-[9px] font-mono whitespace-nowrap">
+                                            <span className="absolute -left-10 top-0.5 opacity-0 group-hover:opacity-40 transition-opacity text-[9px] font-mono whitespace-nowrap">
                                                 {formatTime(msg.createdAt)}
                                             </span>
                                         )}
@@ -423,7 +450,7 @@ export default function ChatView({
                                                 {msg.user.id === currentUser.id && !editingId && (
                                                     <div className="chat-message-actions absolute -right-2 top-0 translate-x-full pl-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                                         <button
-                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-50 hover:opacity-100"
+                                                            className="btn-link text-[10px] uppercase tracking-wider opacity-70 hover:opacity-100"
                                                             onClick={() => {
                                                                 setEditingId(msg.id);
                                                                 setEditContent(msg.content);
@@ -432,7 +459,7 @@ export default function ChatView({
                                                             edit
                                                         </button>
                                                         <button
-                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-50 hover:opacity-100"
+                                                            className="btn-link text-[10px] uppercase tracking-wider text-danger opacity-70 hover:opacity-100"
                                                             onClick={() => handleDelete(msg.id)}
                                                         >
                                                             del
@@ -448,7 +475,7 @@ export default function ChatView({
                     })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area border-t border-subtle bg-secondary/80 backdrop-blur-md">
+                <div className="chat-input-area px-[var(--space-6)] py-[var(--space-4)] border-t border-subtle bg-secondary/80 backdrop-blur-md" style={{ flexShrink: 0 }}>
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}
@@ -504,7 +531,7 @@ export default function ChatView({
                         </button>
                     </form>
                 </div>
-            </div>
-        </>
+            </Stack>
+        </Stack>
     );
 }

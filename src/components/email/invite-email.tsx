@@ -20,18 +20,18 @@ export const InviteEmail: React.FC<Readonly<InviteEmailProps>> = ({
         border: '1px solid #1a1a1a'
     }}>
         <h1 style={{
-            fontSize: '18px',
-            fontWeight: 'bold',
+            fontSize: '20px',
+            fontWeight: '800',
             marginBottom: '24px',
-            color: '#00ff88',
-            textTransform: 'lowercase'
+            color: '#e2e2e2',
+            letterSpacing: '-0.02em'
         }}>
-      // inbjudan till collab
+            The Support Network
         </h1>
 
-        <p style={{ fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
-            hej {name.toLowerCase()},<br /><br />
-            din ansökan om medlemskap har godkänts. välkommen till vårt privata workspace.
+        <p style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '24px', color: '#a1a1a1' }}>
+            Hello {name},<br /><br />
+            Your application for membership has been approved. Welcome to the network—a place where we help each other move forward.
         </p>
 
         <div style={{ marginBottom: '32px' }}>
@@ -39,31 +39,28 @@ export const InviteEmail: React.FC<Readonly<InviteEmailProps>> = ({
                 href={inviteLink}
                 style={{
                     display: 'inline-block',
-                    backgroundColor: 'transparent',
-                    color: '#00ff88',
-                    padding: '12px 24px',
-                    border: '1px solid #00ff88',
-                    borderRadius: '4px',
+                    backgroundColor: '#e2e2e2',
+                    color: '#0a0a0a',
+                    padding: '14px 28px',
+                    borderRadius: '6px',
                     textDecoration: 'none',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    textTransform: 'lowercase',
-                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.2)'
                 }}
             >
-                aktivera konto
+                Activate Account
             </a>
         </div>
 
         <p style={{ fontSize: '12px', color: '#666', lineHeight: '1.6' }}>
-            länken är personlig och kan endast användas en gång.<br />
-            om du inte har ansökt om medlemskap kan du bortse från detta mail.
+            This link is personal and can only be used once.<br />
+            If you did not apply for membership, please ignore this email.
         </p>
 
         <hr style={{ border: 'none', borderTop: '1px solid #1a1a1a', margin: '32px 0' }} />
 
-        <p style={{ fontSize: '10px', color: '#444', letterSpacing: '0.05em' }}>
-            COLLAB // PRIVATE_WORKSPACE // AUTO_GENERATED_SECURE_INVITE
+        <p style={{ fontSize: '10px', color: '#444', letterSpacing: '0.1em', fontWeight: 'bold' }}>
+            THE SUPPORT NETWORK // PRIVATE_ACCESS // SECURE_INVITE
         </p>
     </div>
 );

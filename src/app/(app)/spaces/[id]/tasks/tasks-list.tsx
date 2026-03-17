@@ -5,6 +5,10 @@ import BackButton from "@/components/back-button";
 import { createTask, updateTaskStatus } from "@/lib/actions/tasks";
 import Link from "next/link";
 import MessageContent from "@/components/message-content";
+import { Box } from "@/components/layout/Box";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
 
 interface Task {
     id: string;
@@ -12,8 +16,8 @@ interface Task {
     description: string | null;
     status: string;
     tags: string[];
-    assignee: { id: string; name: string } | null;
-    creator: { name: string };
+    assignee: { id: string; name: string; avatarId?: string } | null;
+    creator: { name: string; avatarId?: string };
     commentCount: number;
     createdAt: string;
 }
@@ -21,7 +25,7 @@ interface Task {
 interface Props {
     spaceId: string;
     tasks: Task[];
-    members: { id: string; name: string }[];
+    members: { id: string; name: string; avatarId?: string }[];
     currentUserId: string;
     currentUserName?: string;
 }
@@ -37,9 +41,12 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
 
     async function handleCreate(formData: FormData) {
         setCreating(true);
-        await createTask(spaceId, formData);
-        setCreating(false);
-        setShowCreate(false);
+        try {
+            await createTask(spaceId, formData);
+            setShowCreate(false);
+        } finally {
+            setCreating(false);
+        }
     }
 
     async function handleStatusChange(taskId: string, status: string) {
@@ -47,19 +54,30 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
     }
 
     return (
-        <div className="content-area">
-            <div className="mb-4">
-                <BackButton />
-            </div>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">uppdrag</h1>
-                    <p className="page-subtitle">uppdrag, grejer att göra, saker att fixa</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
+        <Box className="content-area">
+            <Stack direction="horizontal" justify="between" align="center" style={{ marginBottom: '2rem' }}>
+                <Box>
+                    <Typography variant="h1" style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'var(--font-outfit)' }}>Uppdrag</Typography>
+                    <Typography style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Saker som behöver fixas eller utforskas.</Typography>
+                </Box>
+                <button
+                    className="btn-premium"
+                    onClick={() => setShowCreate(!showCreate)}
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '12px',
+                        background: 'var(--neon-green)',
+                        color: 'black',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 8px 30px rgba(0, 230, 118, 0.2)'
+                    }}
+                >
                     + nytt uppdrag
                 </button>
-            </div>
+            </Stack>
 
             {/* Create form */}
             {showCreate && (
@@ -153,11 +171,28 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                                     </div>
                                 )}
                                 <div className="task-meta mt-2">
-                                    {task.assignee && <span>→ {task.assignee.name}</span>}
-                                    <span>av {task.creator.name}</span>
-                                    {task.commentCount > 0 && <span>💬 {task.commentCount}</span>}
+                                    <Stack direction="horizontal" gap={8} align="center">
+                                        <Typography style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)" }}>av</Typography>
+                                        <Stack direction="horizontal" gap={4} align="center">
+                                            <AvatarPreview avatarId={task.creator.avatarId} name={task.creator.name} size={16} />
+                                            <Typography style={{ fontSize: "0.85rem", fontWeight: 600 }}>{task.creator.name}</Typography>
+                                        </Stack>
+
+                                        {task.assignee && (
+                                            <>
+                                                <Typography style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", margin: "0 4px" }}>→</Typography>
+                                                <Stack direction="horizontal" gap={4} align="center">
+                                                    <AvatarPreview avatarId={task.assignee.avatarId} name={task.assignee.name} size={16} />
+                                                    <Typography style={{ fontSize: "0.85rem", fontWeight: 600 }}>{task.assignee.name}</Typography>
+                                                </Stack>
+                                            </>
+                                        )}
+
+                                        {task.commentCount > 0 && <span style={{ marginLeft: "8px", fontSize: "0.85rem", opacity: 0.6 }}>💬 {task.commentCount}</span>}
+                                    </Stack>
+
                                     {task.tags.length > 0 && (
-                                        <div className="tags-list">
+                                        <div className="tags-list" style={{ marginTop: "12px" }}>
                                             {task.tags.map((tag) => (
                                                 <span key={tag} className="tag">{tag}</span>
                                             ))}
@@ -169,6 +204,6 @@ export default function TasksList({ spaceId, tasks, members, currentUserName }: 
                     })}
                 </div>
             )}
-        </div>
+        </Box>
     );
 }

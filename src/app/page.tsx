@@ -1,117 +1,162 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { requestAccess } from "@/lib/actions/access";
+import { Container } from "@/components/layout/Container";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
+import { Box } from "@/components/layout/Box";
 
 export default function LandingPage() {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setStatus("loading");
-    setErrorMessage("");
-
-    const formData = new FormData(e.currentTarget);
-    const result = await requestAccess(formData);
-
-    if (result.success) {
-      setStatus("success");
-    } else {
-      setStatus("error");
-      setErrorMessage(result.error || "Ett fel uppstod.");
-    }
-  }
-
   return (
-    <div className="landing-page">
-      <div className="landing-grid" />
-      <div className="landing-noise" />
+    <Box style={{
+      minHeight: '100vh',
+      background: '#000000',
+      color: '#ffffff',
+      position: 'relative',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem'
+    }}>
+      {/* Floral Corners Frame - Fixed to Viewport edges */}
+      <Box style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: 'none',
+        zIndex: 1,
+        opacity: 0.9
+      }}>
+        {/* Top Left */}
+        <Box style={{
+          position: 'absolute',
+          top: '-2.5%',
+          left: '-2.5%',
+          width: '50vw',
+          maxWidth: '600px',
+          height: '50vh',
+          maxHeight: '600px',
+          backgroundImage: 'url("/floral_border.png")',
+          backgroundSize: '200% 200%',
+          backgroundPosition: '0 0',
+          backgroundRepeat: 'no-repeat',
+        }} />
+        {/* Top Right */}
+        <Box style={{
+          position: 'absolute',
+          top: '-2.5%',
+          right: '-2.5%',
+          width: '50vw',
+          maxWidth: '600px',
+          height: '50vh',
+          maxHeight: '600px',
+          backgroundImage: 'url("/floral_border.png")',
+          backgroundSize: '200% 200%',
+          backgroundPosition: '100% 0',
+          backgroundRepeat: 'no-repeat',
+        }} />
+        {/* Bottom Left */}
+        <Box style={{
+          position: 'absolute',
+          bottom: '-2.5%',
+          left: '-2.5%',
+          width: '50vw',
+          maxWidth: '600px',
+          height: '50vh',
+          maxHeight: '600px',
+          backgroundImage: 'url("/floral_border.png")',
+          backgroundSize: '200% 200%',
+          backgroundPosition: '0 100%',
+          backgroundRepeat: 'no-repeat',
+        }} />
+        {/* Bottom Right */}
+        <Box style={{
+          position: 'absolute',
+          bottom: '-2.5%',
+          right: '-2.5%',
+          width: '50vw',
+          maxWidth: '600px',
+          height: '50vh',
+          maxHeight: '600px',
+          backgroundImage: 'url("/floral_border.png")',
+          backgroundSize: '200% 200%',
+          backgroundPosition: '100% 100%',
+          backgroundRepeat: 'no-repeat',
+        }} />
+      </Box>
 
-      <main className="landing-content">
-        <div className="landing-badge">
-          <span className="status-dot online" /> access handled
-        </div>
+      <Container style={{
+        maxWidth: '1000px',
+        position: 'relative',
+        zIndex: 10,
+        textAlign: 'center'
+      }}>
+        <Stack direction="vertical" gap="xl" align="center">
 
-        <h1 className="landing-title">
-          <span className="glitch" data-text="collab">collab</span>
-        </h1>
+          <Typography style={{
+            fontSize: 'min(7rem, 14vw)',
+            fontWeight: 700,
+            lineHeight: 1.05,
+            letterSpacing: '-0.04em',
+            fontFamily: 'var(--font-outfit)',
+            color: '#ffffff',
+            margin: 0
+          }}>
+            Welcome to The<br />Support Network!
+          </Typography>
 
-        <div className="manifesto">
-          <p className="manifesto-line manifesto-lead">
-            Ett rum för fokuserat samarbete.
-          </p>
-          <p className="manifesto-line text-muted">
-            Inte en plattform för alla. En plats för de som bygger.
-          </p>
-        </div>
+          <Link href="/register" style={{ textDecoration: 'none' }}>
+            <Typography style={{
+              fontSize: 'min(2.75rem, 6vw)',
+              fontWeight: 600,
+              color: '#ffffff',
+              fontFamily: 'var(--font-outfit)',
+              marginTop: '1rem'
+            }} className="hover:opacity-80 transition-opacity">
+              Click here to join
+            </Typography>
+          </Link>
 
-        <div className="landing-cta" style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-          {status === "success" ? (
-            <div className="card p-6 border-l-2 border-l-primary/50 text-center animate-in fade-in duration-500">
-              <h3 className="text-lg font-bold text-primary mb-2">Request received.</h3>
-              <p className="text-sm text-muted">
-                Vi hör av oss om det finns en plats öppen för dig.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="card p-6 flex flex-col gap-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <Box style={{ margin: '1rem 0' }}>
+            <img src="/heart.png" alt="Heart" style={{ width: 'min(12rem, 24vw)', height: 'auto' }} />
+          </Box>
 
-              <div className="form-group relative z-10">
-                <input
-                  type="text"
-                  name="name"
-                  className="input bg-dark/50 border-subtle focus:border-primary/50 transition-colors"
-                  placeholder="Ditt namn"
-                  required
-                  disabled={status === "loading"}
-                />
-              </div>
-              <div className="form-group relative z-10">
-                <input
-                  type="email"
-                  name="email"
-                  className="input bg-dark/50 border-subtle focus:border-primary/50 transition-colors"
-                  placeholder="Din e-post"
-                  required
-                  disabled={status === "loading"}
-                />
-              </div>
+          <Stack direction="vertical" gap="lg" align="center" style={{ marginTop: '1rem' }}>
+            <Typography style={{
+              fontSize: '1.25rem',
+              color: 'rgba(255,255,255,0.7)',
+              fontFamily: 'var(--font-inter)',
+              fontWeight: 500
+            }}>
+              Already a member?
+            </Typography>
 
-              {status === "error" && (
-                <div className="text-danger text-xs text-center border border-danger/20 bg-danger/5 p-2 rounded">
-                  {errorMessage}
-                </div>
-              )}
+            <Link href="/login" style={{ textDecoration: 'none' }}>
+              <Box style={{
+                border: '1px solid rgba(255,255,255,0.5)',
+                padding: '1rem 4rem',
+                borderRadius: '9999px',
+                background: 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-block'
+              }} className="hover:bg-white hover:text-black">
+                <Typography style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-inter)'
+                }}>
+                  Sign In
+                </Typography>
+              </Box>
+            </Link>
+          </Stack>
 
-              <button
-                type="submit"
-                className="btn btn-primary w-full group relative z-10 overflow-hidden"
-                disabled={status === "loading"}
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <span className="relative z-10">
-                  {status === "loading" ? "Skickar..." : "Be om tillgång →"}
-                </span>
-              </button>
-
-              <div className="text-center mt-2 relative z-10">
-                <Link href="/login" className="text-xs text-muted hover:text-primary transition-colors">
-                  Redan medlem? Logga in.
-                </Link>
-              </div>
-            </form>
-          )}
-        </div>
-
-        <div className="landing-footer">
-          <span className="text-xs text-muted opacity-50">
-            ~/collab — a space for focused work
-          </span>
-        </div>
-      </main>
-    </div>
+        </Stack>
+      </Container>
+    </Box>
   );
 }

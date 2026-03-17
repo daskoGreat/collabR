@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { approveRequest, denyRequest } from "@/lib/actions/join-requests";
 import { getPusherClient } from "@/lib/pusher-client";
+import { Stack } from "@/components/layout/Stack";
+import { Box } from "@/components/layout/Box";
+import { Typography } from "@/components/ui/typography";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { UserCheck, UserX, Mail, MessageSquare, Clock, Globe, Shield, Copy, CheckCircle } from "lucide-react";
 
 interface Request {
     id: string;
@@ -96,73 +101,106 @@ export default function RequestsAdmin({ initialRequests }: { initialRequests: Re
     }
 
     return (
-        <div className="space-y-[var(--space-6)]">
-            <div className="flex justify-between items-center mb-[var(--space-6)]">
-                <h2 className="text-xl font-bold section-title mb-0">Join Requests</h2>
-                <div className={`text-[10px] uppercase tracking-widest flex items-center gap-2 ${pusherConnected ? 'text-success' : 'text-muted'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${pusherConnected ? 'bg-success animate-pulse' : 'bg-muted'}`} />
-                    {pusherConnected ? 'Live Connection Active' : 'Real-time Offline (Reload required)'}
-                </div>
-            </div>
+        <Box style={{ background: "rgba(255,255,255,0.02)", borderRadius: "32px", border: "1px solid rgba(255,255,255,0.05)", overflow: "hidden" }}>
+            <Box style={{ padding: "2rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <Stack direction="horizontal" justify="between" align="center">
+                    <Box>
+                        <Typography style={{ fontSize: "1.25rem", fontWeight: 700 }}>Medlemsansökningar</Typography>
+                        <Typography style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)" }}>
+                            {requests.filter(r => r.status === "PENDING").length} väntande förfrågningar
+                        </Typography>
+                    </Box>
+                    <div style={{ padding: "4px 12px", background: pusherConnected ? "rgba(0,255,163,0.1)" : "rgba(255,255,255,0.05)", borderRadius: "20px", border: "1px solid", borderColor: pusherConnected ? "rgba(0,255,163,0.2)" : "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: pusherConnected ? "var(--neon-green)" : "rgba(255,255,255,0.2)", animation: pusherConnected ? "pulse 2s infinite" : "none" }} />
+                        <Typography style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", color: pusherConnected ? "var(--neon-green)" : "rgba(255,255,255,0.3)" }}>
+                            {pusherConnected ? "LIVE" : "OFFLINE"}
+                        </Typography>
+                    </div>
+                </Stack>
+            </Box>
 
             {requests.length === 0 ? (
-                <div className="card p-[var(--space-8)] text-center text-muted">
-                    <p>Inga väntande ansökningar just nu.</p>
-                </div>
+                <Box style={{ padding: "4rem 2rem" }}>
+                    <EmptyState
+                        icon={UserCheck}
+                        title="Inga nya ansökningar"
+                        description="Det finns inga väntande medlemsansökningar för tillfället."
+                    />
+                </Box>
             ) : (
-                <div className="grid grid-cols-1 gap-[var(--space-4)]">
-                    {requests.map(request => (
-                        <div key={request.id} className="card p-[var(--space-6)] border-l-2 border-l-primary/30 flex flex-col md:flex-row gap-[var(--space-6)] md:items-center">
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold mb-1">{request.name}</h3>
-                                <a href={`mailto:${request.email}`} className="text-sm text-cyan hover:underline">{request.email}</a>
+                <Box style={{ padding: "2rem" }}>
+                    <Stack gap={16}>
+                        {requests.map(request => (
+                            <Box key={request.id} style={{ padding: "1.5rem", background: "rgba(255,255,255,0.03)", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                <Stack direction="horizontal" justify="between" align="start" gap={24}>
+                                    <Stack gap={16} style={{ flex: 1 }}>
+                                        <Box>
+                                            <Typography style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", marginBottom: "4px" }}>{request.name.toLowerCase()}</Typography>
+                                            <Stack direction="horizontal" gap={8} align="center">
+                                                <Mail size={12} style={{ color: "var(--neon-cyan)" }} />
+                                                <Typography style={{ fontSize: "0.85rem", color: "var(--neon-cyan)" }}>{request.email}</Typography>
+                                            </Stack>
+                                        </Box>
 
-                                {request.message && (
-                                    <div className="mt-[var(--space-4)] p-[var(--space-4)] bg-dark/30 rounded border border-border-subtle text-sm text-muted">
-                                        <strong className="block mb-[var(--space-2)] text-xs text-secondary uppercase tracking-wider">Message</strong>
-                                        {request.message}
-                                    </div>
-                                )}
+                                        {request.message && (
+                                            <Box style={{ padding: "1rem", background: "rgba(255,255,255,0.02)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                                <Stack direction="horizontal" gap={8} align="center" style={{ marginBottom: "8px" }}>
+                                                    <MessageSquare size={12} style={{ color: "rgba(255,255,255,0.3)" }} />
+                                                    <Typography style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Meddelande</Typography>
+                                                </Stack>
+                                                <Typography style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                                                    {request.message}
+                                                </Typography>
+                                            </Box>
+                                        )}
 
-                                <div className="mt-2 text-xs text-muted opacity-50">
-                                    Applied: {new Date(request.createdAt).toLocaleString("sv-SE")}
-                                </div>
-                            </div>
+                                        <Stack direction="horizontal" gap={12} align="center">
+                                            <Clock size={12} style={{ color: "rgba(255,255,255,0.2)" }} />
+                                            <Typography style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>
+                                                Ansökte {new Date(request.createdAt).toLocaleString("sv-SE")}
+                                            </Typography>
+                                        </Stack>
+                                    </Stack>
 
-                            <div className="flex flex-col gap-[var(--space-2)] min-w-[200px]">
-                                {request.status === "PENDING" && !generatedInvites[request.id] ? (
-                                    <>
-                                        <button
-                                            className="btn btn-primary w-full shadow-neon"
-                                            onClick={() => handleApprove(request.id)}
-                                            disabled={loadingMap[request.id]}
-                                        >
-                                            {loadingMap[request.id] ? "Processing..." : "Approve & Generate Invite"}
-                                        </button>
-                                        <button
-                                            className="btn btn-ghost text-danger w-full"
-                                            onClick={() => handleDeny(request.id)}
-                                            disabled={loadingMap[request.id]}
-                                        >
-                                            Deny Request
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="bg-success/10 border border-success/30 p-[var(--space-4)] rounded text-center">
-                                        <div className="text-success text-sm font-bold mb-2">Approved!</div>
-                                        <button
-                                            className="btn btn-sm btn-outline w-full text-xs"
-                                            onClick={() => handleCopy(generatedInvites[request.id])}
-                                        >
-                                            Copy Invite Link
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                                    <Box style={{ minWidth: "220px" }}>
+                                        {request.status === "PENDING" && !generatedInvites[request.id] ? (
+                                            <Stack gap={8}>
+                                                <button
+                                                    className="btn btn-primary w-full"
+                                                    onClick={() => handleApprove(request.id)}
+                                                    disabled={loadingMap[request.id]}
+                                                >
+                                                    {loadingMap[request.id] ? "Hanterar..." : "Godkänn ansökan"}
+                                                </button>
+                                                <button
+                                                    className="btn btn-ghost w-full"
+                                                    onClick={() => handleDeny(request.id)}
+                                                    disabled={loadingMap[request.id]}
+                                                    style={{ color: "var(--accent-danger)" }}
+                                                >
+                                                    Avböj
+                                                </button>
+                                            </Stack>
+                                        ) : (
+                                            <Box style={{ padding: "1rem", background: "rgba(0,255,163,0.05)", border: "1px solid rgba(0,255,163,0.1)", borderRadius: "16px", textAlign: "center" }}>
+                                                <Typography style={{ color: "var(--neon-green)", fontWeight: 700, fontSize: "0.85rem", marginBottom: "12px" }}>BEVILJAD</Typography>
+                                                <button
+                                                    className="btn btn-ghost btn-sm w-full"
+                                                    onClick={() => handleCopy(generatedInvites[request.id])}
+                                                    style={{ color: "var(--neon-green)", background: "rgba(0,255,163,0.1)" }}
+                                                >
+                                                    <Copy size={12} style={{ marginRight: "6px" }} />
+                                                    Kopiera länk
+                                                </button>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Stack>
+                            </Box>
+                        ))}
+                    </Stack>
+                </Box>
             )}
-        </div>
+        </Box>
     );
 }

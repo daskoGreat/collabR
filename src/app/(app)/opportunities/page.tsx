@@ -2,6 +2,9 @@ import { prisma } from "@/lib/db";
 import OpportunityBoard from "@/components/opportunity-board";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Container } from "@/components/layout/Container";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
 
 export default async function OpportunitiesPage() {
     const session = await auth();
@@ -28,9 +31,22 @@ export default async function OpportunitiesPage() {
     }));
 
     return (
-        <OpportunityBoard
-            initialOpportunities={serializedOpportunities as any}
-            currentUserName={session.user.name ?? undefined}
-        />
+        <Container style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-2xl)' }}>
+            <Stack direction="vertical" gap="xl">
+                <Stack direction="vertical" gap="xs">
+                    <Typography variant="caption" className="text-secondary uppercase tracking-widest">
+                        Opportunities & Growth
+                    </Typography>
+                    <Typography variant="h1">
+                        Find your next step, together.
+                    </Typography>
+                </Stack>
+
+                <OpportunityBoard
+                    initialOpportunities={serializedOpportunities as any}
+                    currentUserName={session.user.name ?? undefined}
+                />
+            </Stack>
+        </Container>
     );
 }

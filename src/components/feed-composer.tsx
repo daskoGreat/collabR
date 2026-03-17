@@ -7,6 +7,10 @@ import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
 import { Spinner } from "./ui/loading-components";
 import MentionList from "./mention-list";
+import { AvatarPreview } from "./avatar-builder/AvatarPreview";
+import { Box } from "./layout/Box";
+import { Stack } from "./layout/Stack";
+import { Typography } from "./ui/typography";
 
 interface User {
     id: string;
@@ -141,37 +145,57 @@ export default function FeedComposer({ user }: Props) {
 
     if (!isExpanded) {
         return (
-            <div className="feed-card mb-[var(--space-10)] p-[var(--space-5)]">
-                <div className="flex items-center gap-[var(--space-4)]">
-                    <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
-                        {user.name[0].toUpperCase()}
-                    </div>
-                    <button
-                        onClick={() => setIsExpanded(true)}
-                        className="feed-composer-input flex-1 hover:shadow-glow-sm"
-                    >
-                        dela en ny insikt eller fundering...
-                    </button>
-                </div>
-            </div>
+            <Box
+                style={{
+                    background: "rgba(255,255,255,0.02)",
+                    borderRadius: "32px",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                    padding: "1.5rem 2rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                }}
+                className="hover:bg-white/[0.04] hover:border-white/10"
+                onClick={() => setIsExpanded(true)}
+            >
+                <Stack direction="horizontal" gap={16} align="center">
+                    <AvatarPreview
+                        avatarId={(user as any).avatarId}
+                        name={user.name}
+                        size="sm"
+                    />
+                    <Typography style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.95rem" }}>
+                        Dela en ny insikt eller fundering...
+                    </Typography>
+                </Stack>
+            </Box>
         );
     }
 
     return (
-        <div className="feed-card mb-[var(--space-10)] transition-all duration-300 ring-1 ring-neon-green/5 shadow-glow-sm relative">
+        <Box
+            style={{
+                background: "rgba(255,255,255,0.02)",
+                borderRadius: "32px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                padding: "2.5rem",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+            }}
+        >
             <form onSubmit={handleSubmit}>
-                <div className="p-[var(--space-5)]">
-                    <div className="flex items-center gap-[var(--space-3)] mb-[var(--space-5)]">
-                        <div className="feed-avatar w-10 h-10 border-none bg-primary/10 text-primary">
-                            {user.name[0].toUpperCase()}
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-bright">{user.name.toLowerCase()}</div>
-                            <div className="text-[10px] text-muted font-mono uppercase tracking-wider">delar en insikt</div>
-                        </div>
-                    </div>
+                <Stack gap={32}>
+                    <Stack direction="horizontal" gap={16} align="center">
+                        <AvatarPreview
+                            avatarId={(user as any).avatarId}
+                            name={user.name}
+                            size="md"
+                        />
+                        <Box>
+                            <Typography style={{ fontWeight: 700, fontSize: "1.1rem", color: "white" }}>{user.name.toLowerCase()}</Typography>
+                            <Typography style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Delar en insikt</Typography>
+                        </Box>
+                    </Stack>
 
-                    <div className="relative">
+                    <Box style={{ position: "relative" }}>
                         {mentionQuery !== null && (
                             <MentionList
                                 users={mentionUsers}
@@ -183,36 +207,46 @@ export default function FeedComposer({ user }: Props) {
                         <textarea
                             ref={inputRef}
                             autoFocus
-                            className="flex-1 feed-textarea resize-none min-h-[160px] w-full"
-                            placeholder="vad vill du dela med communityt idag?"
+                            className="feed-textarea"
+                            style={{
+                                width: "100%",
+                                minHeight: "160px",
+                                background: "none",
+                                border: "none",
+                                outline: "none",
+                                color: "white",
+                                fontSize: "1.1rem",
+                                lineHeight: "1.6",
+                                padding: 0,
+                                resize: "none"
+                            }}
+                            placeholder="Vad vill du dela med communityt idag?"
                             value={content}
                             onChange={(e) => handleInputChange(e.target.value)}
                             onKeyDown={handleKeyDown}
                         />
-                    </div>
-                </div>
+                    </Box>
 
-                <div className="px-[var(--space-5)] pb-[var(--space-5)]">
                     {pendingAttachments.length > 0 && (
-                        <div className="mb-[var(--space-4)] bg-black/20 rounded p-[var(--space-3)] border border-white/5">
+                        <Box style={{ background: "rgba(0,0,0,0.2)", borderRadius: "16px", padding: "1rem", border: "1px solid rgba(255,255,255,0.05)" }}>
                             <AttachmentList
                                 attachments={pendingAttachments}
                                 onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
                             />
-                        </div>
+                        </Box>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                    <Stack direction="horizontal" justify="between" align="center" style={{ paddingTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                         <AttachmentPicker
                             onUploadSuccess={(url, file) => setPendingAttachments([...pendingAttachments, { url, name: file.name, mimeType: file.type, size: file.size }])}
                             onUploadError={(err) => alert(err)}
                             spaceId="feed"
                         />
 
-                        <div className="flex gap-[var(--space-3)]">
+                        <Stack direction="horizontal" gap={12}>
                             <button
                                 type="button"
-                                className="btn btn-ghost btn-sm text-muted hover:text-bright"
+                                className="btn btn-ghost"
                                 onClick={() => {
                                     setIsExpanded(false);
                                     setContent("");
@@ -223,20 +257,21 @@ export default function FeedComposer({ user }: Props) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-primary btn-sm px-8 shadow-glow-sm min-w-[120px]"
+                                className="btn btn-primary"
+                                style={{ minWidth: "120px" }}
                                 disabled={isSubmitting || isPending || (!content.trim() && pendingAttachments.length === 0)}
                             >
                                 {isSubmitting || isPending ? (
-                                    <div className="flex items-center gap-2">
+                                    <Stack direction="horizontal" gap={8} align="center">
                                         <Spinner size="sm" />
                                         <span>postar...</span>
-                                    </div>
+                                    </Stack>
                                 ) : "publicera"}
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </Stack>
+                    </Stack>
+                </Stack>
             </form>
-        </div>
+        </Box>
     );
 }

@@ -22,6 +22,7 @@ export const authConfig: NextAuthConfig = {
             if (user) {
                 token.id = user.id;
                 token.role = (user as { role: string }).role;
+                token.avatarId = (user as { avatarId?: string }).avatarId;
             }
             return token;
         },
@@ -29,6 +30,7 @@ export const authConfig: NextAuthConfig = {
             if (session.user) {
                 session.user.id = token.id as string;
                 (session.user as { role: string }).role = token.role as string;
+                (session.user as { avatarId?: string }).avatarId = token.avatarId as string;
             }
             return session;
         },

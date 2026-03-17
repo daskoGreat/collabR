@@ -10,6 +10,63 @@ async function requireUser() {
     return session.user as { id: string, name: string };
 }
 
+export async function getThreadData(threadId: string) {
+    const user = await requireUser();
+
+    const thread = await prisma.directThread.findUnique({
+        where: { id: threadId },
+        include: {
+            members: {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            lastSeenAt: true,
+                            avatarConfig: { select: { avatarId: true } }
+                        }
+                    }
+                }
+            }
+        },
+    });
+
+    if (!thread) return { error: "not_found" };
+
+    const membership = thread.members.find(m => m.userId === user.id);
+    if (!membership) return { error: "forbidden" };
+
+    const messages = await prisma.directMessage.findMany({
+        where: { threadId },
+        orderBy: { createdAt: "asc" },
+        take: 50,
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            },
+            attachments: true
+        },
+    });
+
+    return {
+        success: true,
+        thread: {
+            ...thread,
+            messages: messages.map((m: any) => ({
+                id: m.id,
+                content: m.content,
+                createdAt: m.createdAt.toISOString(),
+                user: m.user,
+                attachments: m.attachments,
+            }))
+        }
+    };
+}
+
 export async function updatePresence() {
     const user = await requireUser();
     await prisma.user.update({
@@ -33,7 +90,7 @@ export async function renameThread(threadId: string, name: string) {
         data: { name }
     });
 
-    revalidatePath(`/dm/${threadId}`);
+    revalidatePath(`/messages/${threadId}`);
     revalidatePath(`/api/sidebar`);
 
     // Notify Pusher
@@ -66,7 +123,7 @@ export async function leaveThread(threadId: string) {
         // await prisma.directThread.delete({ where: { id: threadId } });
     }
 
-    revalidatePath(`/dm`);
+    revalidatePath(`/messages`);
     revalidatePath(`/api/sidebar`);
 
     // Notify Pusher

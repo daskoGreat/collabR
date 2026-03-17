@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 import MembersList from "./members-list";
 import BackButton from "@/components/back-button";
 import Link from "next/link";
+import { Container } from "@/components/layout/Container";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
+import { Box } from "@/components/layout/Box";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -19,43 +23,61 @@ export default async function MembersPage({ params }: Props) {
 
     const memberships = await prisma.spaceMember.findMany({
         where: { spaceId: id },
-        include: { user: { select: { id: true, name: true, role: true } } },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    role: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            }
+        },
         orderBy: { user: { name: "asc" } },
     });
 
-    const members = memberships.map((m: typeof memberships[number]) => ({
+    const members = memberships.map((m: any) => ({
         id: m.user.id,
         name: m.user.name,
         role: m.role,
+        avatarId: m.user.avatarConfig?.avatarId
     }));
 
     return (
-        <>
-            <div className="topbar">
-                <div className="row" style={{ gap: "var(--space-4)" }}>
-                    <BackButton />
-                    <div className="topbar-title">
-                        <Link href="/spaces" className="text-muted hover:text-primary transition-colors">navet</Link>
-                        <span className="text-muted mx-2">/</span>
-                        <Link href={`/spaces/${id}`} className="text-muted hover:text-primary transition-colors">#{space?.name.toLowerCase()}</Link>
-                        <span className="text-muted mx-2">/</span>
-                        <span className="topbar-title-highlight">⊡</span> medlemmar
-                    </div>
-                </div>
-            </div>
-            <div className="content-area">
-                <div className="page-header">
-                    <div>
-                        <h1 className="page-title">medlemmar</h1>
-                        <p className="page-subtitle">{members.length} personer på det här kontoret</p>
-                    </div>
-                </div>
+        <Container style={{ paddingBottom: '4rem', paddingTop: '2rem' }}>
+            <Stack gap={48}>
+                <Box>
+                    <Stack direction="horizontal" gap={16} align="center" style={{ marginBottom: "1.5rem" }}>
+                        <BackButton />
+                        <Stack direction="horizontal" gap={8} align="center">
+                            <Link href="/spaces" style={{ textDecoration: "none" }}>
+                                <Typography style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>navet</Typography>
+                            </Link>
+                            <Typography style={{ color: "rgba(255,255,255,0.2)" }}>/</Typography>
+                            <Link href={`/spaces/${id}`} style={{ textDecoration: "none" }}>
+                                <Typography style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>#{space?.name.toLowerCase()}</Typography>
+                            </Link>
+                            <Typography style={{ color: "rgba(255,255,255,0.2)" }}>/</Typography>
+                            <Typography style={{ color: "white", fontWeight: 700 }}>medlemmar</Typography>
+                        </Stack>
+                    </Stack>
+
+                    <Stack gap={4}>
+                        <Typography style={{ fontSize: "2.5rem", fontWeight: 700, fontFamily: "var(--font-outfit)" }}>
+                            Medlemmar
+                        </Typography>
+                        <Typography style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.1rem" }}>
+                            {members.length} personer på det här kontoret
+                        </Typography>
+                    </Stack>
+                </Box>
+
                 <MembersList
                     members={members}
                     currentUserId={currentUser.id}
                     spaceName={space?.name ?? ""}
                 />
-            </div>
-        </>
+            </Stack>
+        </Container>
     );
 }

@@ -4,10 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { User as UserIcon, Palette, Settings, Sun, Moon, LogOut, ChevronDown } from "lucide-react";
+import { Stack } from "./layout/Stack";
+import { Box } from "./layout/Box";
+import { Typography } from "./ui/typography";
 import LogoutConfirmation from "./logout-confirmation";
+import { AvatarPreview } from "./avatar-builder/AvatarPreview";
 
 interface Props {
-    user: { name: string; email: string; role: string };
+    user: { id: string; name: string; email: string; role: string; avatarId?: string };
 }
 
 export default function UserMenu({ user }: Props) {
@@ -32,101 +37,113 @@ export default function UserMenu({ user }: Props) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const initial = user.name.charAt(0).toUpperCase();
-
     if (!mounted) return null;
 
     return (
         <div className="user-menu-container" ref={menuRef} style={{ position: "relative" }}>
             <button
-                className="btn btn-ghost"
+                className="user-menu-trigger"
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ padding: "var(--space-2)", fontSize: "1.2rem" }}
                 aria-label="User menu"
+                style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    borderRadius: '9999px',
+                    transition: 'all 0.2s',
+                    color: 'rgba(255,255,255,0.4)',
+                    outline: 'none'
+                }}
             >
-                ⋮
+                <AvatarPreview avatarId={user.avatarId} name={user.name} size="sm" />
+                <ChevronDown
+                    size={12}
+                    style={{
+                        transition: 'transform 0.3s var(--ease-out)',
+                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        opacity: 0.5
+                    }}
+                />
             </button>
 
             {isOpen && (
-                <div
-                    className="card p-0 overflow-hidden shadow-2xl"
-                    style={{
-                        position: "absolute",
-                        top: "calc(100% + var(--space-2))",
-                        right: 0,
-                        minWidth: "240px",
-                        zIndex: 1000,
-                        background: "var(--bg-secondary)",
-                        border: "1px solid var(--border-active)",
-                        boxShadow: "var(--shadow-lg), 0 0 20px var(--neon-green-glow)",
-                        animation: "fadeIn 0.2s ease-out"
-                    }}
-                >
-                    <div className="sidebar-user" style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-glass)" }}>
-                        <div className="sidebar-user-avatar" style={{ width: "40px", height: "40px", fontSize: "14px" }}>{initial}</div>
-                        <div className="sidebar-user-info">
-                            <div className="sidebar-user-name" style={{ fontSize: "var(--font-size-sm)", fontWeight: 700 }}>{user.name}</div>
-                            <div className="sidebar-user-role" style={{ fontSize: "10px", color: "var(--text-secondary)" }}>{user.role.toLowerCase()}</div>
-                        </div>
-                    </div>
+                <Box style={{
+                    position: "absolute",
+                    top: "calc(100% + 12px)",
+                    right: 0,
+                    minWidth: "240px",
+                    zIndex: 1000,
+                    background: "#121212",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: '20px',
+                    boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)",
+                    animation: "fadeIn 0.3s var(--ease-out)",
+                    padding: '6px',
+                    overflow: 'hidden'
+                }}>
+                    <Box style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.05)", marginBottom: '4px' }}>
+                        <Typography style={{ fontSize: "0.85rem", fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
+                            {user.name.toLowerCase()}
+                        </Typography>
+                        <Typography style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+                            {user.email}
+                        </Typography>
+                    </Box>
 
-                    <div style={{ padding: "var(--space-1)" }}>
-                        <Link
-                            href="/profile"
-                            className="sidebar-link"
-                            style={{ display: "flex", width: "100%", textAlign: "left" }}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <span className="sidebar-link-icon">👤</span>
-                            Profil
+                    <Stack gap={2}>
+                        <Link href="/profile" onClick={() => setIsOpen(false)}>
+                            <Stack direction="horizontal" gap={12} align="center" className="user-menu-item" style={{ padding: '10px 14px', borderRadius: '12px', transition: 'all 0.2s' }}>
+                                <UserIcon size={16} style={{ opacity: 0.4 }} />
+                                <Typography style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>profil</Typography>
+                            </Stack>
                         </Link>
-                        <Link
-                            href="/settings"
-                            className="sidebar-link"
-                            style={{ display: "flex", width: "100%", textAlign: "left" }}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <span className="sidebar-link-icon">⚙</span>
-                            Inställningar
+                        <Link href="/avatar" onClick={() => setIsOpen(false)}>
+                            <Stack direction="horizontal" gap={12} align="center" className="user-menu-item" style={{ padding: '10px 14px', borderRadius: '12px', transition: 'all 0.2s' }}>
+                                <Palette size={16} style={{ opacity: 0.4 }} />
+                                <Typography style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>byt avatar</Typography>
+                            </Stack>
+                        </Link>
+                        <Link href="/settings" onClick={() => setIsOpen(false)}>
+                            <Stack direction="horizontal" gap={12} align="center" className="user-menu-item" style={{ padding: '10px 14px', borderRadius: '12px', transition: 'all 0.2s' }}>
+                                <Settings size={16} style={{ opacity: 0.4 }} />
+                                <Typography style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>inställningar</Typography>
+                            </Stack>
                         </Link>
 
-                        <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
+                        <Box style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "4px 8px" }} />
 
                         <button
-                            className="sidebar-link w-full text-left"
-                            style={{ background: "none", border: "none", width: "100%", cursor: "pointer" }}
                             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                            style={{ background: 'none', border: 'none', width: '100%', padding: 0, cursor: 'pointer', textAlign: 'left' }}
                         >
-                            <span className="sidebar-link-icon">{resolvedTheme === "dark" ? "☀️" : "🌙"}</span>
-                            {resolvedTheme === "dark" ? "Dagläge" : "Nattläge"}
+                            <Stack direction="horizontal" gap={12} align="center" className="user-menu-item" style={{ padding: '10px 14px', borderRadius: '12px', transition: 'all 0.2s' }}>
+                                {resolvedTheme === "dark" ? <Sun size={16} style={{ opacity: 0.4 }} /> : <Moon size={16} style={{ opacity: 0.4 }} />}
+                                <Typography style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
+                                    {resolvedTheme === "dark" ? "ljust läge" : "mörkt läge"}
+                                </Typography>
+                            </Stack>
                         </button>
 
-                        <div style={{ height: "1px", background: "var(--border-subtle)", margin: "var(--space-1) 0" }} />
+                        <Box style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "4px 8px" }} />
 
                         <button
-                            className="sidebar-link text-danger w-full text-left"
-                            style={{
-                                background: "none",
-                                border: "none",
-                                padding: "var(--space-2) var(--space-3)",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "var(--space-3)",
-                                width: "100%",
-                                color: "var(--accent-danger)",
-                                font: "inherit"
-                            }}
                             onClick={() => {
                                 setIsOpen(false);
                                 setShowLogoutConfirm(true);
                             }}
+                            style={{ background: 'none', border: 'none', width: '100%', padding: 0, cursor: 'pointer', textAlign: 'left' }}
                         >
-                            <span className="sidebar-link-icon">⏻</span>
-                            <span style={{ fontWeight: 700 }}>Logga ut</span>
+                            <Stack direction="horizontal" gap={12} align="center" className="user-menu-item-danger" style={{ padding: '10px 14px', borderRadius: '12px', transition: 'all 0.2s' }}>
+                                <LogOut size={16} style={{ opacity: 0.6 }} />
+                                <Typography style={{ fontSize: '0.85rem', color: 'inherit', fontWeight: 800 }}>logga ut</Typography>
+                            </Stack>
                         </button>
-                    </div>
-                </div>
+                    </Stack>
+                </Box>
             )}
 
             <LogoutConfirmation
@@ -134,6 +151,30 @@ export default function UserMenu({ user }: Props) {
                 onClose={() => setShowLogoutConfirm(false)}
                 onConfirm={() => signOut({ callbackUrl: "/login" })}
             />
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .user-menu-trigger:hover {
+                    background: rgba(255,255,255,0.03) !important;
+                }
+                .user-menu-item:hover {
+                    background: rgba(255,255,255,0.05) !important;
+                }
+                .user-menu-item:hover Typography {
+                    color: #fff !important;
+                }
+                .user-menu-item-danger {
+                    color: #ff4d4d;
+                }
+                .user-menu-item-danger:hover {
+                    background: rgba(255, 77, 77, 0.1) !important;
+                    color: #ff3333;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}} />
         </div>
     );
 }

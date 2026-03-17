@@ -7,6 +7,7 @@ interface User {
     id: string;
     name: string;
     email: string;
+    avatarId?: string;
     passwordHash: string | null;
     role: string;
     banned: boolean;
@@ -20,6 +21,12 @@ interface User {
         uses: number;
     }[];
 }
+
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
+import { Stack } from "@/components/layout/Stack";
+import { Box } from "@/components/layout/Box";
+import { Typography } from "@/components/ui/typography";
+import { Copy, MoreVertical, RefreshCw, X, UserX, UserCheck } from "lucide-react";
 
 interface Props {
     users: User[];
@@ -100,16 +107,18 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
     }
 
     return (
-        <div className="content-area">
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">användarhantering</h1>
-                    <p className="page-subtitle">{users.length} medlemmar i systemet</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
-                    + bjud in medlem
-                </button>
-            </div>
+        <Box style={{ background: "rgba(255,255,255,0.02)", borderRadius: "32px", border: "1px solid rgba(255,255,255,0.05)", overflow: "hidden" }}>
+            <Box style={{ padding: "2rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <Stack direction="horizontal" justify="between" align="center">
+                    <Box>
+                        <Typography style={{ fontSize: "1.25rem", fontWeight: 700 }}>Medlemmar</Typography>
+                        <Typography style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)" }}>{users.length} konton i systemet</Typography>
+                    </Box>
+                    <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
+                        + bjud in medlem
+                    </button>
+                </Stack>
+            </Box>
 
             <div className="table-wrapper">
                 <table className="w-full">
@@ -130,22 +139,31 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                             const isPending = !user.passwordHash;
 
                             return (
-                                <tr key={user.id}>
-                                    <td>
-                                        <div style={{ display: "flex", flexDirection: "column" }}>
-                                            <span className="font-semibold" style={{ color: "var(--text-bright)" }}>{user.name}</span>
-                                            <span className="text-xs text-muted" style={{ fontStyle: "italic" }}>{user.email}</span>
-                                        </div>
+                                <tr key={user.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.02)" }}>
+                                    <td style={{ padding: "1.25rem 1rem" }}>
+                                        <Stack direction="horizontal" gap={12} align="center">
+                                            <AvatarPreview
+                                                avatarId={user.avatarId}
+                                                name={user.name}
+                                                size="xs"
+                                            />
+                                            <Box>
+                                                <Typography style={{ fontWeight: 700, fontSize: "0.95rem", color: "white" }}>{user.name.toLowerCase()}</Typography>
+                                                <Typography style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>{user.email}</Typography>
+                                            </Box>
+                                        </Stack>
                                     </td>
-                                    <td>
+                                    <td style={{ padding: "1rem" }}>
                                         {user.id === currentUserId ? (
-                                            <span className="badge badge-green">{user.role.toLowerCase()}</span>
+                                            <span style={{ padding: "0.25rem 0.75rem", background: "rgba(0,255,163,0.1)", color: "var(--neon-green)", borderRadius: "8px", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase" }}>
+                                                {user.role}
+                                            </span>
                                         ) : (
                                             <select
                                                 className="select"
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                style={{ padding: "var(--space-1) var(--space-2)" }}
+                                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "0.85rem" }}
                                             >
                                                 <option value="MEMBER">medlem</option>
                                                 <option value="MODERATOR">moderator</option>
@@ -153,25 +171,26 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                             </select>
                                         )}
                                     </td>
-                                    <td>
-                                        <span className="text-secondary">{user.spaceCount}</span>
+                                    <td style={{ padding: "1rem" }}>
+                                        <Typography style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem" }}>{user.spaceCount}</Typography>
                                     </td>
-                                    <td>
-                                        <span className={`badge ${status.class}`}>{status.label}</span>
+                                    <td style={{ padding: "1rem" }}>
+                                        <span className={`badge ${status.class}`} style={{ fontSize: "0.7rem" }}>{status.label}</span>
                                     </td>
-                                    <td className="text-muted text-xs">
+                                    <td style={{ padding: "1rem", color: "rgba(255,255,255,0.3)", fontSize: "0.85rem" }}>
                                         {new Date(user.createdAt).toLocaleDateString("sv-SE")}
                                     </td>
-                                    <td style={{ textAlign: "right" }}>
-                                        <div className="action-row" style={{ justifyContent: "flex-end" }}>
+                                    <td style={{ padding: "1rem", textAlign: "right" }}>
+                                        <Stack direction="horizontal" gap={8} justify="end">
                                             {isPending && latestToken && (
                                                 <button
                                                     className="btn btn-ghost btn-sm"
                                                     onClick={() => copyToClipboard(latestToken)}
                                                     title="kopiera inbjudningslänk"
-                                                    style={{ color: "var(--neon-cyan)" }}
+                                                    style={{ color: "var(--neon-cyan)", display: "flex", alignItems: "center", gap: "6px" }}
                                                 >
-                                                    ❐ kopiera länk
+                                                    <Copy size={12} />
+                                                    <span>kopiera länk</span>
                                                 </button>
                                             )}
 
@@ -179,20 +198,34 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                 <button
                                                     className="btn btn-ghost btn-sm"
                                                     onClick={() => setMenuOpen(menuOpen === user.id ? null : user.id)}
-                                                    style={{ fontSize: "1.2rem", padding: "0 var(--space-2)" }}
+                                                    style={{ padding: "8px" }}
                                                 >
-                                                    ⋮
+                                                    <MoreVertical size={16} />
                                                 </button>
 
                                                 {menuOpen === user.id && (
-                                                    <div className="dropdown-menu shadow-lg">
+                                                    <Box
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "100%",
+                                                            right: 0,
+                                                            zIndex: 50,
+                                                            minWidth: "200px",
+                                                            background: "#1A1A1A",
+                                                            borderRadius: "16px",
+                                                            border: "1px solid rgba(255,255,255,0.1)",
+                                                            padding: "0.5rem",
+                                                            boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+                                                        }}
+                                                    >
                                                         {isPending && (
                                                             <button
                                                                 className="dropdown-item"
                                                                 onClick={() => { handleReinvite(user.id); setMenuOpen(null); }}
+                                                                style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px", width: "100%", textAlign: "left", borderRadius: "8px" }}
                                                             >
-                                                                <span style={{ color: "var(--neon-green)" }}>↻</span>
-                                                                re-invite user
+                                                                <RefreshCw size={14} style={{ color: "var(--neon-green)" }} />
+                                                                <span>Skicka inbjudan igen</span>
                                                             </button>
                                                         )}
 
@@ -200,32 +233,38 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                                                             <>
                                                                 {user.banned ? (
                                                                     <button
-                                                                        className="dropdown-item text-success"
+                                                                        className="dropdown-item"
                                                                         onClick={() => { handleUnban(user.id); setMenuOpen(null); }}
+                                                                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px", width: "100%", textAlign: "left", borderRadius: "8px", color: "var(--neon-green)" }}
                                                                     >
-                                                                        aktivera användare
+                                                                        <UserCheck size={14} />
+                                                                        <span>Aktivera användare</span>
                                                                     </button>
                                                                 ) : (
                                                                     <button
-                                                                        className="dropdown-item text-danger"
+                                                                        className="dropdown-item"
                                                                         onClick={() => { setBanModal(user.id); setMenuOpen(null); }}
+                                                                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px", width: "100%", textAlign: "left", borderRadius: "8px", color: "var(--accent-danger)" }}
                                                                     >
-                                                                        inaktivera användare
+                                                                        <UserX size={14} />
+                                                                        <span>Inaktivera användare</span>
                                                                     </button>
                                                                 )}
+                                                                <Box style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "4px 0" }} />
                                                                 <button
-                                                                    className="dropdown-item text-danger"
+                                                                    className="dropdown-item"
                                                                     onClick={() => { setDeleteModal(user.id); setMenuOpen(null); }}
+                                                                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px", width: "100%", textAlign: "left", borderRadius: "8px", color: "var(--accent-danger)" }}
                                                                 >
-                                                                    <span style={{ color: "var(--accent-danger)" }}>✖</span>
-                                                                    ta bort användare
+                                                                    <X size={14} />
+                                                                    <span>Ta bort permanent</span>
                                                                 </button>
                                                             </>
                                                         )}
-                                                    </div>
+                                                    </Box>
                                                 )}
                                             </div>
-                                        </div>
+                                        </Stack>
                                     </td>
                                 </tr>
                             );
@@ -369,6 +408,6 @@ export default function UsersAdmin({ users, currentUserId }: Props) {
                     </div>
                 </div>
             )}
-        </div>
+        </Box>
     );
 }

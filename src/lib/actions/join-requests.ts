@@ -48,7 +48,7 @@ export async function approveRequest(id: string) {
             },
         });
 
-        const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://collab-nine-gold.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`;
+        const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://the-support-network.vercel.app' : 'http://localhost:3000')}/invite/${invite.token}`;
         console.log(`Invite URL generated: ${inviteUrl}`);
 
         // 3. Send invitation email via Resend

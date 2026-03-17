@@ -7,7 +7,10 @@ import { sv } from "date-fns/locale";
 import Link from "next/link";
 import { deleteFeedPost, toggleFeedReaction } from "@/lib/actions/feed";
 import AttachmentList from "./attachment-list";
-import { LoadingSpinner } from "./ui/loading-spinner";
+import { AvatarPreview } from "./avatar-builder/AvatarPreview";
+import { Box } from "./layout/Box";
+import { Typography } from "./ui/typography";
+import { Stack } from "./layout/Stack";
 
 interface FeedPost {
     id: string;
@@ -69,33 +72,44 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
     const isMentioned = currentUserName && post.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
 
     return (
-        <div className={`feed-card group transition-all duration-300 hover:shadow-glow-sm ${isMentioned ? "chat-message-mentioned" : ""}`}>
-            <div className="feed-header mb-[var(--space-6)]">
-                <div className="feed-avatar !w-10 !h-10 !text-[13px]">
-                    {post.user.name[0].toUpperCase()}
-                </div>
-                <div className="feed-meta">
-                    <div className="feed-author text-[15px] font-semibold text-bright">{post.user.name.toLowerCase()}</div>
-                    <div className="feed-time text-[10px] uppercase tracking-wider text-muted opacity-60">
+        <Box
+            style={{
+                background: "rgba(255,255,255,0.02)",
+                borderRadius: "32px",
+                border: "1px solid rgba(255,255,255,0.05)",
+                padding: "2.5rem",
+                transition: "all 0.3s"
+            }}
+            className={`group hover:bg-white/[0.04] hover:border-white/10 ${isMentioned ? "chat-message-mentioned" : ""}`}
+        >
+            <Stack direction="horizontal" gap={16} align="center" style={{ marginBottom: "2rem" }}>
+                <AvatarPreview
+                    avatarId={post.user.avatarConfig?.avatarId}
+                    name={post.user.name}
+                    size="md"
+                />
+                <Box style={{ flex: 1 }}>
+                    <Typography style={{ fontWeight: 700, fontSize: "1.1rem", color: "white" }}>{post.user.name.toLowerCase()}</Typography>
+                    <Typography style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         {formatDistanceToNow(new Date(post.createdAt), { locale: sv })} sedan
-                    </div>
-                </div>
+                    </Typography>
+                </Box>
 
                 {post.user.id === currentUserId && (
                     <button
                         onClick={handleDelete}
-                        className={`opacity-0 group-hover:opacity-40 p-2 text-muted hover:text-accent-danger hover:opacity-100 transition-all duration-200 -mt-2 -mr-2 ${isDeleting ? "opacity-100" : ""}`}
+                        className={`opacity-0 group-hover:opacity-40 p-2 text-muted hover:text-accent-danger hover:opacity-100 transition-all duration-200 ${isDeleting ? "opacity-100" : ""}`}
                         disabled={isDeleting || isPending}
                         title="ta bort inlägg"
                     >
-                        {isDeleting ? <LoadingSpinner size={14} /> : <Trash2 size={14} strokeWidth={1.5} />}
+                        {isDeleting ? "..." : <Trash2 size={16} strokeWidth={1.5} />}
                     </button>
                 )}
-            </div>
+            </Stack>
 
-            <div className="feed-content mb-[var(--space-6)]">
+            <Box style={{ marginBottom: "2.5rem" }}>
                 <MessageContent content={post.content} currentUserName={currentUserName} />
-            </div>
+            </Box>
 
             {post.attachments.length > 0 && (
                 <div className="feed-media mb-[var(--space-6)]">
@@ -135,6 +149,6 @@ export default function FeedPostCard({ post, currentUserId, currentUserName }: P
                     </Link>
                 </div>
             </div>
-        </div>
+        </Box>
     );
 }

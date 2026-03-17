@@ -19,9 +19,9 @@ export async function sendInviteEmail({
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Collab <onboarding@resend.dev>', // Use onboarding@resend.dev until domain is verified
+            from: 'The Support Network <onboarding@resend.dev>', // Use onboarding@resend.dev until domain is verified
             to: [email],
-            subject: 'inbjudan',
+            subject: 'Welcome to the Network',
             react: <InviteEmail name={name} inviteLink={inviteLink} />,
         });
 

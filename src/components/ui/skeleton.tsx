@@ -1,35 +1,88 @@
 "use client";
-interface Props {
+
+import { Box } from "@/components/layout/Box";
+
+interface SkeletonProps {
+    width?: string | number;
+    height?: string | number;
+    borderRadius?: string;
     className?: string;
-    variant?: "default" | "neon";
+    style?: React.CSSProperties;
 }
 
-export function Skeleton({ className = "", variant = "default" }: Props) {
+export function Skeleton({
+    width = "100%",
+    height = "20px",
+    borderRadius = "8px",
+    className = "",
+    style = {}
+}: SkeletonProps) {
     return (
-        <div
-            className={`skeleton ${variant === "neon" ? "skeleton-neon" : ""} ${className}`}
-        />
+        <Box
+            className={`skeleton-pulse ${className}`}
+            style={{
+                width,
+                height,
+                borderRadius,
+                background: "rgba(255,255,255,0.05)",
+                position: "relative",
+                overflow: "hidden",
+                ...style
+            }}
+        >
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .skeleton-pulse {
+                    animation: skeleton-load 1.5s infinite linear;
+                }
+                .skeleton-pulse::after {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    transform: translateX(-100%);
+                    background-image: linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0) 0,
+                        rgba(255, 255, 255, 0.03) 20%,
+                        rgba(255, 255, 255, 0.05) 60%,
+                        rgba(255, 255, 255, 0)
+                    );
+                    animation: shimmer 2s infinite;
+                }
+                @keyframes skeleton-load {
+                    0% { opacity: 0.5; }
+                    50% { opacity: 0.8; }
+                    100% { opacity: 0.5; }
+                }
+                @keyframes shimmer {
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+            `}} />
+        </Box>
     );
 }
 
 export function CardSkeleton() {
     return (
-        <div className="card p-5 space-y-4">
-            <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-sm" />
-                <div className="space-y-2">
-                    <Skeleton className="w-24 h-3" variant="neon" />
-                    <Skeleton className="w-16 h-2 opacity-50" />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-11/12 h-4" />
-            </div>
-            <div className="flex gap-4 pt-4 border-t border-subtle">
-                <Skeleton className="w-12 h-6" />
-                <Skeleton className="w-12 h-6" />
-            </div>
-        </div>
+        <Box style={{
+            background: "rgba(255,255,255,0.02)",
+            borderRadius: "24px",
+            padding: "2rem",
+            border: "1px solid rgba(255,255,255,0.05)",
+            marginBottom: "1rem"
+        }}>
+            <Skeleton width="40%" height="24px" style={{ marginBottom: "1rem" }} />
+            <Skeleton width="100%" height="16px" style={{ marginBottom: "0.5rem" }} />
+            <Skeleton width="90%" height="16px" style={{ marginBottom: "1.5rem" }} />
+            <Box style={{ display: "flex", gap: "12px" }}>
+                <Skeleton width="80px" height="32px" borderRadius="99px" />
+                <Skeleton width="80px" height="32px" borderRadius="99px" />
+            </Box>
+        </Box>
     );
 }

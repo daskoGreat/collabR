@@ -8,6 +8,14 @@ import { createOpportunity } from "@/lib/actions/opportunities";
 import AttachmentPicker from "./attachment-picker";
 import AttachmentList from "./attachment-list";
 import { LoadingSpinner } from "./ui/loading-spinner";
+import { PlusSquare, Zap, Search, Filter } from "lucide-react";
+import { Stack } from "@/components/layout/Stack";
+import { Grid, GridItem } from "@/components/layout/Grid";
+import { Card } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Box } from "@/components/layout/Box";
 
 interface User {
     id: string;
@@ -30,8 +38,6 @@ interface Props {
     initialOpportunities: Opportunity[];
     currentUserName?: string;
 }
-
-import { PlusSquare, Zap } from "lucide-react";
 
 export default function OpportunityBoard({ initialOpportunities, currentUserName }: Props) {
     const router = useRouter();
@@ -80,11 +86,10 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
             });
         } else {
             setCreating(false);
-            alert("Kunde inte skapa möjlighet");
+            alert("Could not share opportunity");
         }
     }
 
-    // Mention handlers
     const handleInputChange = (val: string) => {
         setContent(val);
         const cursorPosition = inputRef.current?.selectionStart || 0;
@@ -157,198 +162,166 @@ export default function OpportunityBoard({ initialOpportunities, currentUserName
     }, [mentionQuery]);
 
     return (
-        <div className="content-area">
-            <div className="page-header !mb-[var(--space-8)]">
-                <div>
-                    <h1 className="page-title">jobb & möjligheter</h1>
-                    <p className="page-subtitle text-secondary">hitta ditt nästa äventyr eller dela en öppning</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
-                    <PlusSquare size={18} strokeWidth={1.5} className="mr-2" />
-                    <span>dela möjlighet</span>
-                </button>
-            </div>
+        <Stack direction="vertical" gap="lg">
+            {/* ACTION BAR */}
+            <Stack direction="horizontal" justify="between" align="center">
+                <Typography variant="h3">Active Opportunities</Typography>
+                <Button onClick={() => setShowCreate(!showCreate)} variant={showCreate ? "secondary" : "primary"}>
+                    <PlusSquare size={16} style={{ marginRight: 'var(--space-xs)' }} />
+                    {showCreate ? "Cancel" : "Share Opportunity"}
+                </Button>
+            </Stack>
 
+            {/* CREATE FORM */}
             {showCreate && (
-                <div className="card mb-[var(--space-8)]">
-                    <div className="modal-title">ny post</div>
-                    <form className="auth-form" onSubmit={handleCreate}>
-                        <div className="form-group">
-                            <label className="form-label">rubrik</label>
-                            <input type="text" name="title" className="input" placeholder="t.ex. Senior Frontend Utvecklare" required />
-                        </div>
+                <Card style={{ border: '1px solid var(--accent-accent)' }}>
+                    <form onSubmit={handleCreate}>
+                        <Stack direction="vertical" gap="md">
+                            <Typography variant="h3">New Opportunity</Typography>
 
-                        <div className="row">
-                            <div className="form-group flex-1">
-                                <label className="form-label">typ</label>
-                                <select name="type" className="select w-full">
-                                    <option value="JOBB">jobb</option>
-                                    <option value="LIA">lia</option>
-                                    <option value="UPPDRAG">uppdrag</option>
-                                </select>
-                            </div>
-                            <div className="form-group flex-1">
-                                <label className="form-label">plats</label>
-                                <select name="location" className="select w-full">
-                                    <option value="REMOTE">remote</option>
-                                    <option value="HYBRID">hybrid</option>
-                                    <option value="ONSITE">onsite</option>
-                                </select>
-                            </div>
-                        </div>
+                            <Grid gap="md">
+                                <GridItem span={12}>
+                                    <Input label="Title" name="title" placeholder="e.g. Senior Frontend Developer" required />
+                                </GridItem>
+                                <GridItem span={6}>
+                                    <Stack direction="vertical" gap="xs">
+                                        <Typography variant="caption" style={{ fontWeight: 'bold' }}>Type</Typography>
+                                        <select name="type" className="input w-full" style={{ background: 'var(--bg-tertiary)' }}>
+                                            <option value="JOBB">Job</option>
+                                            <option value="LIA">Internship (LIA)</option>
+                                            <option value="UPPDRAG">Freelance</option>
+                                        </select>
+                                    </Stack>
+                                </GridItem>
+                                <GridItem span={6}>
+                                    <Stack direction="vertical" gap="xs">
+                                        <Typography variant="caption" style={{ fontWeight: 'bold' }}>Location</Typography>
+                                        <select name="location" className="input w-full" style={{ background: 'var(--bg-tertiary)' }}>
+                                            <option value="REMOTE">Remote</option>
+                                            <option value="HYBRID">Hybrid</option>
+                                            <option value="ONSITE">Onsite</option>
+                                        </select>
+                                    </Stack>
+                                </GridItem>
 
-                        <div className="form-group">
-                            <label className="form-label">beskrivning</label>
-                            <div className="relative">
-                                {mentionQuery !== null && (
-                                    <MentionList
-                                        users={mentionUsers}
-                                        selectedIndex={mentionIndex}
-                                        onSelect={(u) => insertMention(u)}
-                                        loading={mentionLoading}
-                                    />
-                                )}
-                                <textarea
-                                    ref={inputRef}
-                                    name="content"
-                                    className="input"
-                                    rows={6}
-                                    placeholder="berätta mer om rollen, krav och vad ni erbjuder..."
-                                    required
-                                    value={content}
-                                    onChange={(e) => handleInputChange(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                />
-                            </div>
-                        </div>
+                                <GridItem span={12}>
+                                    <Stack direction="vertical" gap="xs">
+                                        <Typography variant="caption" style={{ fontWeight: 'bold' }}>Description</Typography>
+                                        <Box style={{ position: 'relative' }}>
+                                            {mentionQuery !== null && (
+                                                <MentionList
+                                                    users={mentionUsers}
+                                                    selectedIndex={mentionIndex}
+                                                    onSelect={(u) => insertMention(u)}
+                                                    loading={mentionLoading}
+                                                />
+                                            )}
+                                            <textarea
+                                                ref={inputRef}
+                                                name="content"
+                                                className="input"
+                                                rows={5}
+                                                placeholder="Tell us more about the role, requirements, and offerings..."
+                                                required
+                                                value={content}
+                                                onChange={(e) => handleInputChange(e.target.value)}
+                                                onKeyDown={handleKeyDown}
+                                                style={{ width: '100%', resize: 'vertical' }}
+                                            />
+                                        </Box>
+                                    </Stack>
+                                </GridItem>
 
-                        <div className="row">
-                            <div className="form-group flex-1">
-                                <label className="form-label">tags (komma-separerade)</label>
-                                <input type="text" name="tags" className="input" placeholder="react, typescript, design" />
-                            </div>
-                            <div className="form-group flex-1">
-                                <label className="form-label">länk (valfritt)</label>
-                                <input type="url" name="link" className="input" placeholder="https://..." />
-                            </div>
-                        </div>
+                                <GridItem span={6}>
+                                    <Input label="Tags (comma-separated)" name="tags" placeholder="react, design, typescript" />
+                                </GridItem>
+                                <GridItem span={6}>
+                                    <Input label="Apply Link (optional)" type="url" name="link" placeholder="https://..." />
+                                </GridItem>
+                                <GridItem span={6}>
+                                    <Input label="Deadline (optional)" type="date" name="deadline" />
+                                </GridItem>
+                            </Grid>
 
-                        <div className="row">
-                            <div className="form-group flex-1">
-                                <label className="form-label">kontaktinfo (valfritt)</label>
-                                <input type="text" name="contactInfo" className="input" placeholder="e-post, telefon..." />
-                            </div>
-                            <div className="form-group flex-1">
-                                <label className="form-label">deadline (valfritt)</label>
-                                <input type="date" name="deadline" className="input" />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">bilagor</label>
-                            <div className="mb-2">
-                                <AttachmentPicker
-                                    onUploadSuccess={(url, file) => setPendingAttachments([...pendingAttachments, { url, name: file.name, mimeType: file.type, size: file.size }])}
-                                    onUploadError={(err) => alert(err)}
-                                    spaceId="opportunities"
-                                />
-                            </div>
-                            <AttachmentList
-                                attachments={pendingAttachments}
-                                onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
-                            />
-                        </div>
-
-                        <div className="modal-actions">
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowCreate(false)}>
-                                avbryt
-                            </button>
-                            <button type="submit" className="btn btn-primary min-w-[140px]" disabled={creating || isPending}>
-                                {creating || isPending ? (
-                                    <div className="flex items-center gap-2">
-                                        <LoadingSpinner size="sm" />
-                                        <span>publicerar...</span>
-                                    </div>
-                                ) : "publicera möjlighet"}
-                            </button>
-                        </div>
+                            <Stack direction="horizontal" justify="end" gap="md" style={{ marginTop: 'var(--space-md)' }}>
+                                <Button type="submit" disabled={creating || isPending} size="lg">
+                                    {creating || isPending ? "Sharing..." : "Share Now"}
+                                </Button>
+                            </Stack>
+                        </Stack>
                     </form>
-                </div>
+                </Card>
             )}
 
-            <div className="card mb-[var(--space-6)] !p-[var(--space-5)] border-subtle/30 shadow-sm !h-auto">
-                <div className="flex flex-col gap-[var(--space-4)]">
-                    <div className="relative">
-                        <Zap className="absolute left-[var(--space-4)] top-1/2 -translate-y-1/2 text-muted opacity-30" size={16} />
+            {/* FILTERS CARD */}
+            <Card style={{ background: 'var(--bg-tertiary)' }}>
+                <Stack direction="vertical" gap="md">
+                    <Box style={{ position: 'relative' }}>
+                        <Search size={14} className="text-secondary opacity-40" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                         <input
                             type="text"
-                            placeholder="sök bland jobb, LIA och uppdrag..."
-                            className="input w-full !pl-[var(--space-10)] !py-[var(--space-3)] !text-xs !bg-transparent border-subtle/20"
+                            placeholder="Search among jobs, internships, and projects..."
+                            className="input w-full"
+                            style={{ paddingLeft: '36px', height: '40px', background: 'var(--bg-primary)' }}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-                        {search && (
-                            <div className="absolute right-[var(--space-4)] top-1/2 -translate-y-1/2 opacity-50 animate-pulse text-[9px] font-mono pointer-events-none text-primary">
-                                SÖKER...
-                            </div>
-                        )}
-                    </div>
+                    </Box>
 
-                    <div className="flex flex-wrap gap-x-10 gap-y-4 items-center border-t border-subtle/10 pt-5">
-                        <div className="inline-flex items-center">
-                            <div className="flex items-center h-6" style={{ marginRight: '12px' }}>
-                                <span className="text-[10px] text-secondary uppercase font-bold tracking-widest opacity-40 leading-none" style={{ transform: 'translateY(-5.5px)' }}>Typ:</span>
-                            </div>
-                            <div className="tabs tabs-sm">
+                    <Stack direction="horizontal" gap="xl" wrap="wrap">
+                        <Stack direction="horizontal" gap="md" align="center">
+                            <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest text-secondary opacity-40">Type:</Typography>
+                            <Stack direction="horizontal" gap="xs">
                                 {["ALL", "JOBB", "LIA", "UPPDRAG"].map((t) => (
-                                    <button
+                                    <Button
                                         key={t}
-                                        className={`tab ${typeFilter === t ? "active" : ""}`}
+                                        variant={typeFilter === t ? "primary" : "ghost"}
+                                        size="sm"
                                         onClick={() => setTypeFilter(t)}
+                                        style={{ fontSize: '11px', textTransform: 'lowercase' }}
                                     >
                                         {t.toLowerCase()}
-                                    </button>
+                                    </Button>
                                 ))}
-                            </div>
-                        </div>
+                            </Stack>
+                        </Stack>
 
-                        <div className="inline-flex items-center">
-                            <div className="flex items-center h-6" style={{ marginRight: '12px' }}>
-                                <span className="text-[10px] text-secondary uppercase font-bold tracking-widest opacity-40 leading-none" style={{ transform: 'translateY(-5.5px)' }}>Plats:</span>
-                            </div>
-                            <div className="tabs tabs-sm">
+                        <Stack direction="horizontal" gap="md" align="center">
+                            <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest text-secondary opacity-40">Location:</Typography>
+                            <Stack direction="horizontal" gap="xs">
                                 {["ALL", "REMOTE", "HYBRID", "ONSITE"].map((l) => (
-                                    <button
+                                    <Button
                                         key={l}
-                                        className={`tab ${locationFilter === l ? "active" : ""}`}
+                                        variant={locationFilter === l ? "primary" : "ghost"}
+                                        size="sm"
                                         onClick={() => setLocationFilter(l)}
+                                        style={{ fontSize: '11px', textTransform: 'lowercase' }}
                                     >
                                         {l.toLowerCase()}
-                                    </button>
+                                    </Button>
                                 ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </Stack>
+                        </Stack>
+                    </Stack>
+                </Stack>
+            </Card>
 
+            {/* CONTENT GRID */}
             {filtered.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-state-icon">
-                        <Zap size={32} strokeWidth={1} />
-                    </div>
-                    <div className="empty-state-title">det är tyst på tavlan</div>
-                    <div className="empty-state-text">
-                        hittar du en tillgänglig roll eller ett uppdrag? dela gärna med dig till communityt.
-                    </div>
-                </div>
+                <Box style={{ textAlign: 'center', padding: 'var(--space-2xl) 0', opacity: 0.5 }}>
+                    <Zap size={32} style={{ margin: '0 auto 16px', strokeWidth: 1 }} />
+                    <Typography variant="h3">It's quiet on the board</Typography>
+                    <Typography variant="caption">Try adjusting your filters or share something with the community.</Typography>
+                </Box>
             ) : (
-                <div className="opportunities-grid !gap-[var(--space-6)]">
+                <Grid gap="md">
                     {filtered.map((opportunity) => (
-                        <OpportunityCard key={opportunity.id} opportunity={opportunity} currentUserName={currentUserName} />
+                        <GridItem key={opportunity.id} span={{ base: 12, md: 6, lg: 4 }}>
+                            <OpportunityCard opportunity={opportunity} currentUserName={currentUserName} />
+                        </GridItem>
                     ))}
-                </div>
+                </Grid>
             )}
-        </div>
+        </Stack>
     );
 }

@@ -2,13 +2,21 @@
 
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
+import { sv } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 import BackButton from "@/components/back-button";
 import MessageContent from "@/components/message-content";
 import AttachmentList from "@/components/attachment-list";
 import AttachmentPicker from "@/components/attachment-picker";
 import { addOpportunityComment, deleteOpportunity } from "@/lib/actions/opportunities";
-import { useRouter } from "next/navigation";
 import MentionList from "@/components/mention-list";
+import { Container } from "@/components/layout/Container";
+import { Stack } from "@/components/layout/Stack";
+import { Card } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
+import { Box } from "@/components/layout/Box";
+import { Button } from "@/components/ui/button";
+import { Trash2, Link as LinkIcon, Mail, Clock, MessageSquare } from "lucide-react";
 
 interface User {
     id: string;
@@ -84,7 +92,6 @@ export default function OpportunityDetail({ opportunity, currentUserId, currentU
         }
     }
 
-    // Mention handlers
     const handleInputChange = (val: string) => {
         setContent(val);
         const cursorPosition = inputRef.current?.selectionStart || 0;
@@ -157,7 +164,7 @@ export default function OpportunityDetail({ opportunity, currentUserId, currentU
     }, [mentionQuery]);
 
     async function handleDelete() {
-        if (!confirm("Är du säker på att du vill ta bort denna möjlighet?")) return;
+        if (!confirm("Are you sure you want to remove this opportunity?")) return;
         setIsDeleting(true);
         try {
             const res = await deleteOpportunity(opportunity.id);
@@ -165,179 +172,189 @@ export default function OpportunityDetail({ opportunity, currentUserId, currentU
                 router.push("/opportunities");
             } else {
                 setIsDeleting(false);
-                alert(res?.error || "Kunde inte ta bort möjligheten");
+                alert(res?.error || "Could not remove opportunity");
             }
         } catch (err: any) {
             setIsDeleting(false);
             console.error(err);
-            alert("Ett fel uppstod: " + (err.message || "Okänt fel"));
+            alert("An error occurred: " + (err.message || "Unknown error"));
         }
     }
 
     const isOpportunityMentioned = currentUserName && opportunity.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
 
     return (
-        <div className="content-area max-w-4xl mx-auto">
-            <div className="mb-4">
-                <BackButton />
-            </div>
+        <Container style={{ paddingTop: 'var(--space-md)', paddingBottom: 'var(--space-2xl)', maxWidth: '800px' }}>
+            <Stack direction="vertical" gap="lg">
+                <Box>
+                    <BackButton />
+                </Box>
 
-            <div className={`card mb-8 ${isOpportunityMentioned ? "chat-message-mentioned" : ""}`}>
-                <div className="row-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <span className={`badge badge-type status-${opportunity.type.toLowerCase()}`}>
-                            {opportunity.type}
-                        </span>
-                        <span className="text-sm text-muted">
-                            {opportunity.location.toLowerCase()}
-                        </span>
-                    </div>
-                    {isCreator && (
-                        <button
-                            className="btn btn-secondary text-error btn-sm"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? "tar bort..." : "ta bort"}
-                        </button>
-                    )}
-                </div>
-
-                <h1 className="text-3xl font-bold text-bright mb-2">
-                    {opportunity.title}
-                </h1>
-
-                <div className="flex items-center gap-2 text-sm text-muted mb-6">
-                    <span>publicerad av <span className="text-secondary">{opportunity.user.name}</span></span>
-                    <span>•</span>
-                    <span>{format(new Date(opportunity.createdAt), "PPP")}</span>
-                </div>
-
-                <div className="prose prose-invert mb-8">
-                    <MessageContent content={opportunity.content} currentUserName={currentUserName} />
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-8">
-                    {opportunity.tags.map(tag => (
-                        <span key={tag} className="tag">{tag}</span>
-                    ))}
-                </div>
-
-                {(opportunity.link || opportunity.contactInfo || opportunity.deadline) && (
-                    <div className="grid grid-2 gap-4 p-4 bg-tertiary rounded-lg mb-8 border border-subtle">
-                        {opportunity.link && (
-                            <div>
-                                <div className="text-xs text-muted uppercase font-bold mb-1">länk</div>
-                                <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
-                                    {opportunity.link}
-                                </a>
-                            </div>
-                        )}
-                        {opportunity.contactInfo && (
-                            <div>
-                                <div className="text-xs text-muted uppercase font-bold mb-1">kontakt</div>
-                                <div className="text-secondary">{opportunity.contactInfo}</div>
-                            </div>
-                        )}
-                        {opportunity.deadline && (
-                            <div>
-                                <div className="text-xs text-muted uppercase font-bold mb-1">deadline</div>
-                                <div className="text-orange">{format(new Date(opportunity.deadline), "PPP")}</div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {opportunity.attachments.length > 0 && (
-                    <div className="mb-8">
-                        <h4 className="text-xs text-muted uppercase font-bold mb-3">bilagor</h4>
-                        <AttachmentList attachments={opportunity.attachments} />
-                    </div>
-                )}
-            </div>
-
-            {/* Comments Section */}
-            <div className="comments-section">
-                <h3 className="text-xl font-bold text-bright mb-6">
-                    diskussion ({opportunity.comments.length})
-                </h3>
-
-                <div className="stack gap-4 mb-8">
-                    {opportunity.comments.map(comment => {
-                        const isCommentMentioned = currentUserName && comment.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
-                        return (
-                            <div key={comment.id} className={`card card-compact border-l-2 border-l-neon-green bg-tertiary ${isCommentMentioned ? "chat-message-mentioned" : ""}`}>
-                                <div className="row-between mb-2">
-                                    <span className="font-bold text-secondary text-sm">{comment.user.name}</span>
-                                    <span className="text-xs text-muted">{format(new Date(comment.createdAt), "HH:mm, PPP")}</span>
-                                </div>
-                                <div className="text-sm">
-                                    <MessageContent content={comment.content} currentUserName={currentUserName} />
-                                </div>
-                                {comment.attachments.length > 0 && (
-                                    <div className="mt-4">
-                                        <AttachmentList attachments={comment.attachments} />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                    {opportunity.comments.length === 0 && (
-                        <p className="text-muted text-center py-8">inga kommentarer än. bli den första!</p>
-                    )}
-                </div>
-
-                <div className="card bg-secondary">
-                    <form onSubmit={handleAddComment}>
-                        <div className="form-group mb-4 relative">
-                            {mentionQuery !== null && (
-                                <MentionList
-                                    users={mentionUsers}
-                                    selectedIndex={mentionIndex}
-                                    onSelect={(u) => insertMention(u)}
-                                    loading={mentionLoading}
-                                />
+                <Card className={isOpportunityMentioned ? 'border-primary' : ''}>
+                    <Stack direction="vertical" gap="lg">
+                        <Stack direction="horizontal" justify="between" align="center">
+                            <Stack direction="horizontal" gap="sm" align="center">
+                                <Box style={{
+                                    background: 'var(--bg-tertiary)',
+                                    padding: 'var(--space-xs) var(--space-sm)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--border-subtle)'
+                                }}>
+                                    <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest">
+                                        {opportunity.type.toLowerCase()}
+                                    </Typography>
+                                </Box>
+                                <Typography variant="caption" className="text-secondary opacity-40 uppercase tracking-widest">
+                                    {opportunity.location.toLowerCase()}
+                                </Typography>
+                            </Stack>
+                            {isCreator && (
+                                <Button variant="ghost" size="sm" onClick={handleDelete} disabled={isDeleting} style={{ color: 'var(--accent-danger)' }}>
+                                    <Trash2 size={14} style={{ marginRight: 'var(--space-xs)' }} />
+                                    {isDeleting ? "Removing..." : "Remove"}
+                                </Button>
                             )}
-                            <textarea
-                                ref={inputRef}
-                                name="content"
-                                className="input w-full"
-                                rows={3}
-                                placeholder="skriv en kommentar... använd @ för att tagga någon"
-                                required
-                                value={content}
-                                onChange={(e) => handleInputChange(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                            />
-                        </div>
+                        </Stack>
 
-                        <div className="form-group">
-                            <div className="row-between items-end">
-                                <div className="flex-1">
-                                    <AttachmentList
-                                        attachments={pendingAttachments}
-                                        onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
-                                    />
-                                    <div className="pt-2">
-                                        <AttachmentPicker
-                                            onUploadSuccess={(url, file) => setPendingAttachments([...pendingAttachments, { url, name: file.name, mimeType: file.type, size: file.size }])}
-                                            onUploadError={(err) => alert(err)}
-                                            spaceId="opportunities"
+                        <Stack direction="vertical" gap="xs">
+                            <Typography variant="h1">{opportunity.title.toLowerCase()}</Typography>
+                            <Typography variant="caption" className="text-secondary opacity-60">
+                                shared by <span className="text-secondary">{opportunity.user.name.toLowerCase()}</span> • {format(new Date(opportunity.createdAt), "PPP", { locale: sv })}
+                            </Typography>
+                        </Stack>
+
+                        <Box style={{ opacity: 0.8, lineHeight: 1.6 }}>
+                            <MessageContent content={opportunity.content} currentUserName={currentUserName} />
+                        </Box>
+
+                        <Stack direction="horizontal" gap="xs" wrap="wrap">
+                            {opportunity.tags.map(tag => (
+                                <Box key={tag} style={{ background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                                    <Typography variant="caption">{tag}</Typography>
+                                </Box>
+                            ))}
+                        </Stack>
+
+                        {(opportunity.link || opportunity.contactInfo || opportunity.deadline) && (
+                            <Box style={{ background: 'var(--bg-tertiary)', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                                <Stack direction="vertical" gap="md">
+                                    {opportunity.link && (
+                                        <Stack direction="vertical" gap="none">
+                                            <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest opacity-40">Link</Typography>
+                                            <a href={opportunity.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-accent)', textDecoration: 'none' }} className="hover:underline break-all">
+                                                {opportunity.link}
+                                            </a>
+                                        </Stack>
+                                    )}
+                                    {opportunity.contactInfo && (
+                                        <Stack direction="vertical" gap="none">
+                                            <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest opacity-40">Contact</Typography>
+                                            <Typography variant="body">{opportunity.contactInfo}</Typography>
+                                        </Stack>
+                                    )}
+                                    {opportunity.deadline && (
+                                        <Stack direction="vertical" gap="none">
+                                            <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest opacity-40">Deadline</Typography>
+                                            <Typography variant="body" style={{ color: 'var(--accent-warning)', fontWeight: 'bold' }}>{format(new Date(opportunity.deadline), "PPP", { locale: sv })}</Typography>
+                                        </Stack>
+                                    )}
+                                </Stack>
+                            </Box>
+                        )}
+
+                        {opportunity.attachments.length > 0 && (
+                            <Stack direction="vertical" gap="sm">
+                                <Typography variant="caption" style={{ fontWeight: 'bold' }} className="uppercase tracking-widest opacity-40">Attachments</Typography>
+                                <AttachmentList attachments={opportunity.attachments} />
+                            </Stack>
+                        )}
+                    </Stack>
+                </Card>
+
+                {/* Discussion Section */}
+                <Stack direction="vertical" gap="md">
+                    <Stack direction="horizontal" gap="xs" align="center">
+                        <MessageSquare size={16} className="text-secondary opacity-40" />
+                        <Typography variant="h3">Discussion ({opportunity.comments.length})</Typography>
+                    </Stack>
+
+                    <Stack direction="vertical" gap="md">
+                        {opportunity.comments.map(comment => {
+                            const isCommentMentioned = currentUserName && comment.content.toLowerCase().includes(`@${currentUserName.toLowerCase()}`);
+                            return (
+                                <Card key={comment.id} className={isCommentMentioned ? 'border-primary' : ''} style={{ background: 'var(--bg-tertiary)' }}>
+                                    <Stack direction="vertical" gap="sm">
+                                        <Stack direction="horizontal" justify="between" align="center">
+                                            <Typography variant="caption" style={{ fontWeight: 'bold' }}>{comment.user.name.toLowerCase()}</Typography>
+                                            <Typography variant="caption" className="text-secondary opacity-40">{format(new Date(comment.createdAt), "HH:mm, PPP", { locale: sv })}</Typography>
+                                        </Stack>
+                                        <Box style={{ opacity: 0.9 }}>
+                                            <MessageContent content={comment.content} currentUserName={currentUserName} />
+                                        </Box>
+                                        {comment.attachments.length > 0 && (
+                                            <AttachmentList attachments={comment.attachments} />
+                                        )}
+                                    </Stack>
+                                </Card>
+                            );
+                        })}
+                        {opportunity.comments.length === 0 && (
+                            <Box style={{ textAlign: 'center', padding: 'var(--space-lg) 0', opacity: 0.4 }}>
+                                <Typography variant="caption" className="italic">No comments yet. Start the conversation.</Typography>
+                            </Box>
+                        )}
+                    </Stack>
+
+                    {/* Add Comment Card */}
+                    <Card style={{ background: 'var(--bg-secondary)' }}>
+                        <form onSubmit={handleAddComment}>
+                            <Stack direction="vertical" gap="md">
+                                <Box style={{ position: 'relative' }}>
+                                    {mentionQuery !== null && (
+                                        <MentionList
+                                            users={mentionUsers}
+                                            selectedIndex={mentionIndex}
+                                            onSelect={(u) => insertMention(u)}
+                                            loading={mentionLoading}
                                         />
-                                    </div>
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    disabled={commentRefreshing}
-                                >
-                                    {commentRefreshing ? "skickar..." : "skicka"}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                                    )}
+                                    <textarea
+                                        ref={inputRef}
+                                        name="content"
+                                        className="input"
+                                        rows={3}
+                                        placeholder="Add a comment... use @ to tag someone"
+                                        required
+                                        value={content}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        style={{ width: '100%', resize: 'vertical' }}
+                                    />
+                                </Box>
+
+                                <Stack direction="horizontal" justify="between" align="end">
+                                    <Box style={{ flex: 1 }}>
+                                        <AttachmentList
+                                            attachments={pendingAttachments}
+                                            onRemove={(url) => setPendingAttachments(pendingAttachments.filter(a => a.url !== url))}
+                                        />
+                                        <Box style={{ paddingTop: '8px' }}>
+                                            <AttachmentPicker
+                                                onUploadSuccess={(url, file) => setPendingAttachments([...pendingAttachments, { url, name: file.name, mimeType: file.type, size: file.size }])}
+                                                onUploadError={(err) => alert(err)}
+                                                spaceId="opportunities"
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Button type="submit" disabled={commentRefreshing} variant="primary">
+                                        {commentRefreshing ? "Sending..." : "Send Comment"}
+                                    </Button>
+                                </Stack>
+                            </Stack>
+                        </form>
+                    </Card>
+                </Stack>
+            </Stack>
+        </Container>
     );
 }

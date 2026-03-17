@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     try {
         const response = await fetch(url, {
             headers: {
-                "User-Agent": "collab-bot/1.0",
+                "User-Agent": "the-support-network-bot/1.0",
             },
             next: { revalidate: 3600 } // Cache for 1 hour
         });

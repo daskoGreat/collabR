@@ -20,15 +20,34 @@ export default async function TasksPage({ params }: Props) {
         where: { spaceId: id },
         orderBy: { createdAt: "desc" },
         include: {
-            assignee: { select: { id: true, name: true } },
-            creator: { select: { name: true } },
+            assignee: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            },
+            creator: {
+                select: {
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            },
             _count: { select: { comments: true } },
         },
     });
 
     const members = await prisma.spaceMember.findMany({
         where: { spaceId: id },
-        include: { user: { select: { id: true, name: true } } },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            }
+        },
     });
 
     return (

@@ -9,8 +9,13 @@ import { updatePresence, renameThread, leaveThread } from "@/lib/actions/chat";
 import { useRouter } from "next/navigation";
 import MentionList from "@/components/mention-list";
 import Link from "next/link";
-import { User, Users } from "lucide-react";
+import { User, Users, MessageSquare } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { AvatarPreview } from "@/components/avatar-builder/AvatarPreview";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Stack } from "@/components/layout/Stack";
+import { Typography } from "@/components/ui/typography";
+import { Box } from "@/components/layout/Box";
 
 interface User {
     id: string;
@@ -29,7 +34,7 @@ interface Message {
     id: string;
     content: string;
     createdAt: string;
-    user: { id: string; name: string };
+    user: { id: string; name: string; avatarConfig?: { avatarId?: string } };
     attachments?: Attachment[];
 }
 
@@ -37,8 +42,8 @@ interface Props {
     threadId: string;
     title: string;
     isGroup: boolean;
-    otherUser: { id: string; name: string; lastSeenAt?: Date | null } | null;
-    currentUser: { id: string; name: string };
+    otherUser: { id: string; name: string; lastSeenAt?: Date | null; avatarConfig?: { avatarId?: string } } | null;
+    currentUser: { id: string; name: string; avatarId?: string };
     initialMessages: Message[];
 }
 
@@ -112,7 +117,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
             try {
                 const params = new URLSearchParams({ threadId });
                 if (lastMessageIdRef.current) params.set("after", lastMessageIdRef.current);
-                const res = await fetch(`/api/dm/messages?${params}`);
+                const res = await fetch(`/api/messages/messages?${params}`);
                 if (res.ok) {
                     const data: Message[] = await res.json();
                     if (data.length > 0) addMessages(data);
@@ -127,7 +132,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
     useEffect(() => {
         const markAsRead = async () => {
             try {
-                await fetch("/api/dm/read", {
+                await fetch("/api/messages/read", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ threadId }),
@@ -150,7 +155,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
         const content = input.trim();
         setInput("");
         try {
-            const res = await fetch("/api/dm/send", {
+            const res = await fetch("/api/messages/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -254,7 +259,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
         if (!editContent.trim() || updating) return;
         setUpdating(true);
         try {
-            const res = await fetch("/api/dm/message", {
+            const res = await fetch("/api/messages/message", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ messageId, content: editContent.trim() }),
@@ -273,7 +278,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
     async function handleDelete(messageId: string) {
         if (!confirm("Are you sure you want to delete this message?")) return;
         try {
-            const res = await fetch(`/api/dm/message?id=${messageId}`, { method: "DELETE" });
+            const res = await fetch(`/api/messages/message?id=${messageId}`, { method: "DELETE" });
             if (res.ok) {
                 setMessages(prev => prev.filter(m => m.id !== messageId));
             }
@@ -287,62 +292,131 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
     }
 
     return (
-        <>
-            <div className="topbar">
-                <div className="row-between w-full">
-                    <div className="row" style={{ gap: "var(--space-4)" }}>
+        <Stack style={{ height: '100dvh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+            <Box style={{
+                padding: '0.75rem 1.5rem',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                background: 'rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(20px)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                flexShrink: 0
+            }}>
+                <Stack direction="horizontal" justify="between" align="center" style={{ width: '100%' }}>
+                    <Stack direction="horizontal" gap={16} align="center">
                         <BackButton />
-                        <div className="topbar-title">
-                            <div className="flex items-center gap-[var(--space-2)]">
-                                <Link href="/spaces" className="text-secondary hover:text-bright transition-colors">navet</Link>
-                                <span className="text-muted/30">/</span>
-                                <span className="topbar-title-highlight flex items-center gap-[var(--space-2)] backdrop-blur-sm bg-tertiary/20 px-[var(--space-2)] py-[var(--space-1)] rounded-[var(--radius-sm)] border border-subtle">
-                                    {isGroup ? <Users size={12} strokeWidth={2} /> : <User size={12} strokeWidth={2} />}
-                                    {title.toLowerCase()}
-                                </span>
-                            </div>
-                            {!isGroup && otherUser && (
-                                <div className="flex items-center gap-1.5 mt-0.5 ml-1">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
-                                        ? "bg-success shadow-[0_0_8px_var(--success)]"
-                                        : "bg-muted"
-                                        }`} />
-                                    <span className="text-[9px] text-muted uppercase font-bold tracking-widest opacity-80">
-                                        {otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
-                                            ? "online" : "offline"}
-                                    </span>
-                                </div>
+                        <Stack direction="horizontal" gap={12} align="center">
+                            {isGroup ? (
+                                <Box style={{
+                                    width: 42,
+                                    height: 42,
+                                    borderRadius: "14px",
+                                    background: "rgba(255,255,255,0.03)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "1px solid rgba(255,255,255,0.05)"
+                                }}>
+                                    <Users size={20} style={{ opacity: 0.6 }} />
+                                </Box>
+                            ) : (
+                                <AvatarPreview
+                                    avatarId={otherUser?.avatarConfig?.avatarId}
+                                    name={otherUser?.name || ""}
+                                    size="md"
+                                />
                             )}
-                        </div>
-                    </div>
+                            <Box>
+                                <Typography style={{
+                                    fontWeight: 800,
+                                    fontSize: "1rem",
+                                    color: "white",
+                                    letterSpacing: "-0.01em"
+                                }}>
+                                    {title}
+                                </Typography>
+                                {!isGroup && otherUser && (
+                                    <Stack direction="horizontal" gap={6} align="center">
+                                        <Box style={{
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000)
+                                                ? "var(--neon-green)"
+                                                : "rgba(255,255,255,0.2)",
+                                            boxShadow: (otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000))
+                                                ? "0 0 10px rgba(0, 230, 118, 0.4)"
+                                                : "none"
+                                        }} />
+                                        <Typography style={{
+                                            fontSize: "0.65rem",
+                                            color: "rgba(255,255,255,0.4)",
+                                            fontWeight: 800,
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.08em"
+                                        }}>
+                                            {(otherUser.lastSeenAt && (new Date().getTime() - new Date(otherUser.lastSeenAt).getTime() < 5 * 60 * 1000))
+                                                ? "aktiv nu" : "frånvarande"}
+                                        </Typography>
+                                    </Stack>
+                                )}
+                            </Box>
+                        </Stack>
+                    </Stack>
 
                     <div className="relative" ref={menuRef}>
-                        <button className="btn btn-ghost" onClick={() => setIsMenuOpen(!isMenuOpen)}>⋮</button>
+                        <button
+                            className="btn btn-ghost !w-10 !h-10 !p-0 !rounded-full hover:bg-white/5 active:scale-90"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            style={{ transition: 'all 0.2s' }}
+                        >
+                            <span style={{ fontSize: '1.2rem', opacity: 0.4 }}>⋮</span>
+                        </button>
                         {isMenuOpen && (
-                            <div className="card card-compact absolute top-full right-0 mt-2 min-w-[200px] z-[100] shadow-lg">
-                                <div className="p-1">
-                                    {isGroup && (
-                                        <button className="sidebar-link w-full text-left" onClick={() => { setIsMenuOpen(false); setIsRenaming(true); }}>
-                                            <span className="sidebar-link-icon">✎</span>
-                                            byt namn
-                                        </button>
-                                    )}
-                                    <button className="sidebar-link w-full text-left text-danger" onClick={async () => {
+                            <Box style={{
+                                position: "absolute",
+                                top: "calc(100% + 8px)",
+                                right: 0,
+                                minWidth: "200px",
+                                zIndex: 100,
+                                background: "#161616",
+                                border: "1px solid rgba(255,255,255,0.08)",
+                                borderRadius: "16px",
+                                boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+                                padding: "4px",
+                                overflow: "hidden",
+                                animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                            }}>
+                                {isGroup && (
+                                    <button
+                                        className="sidebar-link w-full text-left"
+                                        style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '13px', display: 'flex', gap: '10px', alignItems: 'center' }}
+                                        onClick={() => { setIsMenuOpen(false); setIsRenaming(true); }}
+                                    >
+                                        <span style={{ opacity: 0.5 }}>✎</span>
+                                        byt namn
+                                    </button>
+                                )}
+                                <button
+                                    className="sidebar-link w-full text-left text-danger"
+                                    style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '13px', display: 'flex', gap: '10px', alignItems: 'center', color: '#ff4d4d' }}
+                                    onClick={async () => {
                                         if (confirm("Lämna chatten?")) {
                                             await leaveThread(threadId);
-                                            router.push("/dm");
+                                            router.push("/messages");
                                             router.refresh();
                                         }
-                                    }}>
-                                        <span className="sidebar-link-icon">⏻</span>
-                                        lämna chatt
-                                    </button>
-                                </div>
-                            </div>
+                                    }}
+                                >
+                                    <span style={{ opacity: 0.7 }}>⏻</span>
+                                    lämna chatt
+                                </button>
+                            </Box>
                         )}
                     </div>
-                </div>
-            </div>
+                </Stack>
+            </Box>
 
             {isRenaming && (
                 <div className="modal-overlay">
@@ -366,16 +440,15 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                     </div>
                 </div>
             )}
-            <div className="chat-container">
-                <div className="chat-messages px-[var(--space-8)] py-[var(--space-6)]">
+
+            <Stack style={{ flex: 1, overflow: 'hidden' }}>
+                <div className="chat-messages px-[var(--space-8)] py-[var(--space-6)]" style={{ flex: 1, overflowY: 'auto' }}>
                     {messages.length === 0 && (
-                        <div className="empty-state py-20 card border-dashed border-subtle">
-                            <div className="empty-state-icon text-muted/30">✉</div>
-                            <div className="empty-state-title">{isGroup ? "denna grupp" : "denna konversation"}</div>
-                            <div className="empty-state-text">
-                                {isGroup ? "detta är början på gruppchatten." : `början på din konversation med ${otherUser?.name.toLowerCase()}.`}
-                            </div>
-                        </div>
+                        <EmptyState
+                            icon={MessageSquare}
+                            title={isGroup ? "Början på gruppen" : `Prata med ${otherUser?.name?.split(" ")[0] || ''}`}
+                            description={isGroup ? "Detta är början på gruppchatten." : `Början på din konversation med ${otherUser?.name?.toLowerCase() || ''}.`}
+                        />
                     )}
                     {messages.map((msg, index) => {
                         const prevMsg = index > 0 ? messages[index - 1] : null;
@@ -393,9 +466,13 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                                 className={`chat-message group ${msg.user.id === currentUser.id ? "chat-message-own" : ""} ${isMentioned ? "chat-message-mentioned" : ""} ${isGrouped ? "chat-message-grouped" : ""}`}
                             >
                                 {!isGrouped ? (
-                                    <div className="chat-message-avatar font-bold">
-                                        {msg.user.name.charAt(0).toUpperCase()}
-                                    </div>
+                                    <Box className="chat-message-avatar">
+                                        <AvatarPreview
+                                            avatarId={msg.user.avatarConfig?.avatarId}
+                                            name={msg.user.name}
+                                            size={32}
+                                        />
+                                    </Box>
                                 ) : (
                                     <div className="chat-message-spacer w-7 shrink-0 flex justify-center items-center">
                                         <div className="w-[1px] h-full bg-subtle/20 group-hover:bg-subtle/50 transition-colors" />
@@ -479,7 +556,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                     })}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="chat-input-area px-[var(--space-6)] py-[var(--space-4)] border-t border-subtle bg-secondary/80 backdrop-blur-md">
+                <div className="chat-input-area px-[var(--space-6)] py-[var(--space-4)] border-t border-subtle bg-secondary/80 backdrop-blur-md" style={{ flexShrink: 0 }}>
                     {mentionQuery !== null && (
                         <MentionList
                             users={mentionUsers}
@@ -535,7 +612,7 @@ export default function DmView({ threadId, title, isGroup, otherUser, currentUse
                         </button>
                     </form>
                 </div>
-            </div>
-        </>
+            </Stack>
+        </Stack>
     );
 }

@@ -23,7 +23,13 @@ export default async function ChatPage({ params }: Props) {
         orderBy: { createdAt: "asc" },
         take: 100,
         include: {
-            user: { select: { id: true, name: true } },
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            },
             attachments: true
         },
     });
@@ -35,10 +41,10 @@ export default async function ChatPage({ params }: Props) {
                 id: m.id,
                 content: m.content,
                 createdAt: m.createdAt.toISOString(),
-                user: { id: m.user.id, name: m.user.name },
+                user: { id: m.user.id, name: m.user.name, avatarId: m.user.avatarConfig?.avatarId },
                 attachments: m.attachments,
             }))}
-            currentUser={{ id: user.id, name: user.name }}
+            currentUser={{ id: user.id, name: user.name, avatarId: user.avatarConfig?.avatarId }}
             spaceId={id}
         />
     );

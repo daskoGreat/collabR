@@ -91,9 +91,14 @@ export default async function AppLayout({
         }
     }));
 
+    const avatarConfig = await prisma.avatarConfig.findUnique({
+        where: { userId: user.id },
+        select: { avatarId: true }
+    });
+
     return (
         <AppShell
-            user={user}
+            user={{ ...user, avatarId: avatarConfig?.avatarId || "default" }}
             spaces={allSpaces}
             dmThreads={dmList}
         >

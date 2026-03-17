@@ -1,45 +1,42 @@
-import { Skeleton, CardSkeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Container } from "@/components/layout/Container";
+import { Stack } from "@/components/layout/Stack";
+import { Box } from "@/components/layout/Box";
 
 export default function Loading() {
     return (
-        <>
-            <div className="topbar">
-                <div className="row" style={{ gap: "var(--space-4)" }}>
-                    <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
-                    <Skeleton className="w-48 h-6" variant="neon" />
-                </div>
-            </div>
-            <div className="content-area">
-                <Skeleton className="w-3/4 h-4 mb-8 opacity-50" />
+        <Container style={{ paddingBottom: '4rem', paddingTop: '2rem' }}>
+            <Stack gap={48}>
+                <Box>
+                    <Skeleton width="400px" height="48px" style={{ marginBottom: "1rem" }} />
+                    <Skeleton width="100%" height="20px" style={{ opacity: 0.5 }} />
+                </Box>
 
-                <div className="stats-grid mb-10">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="card stat-card">
-                            <Skeleton className="w-12 h-8 mb-2" />
-                            <Skeleton className="w-16 h-3 opacity-30" />
-                        </div>
-                    ))}
-                </div>
-
-                <div className="grid-2">
-                    <div className="card p-6">
-                        <Skeleton className="w-32 h-5 mb-6" />
-                        <div className="space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <Skeleton key={i} className="w-full h-12" />
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <Skeleton className="w-24 h-5 mb-4" />
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4].map(i => (
-                                <Skeleton key={i} className="w-full h-14" />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
+                <Box style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "2rem" }}>
+                    <Box style={{ gridColumn: "span 8" }}>
+                        <Stack gap={32}>
+                            <Box style={{ background: "rgba(255,255,255,0.02)", borderRadius: "32px", padding: "2.5rem", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                <Skeleton width="200px" height="24px" style={{ marginBottom: "2rem" }} />
+                                <Skeleton height="150px" borderRadius="16px" />
+                            </Box>
+                            <Box style={{ background: "rgba(255,255,255,0.02)", borderRadius: "32px", padding: "2.5rem", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                <Skeleton width="200px" height="24px" style={{ marginBottom: "2rem" }} />
+                                <Stack gap={16}>
+                                    {[1, 2, 3].map(i => (
+                                        <Skeleton key={i} height="80px" borderRadius="16px" />
+                                    ))}
+                                </Stack>
+                            </Box>
+                        </Stack>
+                    </Box>
+                    <Box style={{ gridColumn: "span 4" }}>
+                        <Stack gap={24}>
+                            <Skeleton height="300px" borderRadius="24px" />
+                            <Skeleton height="150px" borderRadius="24px" />
+                        </Stack>
+                    </Box>
+                </Box>
+            </Stack>
+        </Container>
     );
 }

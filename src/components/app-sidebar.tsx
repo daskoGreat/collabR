@@ -3,30 +3,42 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useWalkthrough } from "./walkthrough-system";
-import { HelpCircle } from "lucide-react";
-import UserMenu from "./user-menu";
-
 import {
-    LayoutDashboard,
-    Sparkles,
     Hash,
-    MessageSquare,
-    User,
+    Plus,
     Users,
-    Star,
+    User,
     Settings,
+    LogOut,
+    X,
+    LayoutDashboard,
+    Activity,
+    Heart,
+    Shield,
+    Briefcase,
+    Sprout,
+    Wind,
+    Coffee,
+    Focus,
+    Star,
     UserCog,
     UserPlus,
-    History,
-    Plus,
-    X,
+    Inbox as LucideInbox,
+    History as LucideHistory,
+    HelpCircle,
     Search,
-    Inbox,
-    Building2
+    Sparkles,
+    Building2,
+    MessageSquare
 } from "lucide-react";
+import UserMenu from "./user-menu";
+import { Stack } from "@/components/layout/Stack";
+import { Box } from "@/components/layout/Box";
+import { Typography } from "@/components/ui/typography";
+import { Card } from "@/components/ui/card";
+import { AvatarPreview } from "./avatar-builder/AvatarPreview";
 
 interface Channel {
     id: string;
@@ -46,14 +58,14 @@ interface DmThread {
     isGroup: boolean;
     name?: string;
     memberCount?: number;
-    otherUser?: { id: string; name: string };
+    otherUser?: { id: string; name: string; avatarId?: string };
     isOnline?: boolean;
     unreadCount?: number;
     hasMention?: boolean;
 }
 
 interface Props {
-    user: { id: string; name: string; email: string; role: string };
+    user: { id: string; name: string; email: string; role: string; avatarId?: string };
     spaces: Space[];
     dmThreads: DmThread[];
     isOpen?: boolean;
@@ -97,10 +109,8 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
             }
         };
 
-        // Poll as fallback
         const interval = setInterval(fetchSidebarData, 30000);
 
-        // Pusher for immediate updates
         let cleanup: (() => void) | undefined;
         try {
             const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -129,13 +139,11 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
         };
     }, [user.id]);
 
-    // Also update if initial props change
     useEffect(() => {
         setSpaces(initialSpaces);
         setDmThreads(initialDmThreads);
     }, [initialSpaces, initialDmThreads]);
 
-    // Search users for new chat
     useEffect(() => {
         if (searchQuery.length < 1) {
             setSearchResults([]);
@@ -159,7 +167,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                 ? { targetUserId: selectedUsers[0].id }
                 : { participants: selectedUsers.map(u => u.id), name: groupName };
 
-            const res = await fetch("/api/dm/thread", {
+            const res = await fetch("/api/messages/thread", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
@@ -170,7 +178,7 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
                 setSelectedUsers([]);
                 setSearchQuery("");
                 setGroupName("");
-                router.push(`/dm/${threadId}`);
+                router.push(`/messages/${threadId}`);
             }
         } catch (err) {
             console.error("Failed to create thread:", err);
@@ -182,7 +190,6 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
     const isActive = (path: string) =>
         pathname === path || pathname.startsWith(path + "/");
 
-    const initial = user.name.charAt(0).toUpperCase();
     const isAdmin = user.role === "ADMIN" || user.role === "MODERATOR";
 
     return (
@@ -193,353 +200,400 @@ export default function AppSidebar({ user, spaces: initialSpaces, dmThreads: ini
             />
             <nav className={`sidebar ${isOpen ? "open" : ""}`}>
                 <div className="sidebar-header">
-                    <div className="sidebar-logo flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                            <span className="sidebar-logo-prefix">~/</span>collab
-                            {isRefreshing && <LoadingSpinner size={10} className="opacity-30" />}
+                    <Stack direction="horizontal" justify="between" align="center" style={{ width: '100%' }}>
+                        <div className="sidebar-logo" style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+                            network
                         </div>
-                    </div>
+                        {isRefreshing && <LoadingSpinner size={10} className="opacity-30" />}
+                    </Stack>
                 </div>
 
                 <div className="sidebar-nav">
-                    <Link
-                        id="nav-navet"
-                        href="/spaces"
-                        onClick={onClose}
-                        className={`sidebar-link ${isActive("/spaces") && !pathname.includes("/spaces/") ? "active" : ""}`}
-                    >
-                        <span className="sidebar-link-icon">
-                            <LayoutDashboard size={18} strokeWidth={1.5} />
-                        </span>
-                        <span className="flex-1">navet</span>
-                        {openHelpCount > 0 && (
-                            <span className="badge badge-primary scale-75">
-                                {openHelpCount}
-                            </span>
-                        )}
-                    </Link>
+                    {/* NETWORK Section */}
+                    <Box className="sidebar-section">
+                        <Typography className="sidebar-section-title">Network</Typography>
+                        <Stack direction="vertical" gap={2}>
+                            <Link
+                                href="/network"
+                                className={`sidebar-link ${pathname === '/network' ? 'active' : ''}`}
+                                onClick={onClose}
+                            >
+                                <LayoutDashboard size={16} className="sidebar-link-icon" />
+                                <span>Overview</span>
+                            </Link>
+                            <Link
+                                href="/network/pulse"
+                                className={`sidebar-link ${pathname === '/network/pulse' ? 'active' : ''}`}
+                                onClick={onClose}
+                            >
+                                <Activity size={16} className="sidebar-link-icon" />
+                                <span>Pulse</span>
+                            </Link>
+                        </Stack>
+                    </Box>
 
-                    <Link
-                        id="nav-insikter"
-                        href="/feed"
-                        onClick={onClose}
-                        className={`sidebar-link ${isActive("/feed") ? "active" : ""}`}
-                    >
-                        <span className="sidebar-link-icon">
-                            <Sparkles size={18} strokeWidth={1.5} />
-                        </span>
-                        insikter
-                        {hasFeedMention && (
-                            <span className="mention-dot" title="Nya omnämnanden i feeden" />
-                        )}
-                    </Link>
-
-                    <div id="nav-kontor" className="sidebar-section">
-                        <div className="sidebar-section-header">
-                            <div className="sidebar-section-title">dina kontor</div>
-                        </div>
-                        {spaces.map((space) => (
-                            <div key={space.id} className="sidebar-group">
-                                <Link
-                                    href={`/spaces/${space.id}`}
-                                    onClick={onClose}
-                                    className={`sidebar-link ${isActive(`/spaces/${space.id}`) && !pathname.includes("/chat/") ? "active" : ""}`}
-                                >
-                                    <span className="sidebar-link-icon">
-                                        <Building2 size={18} strokeWidth={1.5} />
-                                    </span>
-                                    {space.name.toLowerCase()}
-                                </Link>
-                                <div className="sidebar-sub-nav">
-                                    {space.channels?.map((ch) => (
+                    {/* COMMUNITY SPACES Section */}
+                    <Box className="sidebar-section">
+                        <Typography className="sidebar-section-title">Community Spaces</Typography>
+                        <Stack direction="vertical" gap={2}>
+                            {spaces.map((space) => {
+                                const isActive = pathname.startsWith(`/spaces/${space.id}`);
+                                return (
+                                    <div key={space.id}>
                                         <Link
-                                            key={ch.id}
-                                            href={`/spaces/${space.id}/chat/${ch.id}`}
-                                            className={`sidebar-link sidebar-link-sub ${isActive(`/spaces/${space.id}/chat/${ch.id}`) ? "active" : ""}`}
+                                            href={`/spaces/${space.id}`}
+                                            className={`sidebar-link ${isActive && !pathname.includes("/channels/") ? 'active' : ''}`}
                                             onClick={onClose}
                                         >
-                                            <span className="sidebar-link-icon">
-                                                <MessageSquare size={14} strokeWidth={1.5} />
-                                            </span>
-                                            <span className="sidebar-link-text">{ch.name.toLowerCase()}</span>
-                                            {ch.hasMention ? (
-                                                <span className="badge badge-notification badge-mention">!</span>
-                                            ) : ch.unreadCount && ch.unreadCount > 0 ? (
-                                                <span className="badge badge-notification">{ch.unreadCount}</span>
-                                            ) : null}
+                                            <Hash size={16} className="sidebar-link-icon" />
+                                            <span>{space.name}</span>
                                         </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                        {spaces.length === 0 && (
-                            <div className="sidebar-link text-muted" style={{ cursor: "default" }}>
-                                <span className="sidebar-link-icon">
-                                    <Hash size={18} strokeWidth={1.5} className="opacity-20" />
-                                </span>
-                                inga kontor än
-                            </div>
-                        )}
-                    </div>
 
-                    {/* Direct Messages */}
-                    <div id="nav-direktmeddelanden" className="sidebar-section">
-                        <div className="sidebar-section-header">
-                            <div className="sidebar-section-title">direktmeddelanden</div>
+                                        {isActive && space.channels && space.channels.length > 0 && (
+                                            <div className="sidebar-sub-nav">
+                                                {space.channels.map(channel => (
+                                                    <Link
+                                                        key={channel.id}
+                                                        href={`/spaces/${space.id}/channels/${channel.id}`}
+                                                        className={`sidebar-link-sub ${pathname === `/spaces/${space.id}/channels/${channel.id}` ? 'active' : ''}`}
+                                                        onClick={onClose}
+                                                    >
+                                                        <span className="sidebar-link-icon" style={{ opacity: 0.5 }}>#</span>
+                                                        {channel.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </Stack>
+                    </Box>
+
+                    {/* SUPPORT NETWORK Section */}
+                    <Box className="sidebar-section">
+                        <Typography className="sidebar-section-title">Support Network</Typography>
+                        <Stack direction="vertical" gap={2}>
+                            {[
+                                { name: 'General Support', icon: Heart },
+                                { name: 'Life Challenges', icon: Shield },
+                                { name: 'Career Discussions', icon: Briefcase },
+                                { name: 'Personal Growth', icon: Sprout },
+                                { name: 'Anxiety Support', icon: Wind },
+                                { name: 'Stress Management', icon: Coffee },
+                                { name: 'Mindfulness', icon: Focus }
+                            ].map((item, i) => (
+                                <button
+                                    key={i}
+                                    className="sidebar-link"
+                                    style={{ opacity: 0.6, cursor: 'default' }}
+                                >
+                                    <item.icon size={16} className="sidebar-link-icon" />
+                                    <span>{item.name}</span>
+                                </button>
+                            ))}
+                        </Stack>
+                    </Box>
+
+                    {/* DIREKTMEDDELANDEN Section */}
+                    <Box className="sidebar-section">
+                        <Typography className="sidebar-section-title">Direktmeddelanden</Typography>
+                        <Stack direction="vertical" gap={4}>
+                            {dmThreads.map((thread) => {
+                                const threadName = thread.isGroup ? thread.name : thread.otherUser?.name;
+                                const isActive = pathname === `/messages/${thread.id}`;
+
+                                return (
+                                    <Link
+                                        key={thread.id}
+                                        href={`/messages/${thread.id}`}
+                                        className={`sidebar-link ${isActive ? 'active' : ''}`}
+                                        onClick={onClose}
+                                        style={{ padding: '8px 12px' }}
+                                    >
+                                        <Box style={{ position: 'relative', flexShrink: 0 }}>
+                                            <AvatarPreview
+                                                avatarId={thread.otherUser?.avatarId}
+                                                name={threadName}
+                                                size={24}
+                                            />
+                                            {!thread.isGroup && thread.isOnline && (
+                                                <div className="status-dot online" style={{
+                                                    position: 'absolute',
+                                                    bottom: -1,
+                                                    right: -1,
+                                                    width: 8,
+                                                    height: 8,
+                                                    border: '2px solid var(--bg-secondary)',
+                                                    background: 'var(--neon-green)',
+                                                    borderRadius: '50%'
+                                                }} />
+                                            )}
+                                        </Box>
+                                        <Typography
+                                            style={{
+                                                flex: 1,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                fontSize: '0.85rem',
+                                                fontWeight: isActive ? 700 : 500,
+                                                color: isActive ? 'white' : 'rgba(255,255,255,0.6)'
+                                            }}
+                                        >
+                                            {threadName?.toLowerCase()}
+                                        </Typography>
+                                        {thread.unreadCount && thread.unreadCount > 0 && (
+                                            <span className="badge-notification">{thread.unreadCount}</span>
+                                        )}
+                                        {thread.hasMention && <div className="mention-dot" />}
+                                    </Link>
+                                );
+                            })}
                             <button
-                                className="btn-sidebar-action"
                                 onClick={() => setShowNewChat(true)}
-                                title="Ny chatt"
+                                className="sidebar-link-action"
+                                style={{
+                                    marginTop: '4px',
+                                    padding: '8px 12px',
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    color: 'rgba(255,255,255,0.3)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    borderRadius: '8px',
+                                    transition: 'all 0.2s'
+                                }}
                             >
-                                <Plus size={16} strokeWidth={2} />
+                                <Plus size={14} style={{ opacity: 0.5 }} />
+                                <Typography style={{ fontSize: '0.8rem', fontWeight: 600 }}>nytt meddelande</Typography>
                             </button>
-                        </div>
-                        {dmThreads.map((thread) => (
-                            <Link
-                                key={thread.id}
-                                href={`/dm/${thread.id}`}
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive(`/dm/${thread.id}`) ? "active" : ""}`}
-                            >
-                                <span className={`sidebar-link-icon ${!thread.isGroup && thread.isOnline ? "text-success" : ""}`}>
-                                    {thread.isGroup ? <Users size={16} strokeWidth={1.5} /> : <User size={16} strokeWidth={1.5} />}
-                                </span>
-                                <span className="flex-1 truncate">
-                                    {thread.isGroup
-                                        ? (thread.name || "Namnlös grupp")
-                                        : (thread.otherUser?.name.toLowerCase())}
-                                </span>
-                                {thread.isGroup && (
-                                    <span className="text-[10px] text-muted opacity-50 mr-2">{thread.memberCount}</span>
-                                )}
-                                {!thread.isGroup && thread.isOnline && (
-                                    <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_4px_var(--success)] mr-2" />
-                                )}
-                                {thread.hasMention ? (
-                                    <span className="badge badge-notification badge-mention">!</span>
-                                ) : thread.unreadCount && thread.unreadCount > 0 ? (
-                                    <span className="badge badge-notification">{thread.unreadCount}</span>
-                                ) : null}
-                            </Link>
-                        ))}
-                        {dmThreads.length === 0 && (
-                            <div className="sidebar-link text-muted" style={{ cursor: "default", fontSize: "var(--font-size-xs)" }}>
-                                <span className="sidebar-link-icon">
-                                    <MessageSquare size={16} strokeWidth={1.5} className="opacity-20" />
-                                </span>
-                                inga konversationer än
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="sidebar-section">
-                        <div className="sidebar-section-header">
-                            <div className="sidebar-section-title">marknad</div>
-                        </div>
-                        <Link
-                            href="/opportunities"
-                            onClick={onClose}
-                            className={`sidebar-link ${isActive("/opportunities") ? "active" : ""}`}
-                        >
-                            <span className="sidebar-link-icon">
-                                <Star size={18} strokeWidth={1.5} />
-                            </span>
-                            jobb & möjligheter
-                            {hasOpportunityMention && (
-                                <span className="badge badge-notification badge-mention">!</span>
-                            )}
-                        </Link>
-                    </div>
+                        </Stack>
+                    </Box>
 
                     {isAdmin && (
                         <div className="sidebar-section">
                             <div className="sidebar-section-header">
-                                <div className="sidebar-section-title">admin</div>
+                                <div className="sidebar-section-title">Admin</div>
                             </div>
-                            <Link
-                                href="/admin"
-                                onClick={onClose}
-                                className={`sidebar-link ${pathname === "/admin" ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <Settings size={16} strokeWidth={1.5} />
-                                </span>
-                                överblick
-                            </Link>
-                            <Link
-                                href="/admin/users"
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive("/admin/users") ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <UserCog size={16} strokeWidth={1.5} />
-                                </span>
-                                användare
-                            </Link>
-                            <Link
-                                href="/admin/invites"
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive("/admin/invites") ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <UserPlus size={16} strokeWidth={1.5} />
-                                </span>
-                                inbjudningar
-                            </Link>
-                            <Link
-                                href="/admin/requests"
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive("/admin/requests") ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <Inbox size={16} strokeWidth={1.5} />
-                                </span>
-                                förfrågningar
-                                {/* Notification badge could be added here later if we fetch pending count */}
-                            </Link>
-                            <Link
-                                href="/admin/reports"
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive("/admin/reports") ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <X size={16} strokeWidth={1.5} />
-                                </span>
-                                rapporter
-                            </Link>
-                            <Link
-                                href="/admin/audit"
-                                onClick={onClose}
-                                className={`sidebar-link ${isActive("/admin/audit") ? "active" : ""}`}
-                            >
-                                <span className="sidebar-link-icon text-[14px]">
-                                    <History size={16} strokeWidth={1.5} />
-                                </span>
-                                händelselogg
-                            </Link>
+                            <Stack direction="vertical" gap="none">
+                                <Link
+                                    href="/admin"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${pathname === "/admin" ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <Settings size={14} strokeWidth={2} />
+                                    </Box>
+                                    Overview
+                                </Link>
+                                <Link
+                                    href="/admin/users"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/admin/users") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <UserCog size={14} strokeWidth={2} />
+                                    </Box>
+                                    Users
+                                </Link>
+                                <Link
+                                    href="/admin/invites"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/admin/invites") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <UserPlus size={14} strokeWidth={2} />
+                                    </Box>
+                                    Invites
+                                </Link>
+                                <Link
+                                    href="/admin/requests"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/admin/requests") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <LucideInbox size={14} strokeWidth={2} />
+                                    </Box>
+                                    <span className="flex-1">Inbox</span>
+                                </Link>
+
+                                <Link
+                                    href="/history"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/history") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <LucideHistory size={14} strokeWidth={2} />
+                                    </Box>
+                                    History
+                                </Link>
+                                <Link
+                                    href="/admin/reports"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/admin/reports") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <X size={14} strokeWidth={2} />
+                                    </Box>
+                                    Reports
+                                </Link>
+                                <Link
+                                    href="/admin/audit"
+                                    onClick={onClose}
+                                    className={`sidebar-link ${isActive("/admin/audit") ? "active" : ""}`}
+                                >
+                                    <Box className="sidebar-link-icon">
+                                        <LucideHistory size={14} strokeWidth={2} />
+                                    </Box>
+                                    Audit Log
+                                </Link>
+                            </Stack>
                         </div>
                     )}
                 </div>
 
-                <div className="sidebar-footer">
-                    <button
-                        onClick={() => startWalkthrough([
-                            { targetId: 'nav-navet', title: 'Navet', content: 'Här får du en överblick av allt som händer. Dina senaste omnämnanden, de senaste hjälp-förfrågningarna och färska insikter från dina kollegor.' },
-                            { targetId: 'nav-insikter', title: 'Insikter', content: 'Feeden där alla delar med sig av vad de lärt sig. Ett sätt att hålla sig uppdaterad utan att drunkna i brus.' },
-                            { targetId: 'nav-kontor', title: 'Dina Kontor', content: 'Dina olika samarbeten är uppdelade i kontor. Varje kontor har sina egna kanaler, uppdrag och filer.' },
-                            { targetId: 'nav-direktmeddelanden', title: 'Direktmeddelanden', content: 'Snabb kommunikation ansikte mot ansikte (i textform). Här hittar du både 1-till-1 chatter och mindre grupper.' }
-                        ])}
-                        className="sidebar-link mb-2 opacity-50 hover:opacity-100 transition-opacity"
-                    >
-                        <span className="sidebar-link-icon">
-                            <HelpCircle size={16} strokeWidth={1.5} />
-                        </span>
-                        <span className="flex-1 text-[11px] uppercase tracking-wider">stöd & guidning</span>
-                    </button>
+                <div className="sidebar-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '20px 24px' }}>
+                    <Stack direction="vertical" gap={16}>
+                        <button
+                            onClick={() => startWalkthrough([
+                                { targetId: 'nav-navet', title: 'Network Overview', content: 'Få en fullständig överblick över vad som händer i nätverket.' },
+                                { targetId: 'nav-insikter', title: 'Network Pulse', content: 'Flödet där alla delar med sig av vad de lärt sig.' },
+                                { targetId: 'nav-kontor', title: 'Kontor', content: 'Dina samarbeten är uppdelade i kontor.' },
+                                { targetId: 'nav-direktmeddelanden', title: 'Meddelanden', content: 'Konversationer mellan två personer eller små grupper.' }
+                            ])}
+                            className="sidebar-guide-btn"
+                            style={{
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                borderRadius: '12px',
+                                padding: '10px 14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                width: '100%'
+                            }}
+                        >
+                            <HelpCircle size={14} style={{ opacity: 0.5 }} />
+                            <Typography style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Guide</Typography>
+                        </button>
 
-                    <div className="sidebar-user-unified flex items-center justify-between pt-4 border-t border-subtle/50">
-                        <div className="flex items-center gap-3">
-                            <div className="sidebar-user-avatar !w-8 !h-8 !text-[12px]">{initial}</div>
-                            <div className="sidebar-user-info">
-                                <div className="sidebar-user-name text-[13px]">{user.name.toLowerCase()}</div>
-                                <div className="sidebar-user-role !text-[10px]">{user.role.toLowerCase()}</div>
-                            </div>
-                        </div>
-                        <div className="hidden lg:block">
-                            <UserMenu user={user} />
-                        </div>
-                    </div>
+                        <Link href="/profile" onClick={onClose} style={{ textDecoration: 'none', display: 'block' }}>
+                            <Box style={{
+                                padding: '8px 12px',
+                                borderRadius: '16px',
+                                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                cursor: 'pointer'
+                            }} className="hover:bg-white/5 hover:scale-[1.02] active:scale-[0.98]">
+                                <Stack direction="horizontal" gap={12} align="center">
+                                    <AvatarPreview avatarId={user.avatarId} size={36} />
+                                    <Stack direction="vertical" gap={0}>
+                                        <Typography style={{ fontWeight: 800, fontSize: '0.85rem', color: '#fff' }}>
+                                            {user.name.toLowerCase()}
+                                        </Typography>
+                                        <Typography style={{ fontSize: '0.7rem', color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+                                            visa profil
+                                        </Typography>
+                                    </Stack>
+                                </Stack>
+                            </Box>
+                        </Link>
+                    </Stack>
                 </div>
             </nav>
 
             {showNewChat && (
                 <div className="modal-overlay">
-                    <div className="card max-w-md w-full p-6 shadow-2xl border border-primary/20">
-                        <div className="modal-title flex justify-between items-center mb-6">
-                            <span>ny konversation</span>
-                            <button className="text-muted hover:text-white transition-colors" onClick={() => setShowNewChat(false)}>
-                                <X size={20} strokeWidth={1.5} />
-                            </button>
-                        </div>
+                    <Card style={{ maxWidth: '400px', width: '90%', margin: '0 auto' }}>
+                        <Stack direction="vertical" gap="lg">
+                            <Stack direction="horizontal" justify="between" align="center">
+                                <Typography variant="h3">New Conversation</Typography>
+                                <button onClick={() => setShowNewChat(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                                    <X size={20} strokeWidth={1.5} />
+                                </button>
+                            </Stack>
 
-                        <div className="form-group mb-4">
-                            <label className="form-label">sök medlemmar</label>
-                            <div className="relative">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-                                <input
-                                    type="text"
-                                    className="input w-full pl-10"
-                                    placeholder="namn eller e-post..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    autoFocus
-                                />
-                            </div>
-                            {searchResults.length > 0 && (
-                                <div className="card card-compact mt-1 max-h-[200px] overflow-y-auto border border-subtle">
-                                    {searchResults.map(u => (
-                                        <button
-                                            key={u.id}
-                                            className="sidebar-link w-full text-left"
-                                            onClick={() => {
-                                                if (!selectedUsers.find(s => s.id === u.id)) {
-                                                    setSelectedUsers([...selectedUsers, u]);
-                                                }
-                                                setSearchQuery("");
-                                                setSearchResults([]);
-                                            }}
-                                        >
-                                            <span className="sidebar-link-icon">
-                                                <User size={14} strokeWidth={1.5} />
-                                            </span>
-                                            {u.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                            <Stack direction="vertical" gap="md">
+                                <Box style={{ position: 'relative' }}>
+                                    <Search size={14} className="text-secondary opacity-40" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        style={{ paddingLeft: '36px' }}
+                                        placeholder="Name or email..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        autoFocus
+                                    />
+                                </Box>
 
-                        {selectedUsers.length > 0 && (
-                            <div className="mb-6">
-                                <label className="form-label mb-2">valda:</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedUsers.map(u => (
-                                        <div key={u.id} className="badge p-2 bg-primary/10 border border-primary/30 flex items-center gap-2">
-                                            <span>{u.name}</span>
-                                            <button className="text-muted hover:text-danger" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))}>
-                                                <X size={12} strokeWidth={2} />
+                                {searchResults.length > 0 && (
+                                    <Box style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border-subtle)' }}>
+                                        {searchResults.map(u => (
+                                            <button
+                                                key={u.id}
+                                                className="sidebar-link"
+                                                onClick={() => {
+                                                    if (!selectedUsers.find(s => s.id === u.id)) {
+                                                        setSelectedUsers([...selectedUsers, u]);
+                                                    }
+                                                    setSearchQuery("");
+                                                    setSearchResults([]);
+                                                }}
+                                            >
+                                                <User size={14} style={{ marginRight: '8px' }} />
+                                                {u.name.toLowerCase()}
                                             </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                                        ))}
+                                    </Box>
+                                )}
+                            </Stack>
 
-                        {selectedUsers.length > 1 && (
-                            <div className="form-group mb-6">
-                                <label className="form-label">gruppnamn (valfritt)</label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="mitt team, helgplaner, etc..."
-                                    value={groupName}
-                                    onChange={(e) => setGroupName(e.target.value)}
-                                />
-                            </div>
-                        )}
+                            {selectedUsers.length > 0 && (
+                                <Stack direction="vertical" gap="xs">
+                                    <Typography variant="caption">Selected:</Typography>
+                                    <Stack direction="horizontal" gap="xs" wrap="wrap">
+                                        {selectedUsers.map(u => (
+                                            <Box key={u.id} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <Typography variant="caption">{u.name.toLowerCase()}</Typography>
+                                                <button onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                                                    <X size={10} />
+                                                </button>
+                                            </Box>
+                                        ))}
+                                    </Stack>
+                                </Stack>
+                            )}
 
-                        <div className="modal-actions">
-                            <button className="btn btn-secondary" onClick={() => setShowNewChat(false)}>avbryt</button>
-                            <button
-                                className="btn btn-primary flex items-center gap-2 justify-center"
-                                disabled={selectedUsers.length === 0 || isCreating}
-                                onClick={handleCreateThread}
-                            >
-                                {isCreating && <LoadingSpinner size="sm" className="text-current" />}
-                                <span>{isCreating ? "skapar..." : selectedUsers.length > 1 ? "skapa grupp" : "starta chatt"}</span>
-                            </button>
-                        </div>
-                    </div>
+                            {selectedUsers.length > 1 && (
+                                <Box>
+                                    <Typography variant="caption">Group Name (optional)</Typography>
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        placeholder="Team alpha, Weekend plans, etc..."
+                                        value={groupName}
+                                        onChange={(e) => setGroupName(e.target.value)}
+                                    />
+                                </Box>
+                            )}
+
+                            <Stack direction="horizontal" justify="end" gap="md">
+                                <button className="btn btn-secondary" onClick={() => setShowNewChat(false)}>Cancel</button>
+                                <button
+                                    className="btn btn-primary"
+                                    disabled={selectedUsers.length === 0 || isCreating}
+                                    onClick={handleCreateThread}
+                                >
+                                    {isCreating ? "Creating..." : selectedUsers.length > 1 ? "Create Group" : "Start Chat"}
+                                </button>
+                            </Stack>
+                        </Stack>
+                    </Card>
                 </div>
             )}
         </>

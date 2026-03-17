@@ -21,7 +21,13 @@ export default async function HelpPage({ params }: Props) {
         where: { spaceId: id },
         orderBy: { createdAt: "desc" },
         include: {
-            user: { select: { id: true, name: true } },
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarConfig: { select: { avatarId: true } }
+                }
+            },
             _count: { select: { answers: true } },
         },
     });
@@ -48,7 +54,7 @@ export default async function HelpPage({ params }: Props) {
                     content: p.content,
                     tags: p.tags,
                     solved: p.solved,
-                    user: p.user,
+                    user: { id: p.user.id, name: p.user.name, avatarId: p.user.avatarConfig?.avatarId },
                     answerCount: p._count.answers,
                     createdAt: p.createdAt.toISOString(),
                 }))}
